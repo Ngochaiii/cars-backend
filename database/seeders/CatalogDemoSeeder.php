@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Catalog\Core\Support\Catalog;
+use App\Support\Catalog;
 use Illuminate\Database\Seeder;
 
 /**

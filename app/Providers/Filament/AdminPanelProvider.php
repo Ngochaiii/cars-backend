@@ -2,7 +2,17 @@
 
 namespace App\Providers\Filament;
 
-use Catalog\Core\Filament\CatalogPanelPlugin;
+use App\Filament\Pages\ManageSettings;
+use App\Filament\Resources\Categories\CategoryResource;
+use App\Filament\Resources\Forms\FormResource;
+use App\Filament\Resources\Leads\LeadResource;
+use App\Filament\Resources\Menus\MenuResource;
+use App\Filament\Resources\Pages\PageResource;
+use App\Filament\Resources\PostCategories\PostCategoryResource;
+use App\Filament\Resources\Posts\PostResource;
+use App\Filament\Resources\Products\ProductResource;
+use App\Filament\Resources\Redirects\RedirectResource;
+use App\Support\Catalog;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -32,14 +42,26 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
-            // Admin của core (Product, Category, Lead) đến từ package.
-            ->plugin(CatalogPanelPlugin::make())
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
+            // Đăng ký tường minh + gate theo features: tắt khối nào trong
+            // config thì admin không lộ khối đó ra.
+            ->resources(array_values(array_filter([
+                ProductResource::class,
+                CategoryResource::class,
+
+                Catalog::feature('posts') ? PostResource::class : null,
+                Catalog::feature('posts') ? PostCategoryResource::class : null,
+                Catalog::feature('pages') ? PageResource::class : null,
+
+                MenuResource::class,
+                RedirectResource::class,
+
+                Catalog::feature('forms') ? FormResource::class : null,
+                Catalog::feature('forms') ? LeadResource::class : null,
+            ])))
             ->pages([
                 Dashboard::class,
+                ManageSettings::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
                 FilamentInfoWidget::class,
