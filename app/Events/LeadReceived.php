@@ -7,8 +7,9 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Core chỉ bắn event. Gửi mail / bắn webhook / đẩy CRM là việc của dự án —
- * mỗi site một kiểu, không nhét vào core.
+ * Bắn khi có lead mới. Hai listener nghe: gửi mail cho notify_emails và
+ * bắn webhook_url. Tách qua event để thêm kênh khác (CRM, Zalo...) sau này
+ * chỉ cần thêm listener, không đụng controller.
  */
 class LeadReceived
 {

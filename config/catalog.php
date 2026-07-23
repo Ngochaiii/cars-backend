@@ -138,6 +138,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Lead (form khách gửi)
+    |--------------------------------------------------------------------------
+    */
+    'leads' => [
+        // Ô bẫy bot: form frontend thêm một input ẩn tên này. Người thật để
+        // trống; bot điền vào thì bỏ qua lặng lẽ, vẫn trả 201 để bot không dò được.
+        'honeypot' => 'website',
+
+        // Cùng form + cùng số điện thoại trong bao nhiêu phút thì coi là trùng,
+        // không tạo lead mới. 0 = tắt.
+        'dedupe_minutes' => 5,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Admin (Filament)
     |--------------------------------------------------------------------------
     */
