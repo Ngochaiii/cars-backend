@@ -22,3 +22,6 @@ yarn-error.log
 /public/css/filament
 /public/js/filament
 /public/fonts/filament
+
+# Tài liệu nội bộ
+/doc
