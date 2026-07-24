@@ -64,7 +64,7 @@ return [
     | Màn hình Cài đặt dựng từ khai báo này — cần thêm mục thì khai báo ở đây,
     | KHÔNG thêm cột. Giá trị lưu vào bảng `settings` dạng key/value.
     |
-    | Kiểu ô: text · textarea · url · email · number · image · toggle
+    | Kiểu ô: text · textarea · url · email · number · image · toggle · color
     |
     */
     'settings' => [
@@ -72,6 +72,10 @@ return [
             'label'  => 'Chung',
             'fields' => [
                 'site_name' => ['label' => 'Tên website', 'type' => 'text'],
+
+                // Meta description của trang chủ.
+                'site_description' => ['label' => 'Mô tả ngắn', 'type' => 'textarea'],
+
                 'hotline'   => ['label' => 'Hotline', 'type' => 'text'],
                 'email'     => ['label' => 'Email liên hệ', 'type' => 'email'],
                 'address'   => ['label' => 'Địa chỉ', 'type' => 'textarea'],
@@ -149,6 +153,33 @@ return [
         // Cùng form + cùng số điện thoại trong bao nhiêu phút thì coi là trùng,
         // không tạo lead mới. 0 = tắt.
         'dedupe_minutes' => 5,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Frontend (Blade)
+    |--------------------------------------------------------------------------
+    |
+    | Số lượng và khoá menu/form của trang khách xem. Mỗi hãng đổi ở đây,
+    | không sửa controller.
+    |
+    */
+    'frontend' => [
+        'per_page' => 12,       // danh sách sản phẩm / tin tức
+
+        'home' => [
+            'products' => 8,    // số thẻ sản phẩm trên trang chủ
+            'posts'    => 3,    // số tin mới nhất
+        ],
+
+        // Khoá menu dựng ở màn hình Menu. Chưa tạo thì phần đó không render.
+        'menus' => [
+            'header' => 'header',
+            'footer' => 'footer',
+        ],
+
+        // Form hiện ở cuối trang chi tiết sản phẩm. null = không hiện.
+        'product_form' => 'dat-lich-lai-thu',
     ],
 
     /*

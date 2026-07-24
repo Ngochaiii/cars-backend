@@ -64,6 +64,41 @@ class SectionsRepeater
                     ->columnSpanFull()
                     ->visible(fn (Get $get) => $get('type') === 'text'),
 
+                /*
+                 * Ba kiểu mục dưới đây có trong config('catalog.section_types')
+                 * từ đầu nhưng trước không có ô nhập nào — chọn kiểu rồi cũng
+                 * không nhập được gì. Giờ mỗi kiểu có đúng ô nó cần.
+                 */
+                TextInput::make('video_url')
+                    ->label('Link video')
+                    ->helperText('YouTube/Vimeo hoặc link file .mp4 — frontend tự đổi thành khối nhúng.')
+                    ->url()
+                    ->columnSpanFull()
+                    ->visible(fn (Get $get) => $get('type') === 'video'),
+
+                Select::make('form_key')
+                    ->label('Form nhúng vào mục')
+                    ->options(fn () => Catalog::query('form')->orderBy('name')->pluck('name', 'key')->all())
+                    ->searchable()
+                    ->columnSpanFull()
+                    ->visible(fn (Get $get) => $get('type') === 'form' && Catalog::feature('forms')),
+
+                SpecsRepeater::rowsPasteField()
+                    ->visible(fn (Get $get) => $get('type') === 'table'),
+
+                Repeater::make('rows')
+                    ->label('Dòng trong bảng')
+                    ->addActionLabel('+ Thêm dòng')
+                    ->defaultItems(0)
+                    ->reorderableWithDragAndDrop()
+                    ->schema([
+                        TextInput::make('label')->label('Nhãn')->required(),
+                        TextInput::make('value')->label('Giá trị')->required(),
+                    ])
+                    ->columns(2)
+                    ->columnSpanFull()
+                    ->visible(fn (Get $get) => $get('type') === 'table'),
+
                 // Upload hàng loạt: kéo 12 ảnh vào một lần → 12 item.
                 // Thiếu cái này thì mục Thư viện phải bấm 12 lần.
                 FileUpload::make('bulk_upload')

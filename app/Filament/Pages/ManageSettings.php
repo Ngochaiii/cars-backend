@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use BackedEnum;
 use App\Models\Setting;
 use Filament\Actions\Action;
+use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -128,6 +129,7 @@ class ManageSettings extends Page
                 'email'    => TextInput::make($key)->label($label)->email(),
                 'number'   => TextInput::make($key)->label($label)->numeric(),
                 'toggle'   => Toggle::make($key)->label($label),
+                'color'    => ColorPicker::make($key)->label($label),
                 'image'    => FileUpload::make($key)
                     ->label($label)
                     ->image()

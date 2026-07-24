@@ -6,84 +6,28 @@ use App\Support\Catalog;
 use Illuminate\Database\Seeder;
 
 /**
- * Dữ liệu mẫu để soi thử admin + API. Xoá khi lên production.
+ * Khung của một site: cài đặt, menu, form đặt lịch, một trang tĩnh, một bài
+ * viết. **Không có xe nào** — xe do seeder theo hãng lo
+ * (`database/seeders/Brands/`), để đổi hãng không phải sửa file này.
+ *
+ * Chạy lại được nhiều lần (updateOrCreate).
  */
 class CatalogDemoSeeder extends Seeder
 {
     public function run(): void
     {
-        $category = Catalog::query('category')->firstOrCreate(
-            ['slug' => 'suv'],
-            ['name' => 'SUV'],
-        );
+        $this->form();
+        $this->content();
+        $this->settings();
+        $this->menus();
+    }
 
-        $product = Catalog::query('product')->updateOrCreate(
-            ['slug' => 'lexus-gx-550'],
-            [
-                'name'         => 'Lexus GX 550',
-                'tagline'      => 'Bản lĩnh chinh phục',
-                'category_id'  => $category->id,
-                'price_from'   => 5_990_000_000,
-                'status'       => 'published',
-                'published_at' => now(),
-                'hero'         => ['type' => 'image', 'src' => 'catalog/hero/gx550.webp'],
-                'highlights'   => [
-                    ['value' => '349', 'unit' => 'mã lực', 'label' => 'Công suất'],
-                    ['value' => '3.4', 'unit' => 'L', 'label' => 'Dung tích'],
-                ],
-                'sections' => [
-                    [
-                        'title'  => 'Thư viện',
-                        'intro'  => '',
-                        'type'   => 'media',
-                        'layout' => 'slider',
-                        'items'  => [
-                            ['image' => 'gallery-01.webp', 'label' => '', 'desc' => ''],
-                            ['image' => 'gallery-02.webp', 'label' => '', 'desc' => ''],
-                        ],
-                    ],
-                    [
-                        'title'  => 'Mâm xe',
-                        'intro'  => 'Mâm hợp kim nhôm đặc trưng cho từng phiên bản.',
-                        'type'   => 'media',
-                        'layout' => 'cols-2',
-                        'items'  => [
-                            [
-                                'image' => 'wheel-01.webp',
-                                'label' => 'Mâm hợp kim — Luxury',
-                                'desc'  => 'Tối ưu cho cả đô thị và off-road.',
-                            ],
-                        ],
-                    ],
-                ],
-                'specs' => [
-                    [
-                        'group' => 'Động Cơ & Hiệu Năng',
-                        'rows'  => [
-                            ['label' => 'Loại động cơ', 'value' => 'V35A-FTS, 6 xi lanh chữ V'],
-                            ['label' => 'Dung tích', 'value' => '3,445 cm³'],
-                        ],
-                    ],
-                ],
-                'seo' => ['title' => 'Lexus GX 550 — giá và thông số'],
-            ],
-        );
-
-        $product->variants()->delete();
-        $product->variants()->createMany([
-            ['name' => 'GX 550 Premium', 'price' => 5_990_000_000, 'sort' => 1, 'is_default' => true],
-            ['name' => 'GX 550 Luxury', 'price' => 6_890_000_000, 'sort' => 2],
-        ]);
-
-        $product->options()->delete();
-        $product->options()->createMany([
-            ['name' => 'Caviar Black', 'hex' => '#111111', 'sort' => 1],
-            ['name' => 'Zenith Grey', 'hex' => '#8A8D8F', 'sort' => 2],
-        ]);
-
+    /** Form đặt lịch lái thử — brand seeder nhúng form này vào cuối trang xe. */
+    protected function form(): void
+    {
         $form = Catalog::query('form')->updateOrCreate(
             ['key' => 'dat-lich-lai-thu'],
-            ['name' => 'Đặt lịch lái thử', 'success_message' => 'Cảm ơn bạn, tư vấn viên sẽ gọi lại trong 15 phút.'],
+            ['name' => 'Đặt lịch lái thử', 'success_message' => 'Đã nhận thông tin, chúng tôi sẽ liên hệ sớm.'],
         );
 
         $form->fields()->delete();
@@ -91,6 +35,80 @@ class CatalogDemoSeeder extends Seeder
             ['key' => 'name', 'label' => 'Họ tên', 'type' => 'text', 'rules' => ['required'], 'sort' => 1, 'width' => 'half'],
             ['key' => 'phone', 'label' => 'Điện thoại', 'type' => 'tel', 'rules' => ['required'], 'sort' => 2, 'width' => 'half'],
             ['key' => 'email', 'label' => 'Email', 'type' => 'email', 'rules' => ['nullable'], 'sort' => 3],
+            ['key' => 'note', 'label' => 'Ghi chú', 'type' => 'textarea', 'rules' => ['nullable'], 'sort' => 4],
         ]);
+    }
+
+    /** Trang tĩnh + bài viết — dùng đúng cơ chế `sections` của sản phẩm. */
+    protected function content(): void
+    {
+        Catalog::query('page')->updateOrCreate(
+            ['slug' => 'gioi-thieu'],
+            [
+                'title'    => 'Giới thiệu',
+                'status'   => 'published',
+                'sections' => [[
+                    'title' => 'Về chúng tôi',
+                    'type'  => 'text',
+                    'body'  => "Trang tĩnh mẫu.\nSửa nội dung trong admin → Trang.",
+                ]],
+            ],
+        );
+
+        $postCategory = Catalog::query('post_category')->firstOrCreate(
+            ['slug' => 'trai-nghiem'],
+            ['name' => 'Trải nghiệm'],
+        );
+
+        Catalog::query('post')->updateOrCreate(
+            ['slug' => 'bai-viet-mau'],
+            [
+                'title'            => 'Bài viết mẫu',
+                'excerpt'          => 'Tóm tắt ngắn hiện ở thẻ bài viết.',
+                'post_category_id' => $postCategory->id,
+                'status'           => 'published',
+                'published_at'     => now()->subDays(3),
+                'sections'         => [[
+                    'title' => 'Đoạn một',
+                    'type'  => 'text',
+                    'body'  => 'Bài viết dùng chung bộ mục với trang xe.',
+                ]],
+            ],
+        );
+    }
+
+    /** Cài đặt: những giá trị layout frontend đọc ra ngay. */
+    protected function settings(): void
+    {
+        $setting = Catalog::model('setting');
+
+        $setting::put('site_name', 'Website ô tô demo');
+        $setting::put('site_description', 'Dữ liệu mẫu để soi thử admin, API và luồng frontend.');
+        $setting::put('hotline', '1900 0000');
+        $setting::put('email', 'demo@example.test');
+        $setting::put('address', 'Số 1, đường Demo, Hà Nội');
+    }
+
+    /**
+     * Menu header + footer. Mục "Dòng xe" để trống mục con — brand seeder gắn
+     * từng xe vào dưới đó, nên đổi hãng không phải sửa menu ở đây.
+     */
+    protected function menus(): void
+    {
+        $header = Catalog::query('menu')->updateOrCreate(['key' => 'header'], ['name' => 'Menu chính']);
+        $header->items()->delete();
+
+        $header->items()->create([
+            'label' => catalog_label('product.plural'),
+            'url'   => \App\Support\Url::prefix('product') ?: '/',
+            'sort'  => 1,
+        ]);
+        $header->items()->create(['label' => 'Tin tức', 'url' => \App\Support\Url::prefix('post'), 'sort' => 2]);
+        $header->items()->create(['label' => 'Giới thiệu', 'url' => '/gioi-thieu', 'sort' => 3]);
+
+        $footer = Catalog::query('menu')->updateOrCreate(['key' => 'footer'], ['name' => 'Menu chân trang']);
+        $footer->items()->delete();
+        $footer->items()->create(['label' => 'Giới thiệu', 'url' => '/gioi-thieu', 'sort' => 1]);
+        $footer->items()->create(['label' => 'Tin tức', 'url' => \App\Support\Url::prefix('post'), 'sort' => 2]);
     }
 }

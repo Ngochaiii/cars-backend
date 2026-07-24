@@ -87,4 +87,47 @@ class SpecsRepeater
             })
             ->columnSpanFull();
     }
+
+    /**
+     * Cùng ô dán, nhưng đổ ra MỘT danh sách dòng phẳng (không nhóm) — dùng cho
+     * mục `sections` kiểu `table`, vốn chỉ là bảng phụ vài dòng.
+     */
+    public static function rowsPasteField(string $target = 'rows'): Textarea
+    {
+        return Textarea::make('rows_paste')
+            ->label('Dán bảng từ HTML')
+            ->helperText('Copy thẻ <table> rồi dán vào đây, rời chuột ra là tự đổ thành các dòng bên dưới.')
+            ->rows(3)
+            ->dehydrated(false)
+            ->live(onBlur: true)
+            ->afterStateUpdated(function (?string $state, Set $set) use ($target) {
+                if (blank($state)) {
+                    return;
+                }
+
+                $rows = collect(app(SpecTableParser::class)->parse($state))
+                    ->flatMap(fn (array $group) => $group['rows'])
+                    ->values()
+                    ->all();
+
+                if ($rows === []) {
+                    Notification::make()
+                        ->title('Không đọc được bảng')
+                        ->body('Kiểm tra lại xem đã copy cả thẻ <table> chưa.')
+                        ->warning()
+                        ->send();
+
+                    return;
+                }
+
+                $set($target, $rows);
+                $set('rows_paste', null);
+
+                Notification::make()
+                    ->title('Đã đọc '.count($rows).' dòng')
+                    ->success()
+                    ->send();
+            })
+            ->columnSpanFull();
+    }
 }

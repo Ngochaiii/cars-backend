@@ -20,14 +20,40 @@ app/
 │   ├── Resources/        API Resource
 │   └── Middleware/       HandleRedirects (301 tự động)
 ├── Support/              Catalog, SectionCollection, SpecTableParser,
-│                         Url, Sitemap, JsonLd
+│                         Url, Sitemap, JsonLd, Media, Money
+├── Actions/              StoreLead (dùng chung API + form Blade)
 └── Events/               LeadReceived
 
-config/catalog.php        labels · features · section_presets · routes · seo
+config/catalog.php        labels · features · section_presets · frontend · routes · seo
 resources/views/frontend/ giao diện public (Blade)
+public/css/frontend.css   CSS của frontend — viết tay, không build
 database/migrations/      toàn bộ schema
-tests/                    58 test
+tests/                    104 test
 ```
+
+## Frontend
+
+Blade render thẳng trong app, **không Vite, không Tailwind, không JS**.
+
+`public/css/frontend.css` **cố ý tối thiểu** (~145 dòng): chỉ đủ để trang đọc
+được khi soi thử luồng chạy. Giao diện thật làm ở nơi khác rồi dán đè vào file
+này — tên class trong Blade giữ nguyên nên không phải sửa view.
+
+| Trang | URL (tiền tố lấy từ `config('catalog.routes')`) |
+|---|---|
+| Trang chủ | `/` |
+| Danh sách mặt hàng | `/san-pham` |
+| Danh mục | `/danh-muc/{slug}` |
+| Chi tiết | `/san-pham/{slug}` |
+| Tin tức · chuyên mục · bài | `/tin-tuc` · `/chuyen-muc/{slug}` · `/tin-tuc/{slug}` |
+| Trang tĩnh | `/{slug}` |
+| Nhận form | `POST /gui-form/{form}` |
+
+Sáu kiểu mục của `sections` đều có view riêng trong
+`resources/views/frontend/partials/section/`: `media` · `text` · `video` ·
+`table` · `form` · `custom`. Kiểu `custom` tìm view
+`frontend/sections/{slug-tên-mục}.blade.php` của riêng dự án, không có thì mục
+im lặng.
 
 ## Nguyên tắc
 
@@ -48,8 +74,24 @@ thất trên cùng schema mà bảng `migrations` không thêm dòng nào.
 composer install
 cp .env.example .env && php artisan key:generate
 php artisan migrate --seed
+php artisan storage:link      # để ảnh upload hiện được
 php artisan serve
 ```
+
+## Dữ liệu mẫu
+
+| Seeder | Seed gì |
+|---|---|
+| `CatalogDemoSeeder` | khung site: cài đặt, menu, form đặt lịch, trang tĩnh, bài viết |
+| `Brands\VinFastSeeder` | 6 mẫu xe VinFast — đủ phiên bản, bảng màu, mục, thông số |
+| `Brands\MauSeeder` | **mẫu để copy** khi thêm hãng mới, mọi khoá có comment |
+
+```bash
+php artisan db:seed --class="Database\Seeders\Brands\VinFastSeeder"
+```
+
+Thêm hãng mới: copy `MauSeeder.php`, sửa `brand()` · `categories()` ·
+`products()`. Chi tiết trong `database/seeders/Brands/README.md`.
 
 | | |
 |---|---|
@@ -72,14 +114,16 @@ thể xanh mà production vẫn hỏng.
 
 - PHP 8.3+
 - MariaDB 10.4+ / MySQL 8 — `DB_CONNECTION=mariadb` trong `.env`
-- Node 20+ cho Vite
+
+Không cần Node: frontend là CSS tĩnh, admin dùng asset Filament đã publish sẵn
+trong `public/js`, `public/css`.
 
 ## Làm hãng mới
 
 Fork repo này. Sửa:
 
-- `config/catalog.php` — labels, features, section_presets, routes
-- `resources/views/frontend/` — giao diện
+- `config/catalog.php` — labels, features, section_presets, frontend, routes
+- `resources/views/frontend/` + `public/css/frontend.css` — giao diện
 - `.env` — `APP_NAME`, `DB_DATABASE`, `APP_URL`
 
 Không đụng `app/Models`, `app/Filament`, `database/migrations` trừ khi thật sự

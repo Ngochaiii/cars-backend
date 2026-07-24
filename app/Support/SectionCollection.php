@@ -22,20 +22,48 @@ class SectionCollection extends Collection
     {
         return $this
             ->map(fn (array $section) => $this->clean($section))
-            ->filter(fn (array $section) => filled($section['items'] ?? null) || filled($section['body'] ?? null))
+            ->filter(fn (array $section) => $this->hasContent($section))
             ->values()
             ->all();
+    }
+
+    /**
+     * Mục rỗng thì không render, nhưng "có nội dung" tuỳ kiểu: `media` cần ảnh,
+     * `text` cần body, `video` cần link, `form` cần khoá form, `table` cần dòng.
+     */
+    protected function hasContent(array $section): bool
+    {
+        foreach (['items', 'body', 'video_url', 'form_key', 'rows'] as $key) {
+            if (filled($section[$key] ?? null)) {
+                return true;
+            }
+        }
+
+        // `custom` do dự án tự render — không có dữ liệu nào ở đây để kiểm.
+        return ($section['type'] ?? null) === 'custom';
     }
 
     protected function clean(array $section): array
     {
         $clean = array_filter([
-            'title'  => $section['title'] ?? null,
-            'intro'  => $section['intro'] ?? null,
-            'type'   => $section['type'] ?? 'media',
-            'layout' => $section['layout'] ?? 'cols-3',
-            'body'   => $section['body'] ?? null,
+            'title'     => $section['title'] ?? null,
+            'intro'     => $section['intro'] ?? null,
+            'type'      => $section['type'] ?? 'media',
+            'layout'    => $section['layout'] ?? 'cols-3',
+            'body'      => $section['body'] ?? null,
+            'video_url' => $section['video_url'] ?? null,
+            'form_key'  => $section['form_key'] ?? null,
         ], fn ($v) => filled($v));
+
+        $rows = collect($section['rows'] ?? [])
+            ->map(fn (array $row) => array_filter($row, fn ($v) => filled($v)))
+            ->filter()
+            ->values()
+            ->all();
+
+        if ($rows) {
+            $clean['rows'] = $rows;
+        }
 
         $items = collect($section['items'] ?? [])
             ->map(fn (array $item) => array_filter($item, fn ($v) => filled($v)))

@@ -52,6 +52,22 @@ class Catalog
         return (bool) config("catalog.features.{$key}", false);
     }
 
+    /**
+     * Các mục gốc của một menu, kèm con cháu (children() eager-load đệ quy).
+     * Menu chưa tạo thì trả rỗng để layout không phải bọc @if.
+     *
+     * Chưa cache: cache thì phải xoá đúng lúc ở cả Menu lẫn MenuItem, mà đây
+     * mới là hai truy vấn cho mỗi request. Thêm cache khi đo thấy cần.
+     *
+     * @return \Illuminate\Support\Collection<int, Model>
+     */
+    public static function menu(string $key): \Illuminate\Support\Collection
+    {
+        $menu = static::query('menu')->where('key', $key)->first();
+
+        return $menu ? $menu->rootItems : collect();
+    }
+
     /** @return array<int, string> */
     public static function sectionPresets(): array
     {

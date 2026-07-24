@@ -1,36 +1,28 @@
 {{--
     Render mảng `sections` đã bỏ field trống (renderableSections()).
-    Dùng chung cho sản phẩm, bài viết, trang tĩnh — cùng cơ chế mục.
+    Dùng chung cho sản phẩm, bài viết, trang tĩnh — cùng một cơ chế mục.
+
+    Tiêu đề/đoạn mở đầu trống thì không render (quy tắc mục 3 tài liệu).
+    Thân mục tách theo `type` — mỗi kiểu một partial trong partials/section/.
+    Kiểu lạ (dự án tự thêm vào config) mà chưa có partial thì bỏ qua, không nổ.
 --}}
 @foreach ($sections as $section)
-    <section>
-        @isset($section['title'])
-            <h2>{{ $section['title'] }}</h2>
-        @endisset
+    @php $type = $section['type'] ?? 'media'; @endphp
 
-        @isset($section['intro'])
-            <p>{{ $section['intro'] }}</p>
-        @endisset
+    <section class="section" @isset($section['title']) id="{{ Str::slug($section['title']) }}" @endisset>
+        <div class="wrap">
+            @if (isset($section['title']) || isset($section['intro']))
+                <div class="section__head">
+                    @isset($section['title'])
+                        <h2>{{ $section['title'] }}</h2>
+                    @endisset
+                    @isset($section['intro'])
+                        <p>{{ $section['intro'] }}</p>
+                    @endisset
+                </div>
+            @endif
 
-        @if (($section['type'] ?? 'media') === 'text')
-            <div>{!! nl2br(e($section['body'] ?? '')) !!}</div>
-        @else
-            <div class="items layout-{{ $section['layout'] ?? 'cols-3' }}">
-                @foreach ($section['items'] ?? [] as $item)
-                    <figure>
-                        @isset($item['image'])
-                            <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($item['image']) }}"
-                                 alt="{{ $item['label'] ?? '' }}" loading="lazy">
-                        @endisset
-                        @isset($item['label'])
-                            <figcaption>{{ $item['label'] }}</figcaption>
-                        @endisset
-                        @isset($item['desc'])
-                            <p>{{ $item['desc'] }}</p>
-                        @endisset
-                    </figure>
-                @endforeach
-            </div>
-        @endif
+            @includeIf('frontend.partials.section.'.$type, ['section' => $section])
+        </div>
     </section>
 @endforeach

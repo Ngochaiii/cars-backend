@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
+use App\Filament\Schemas\MoneyInput;
 use App\Filament\Schemas\SectionsRepeater;
 use App\Filament\Schemas\SeoSection;
 use App\Filament\Schemas\SpecsRepeater;
@@ -59,10 +60,7 @@ class ProductForm
                     ->searchable()
                     ->preload(),
 
-                TextInput::make('price_from')
-                    ->label('Giá từ')
-                    ->numeric()
-                    ->suffix('đ'),
+                MoneyInput::make('price_from', 'Giá từ'),
 
                 Select::make('status')
                     ->label('Trạng thái')
@@ -146,8 +144,8 @@ class ProductForm
                     ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
                     ->schema([
                         TextInput::make('name')->label('Tên')->required(),
-                        TextInput::make('price')->label('Giá')->numeric()->suffix('đ'),
-                        TextInput::make('price_original')->label('Giá gạch')->numeric()->suffix('đ'),
+                        MoneyInput::make('price', 'Giá'),
+                        MoneyInput::make('price_original', 'Giá gạch'),
                         TextInput::make('note')->label('Ghi chú'),
                     ])
                     ->columns(2)
