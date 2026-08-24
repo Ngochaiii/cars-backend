@@ -356,6 +356,198 @@ b, strong { font-weight: 700; }
 .hero__actions { display: flex; flex-wrap: wrap; gap: 14px; }
 .hero__legal { margin-top: 28px; font-size: 11.5px; color: rgba(255, 255, 255, .55); }
 
+/* ═══════════ CAROUSEL HERO ═══════════ */
+/* Không JS: chỉ slide đầu hiện, thanh điều hướng ẩn — không có nút chết. */
+.hero--carousel { display: block; padding: 0; }
+/* Nền carousel luôn tối (ảnh phủ lớp đen hoặc màu --dark), nên chữ luôn sáng
+   — không phụ thuộc có ảnh hay không như .hero--overlay. */
+.hero--carousel .hero__body,
+.hero--carousel .hero__body h1 { color: #fff; }
+.hero--carousel .eyebrow { color: rgba(255, 255, 255, .7); }
+.hero--carousel .hero__lede { color: rgba(255, 255, 255, .82); }
+.hero__slide {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 720px;
+    background: var(--dark);
+    overflow: hidden;
+}
+.hero--carousel .hero__slide { display: none; }
+.hero--carousel .hero__slide.is-on { display: flex; }
+html.js .hero--carousel { position: relative; display: grid; }
+html.js .hero--carousel .hero__slide {
+    display: flex;
+    grid-area: 1 / 1;          /* mọi slide chung một ô lưới → chồng lên nhau */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .5s ease, visibility .5s;
+}
+html.js .hero--carousel .hero__slide.is-on {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.hero__nav {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 32px;
+    z-index: 3;
+}
+html.js .hero__nav { display: flex; }
+.hero__dots { display: flex; align-items: center; gap: 12px; }
+.hero__dot {
+    width: 34px;
+    height: 2px;
+    padding: 0;
+    border: 0;
+    background: rgba(255, 255, 255, .45);
+    cursor: pointer;
+    transition: width .3s ease, background .3s ease;
+}
+.hero__dot.is-on { width: 56px; background: #fff; }
+.hero__count { margin-left: 8px; font-size: 11.5px; letter-spacing: .14em; color: rgba(255, 255, 255, .7); }
+.hero__arrows { display: flex; gap: 10px; }
+
+.arrow {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 18px;
+    line-height: 1;
+    color: #fff;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, .5);
+    cursor: pointer;
+    transition: background .2s ease;
+}
+.arrow:hover { background: rgba(255, 255, 255, .16); }
+.arrow--round {
+    border-radius: 999px;
+    width: 52px;
+    height: 52px;
+    background: var(--ink);
+    border-color: var(--ink);
+    font-size: 19px;
+}
+.arrow--round:hover { background: #333; }
+
+.sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* ═══════════ COVERFLOW DẢI SẢN PHẨM ═══════════ */
+.disc__head { text-align: center; margin-bottom: 32px; }
+
+.disc__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    border-bottom: 1px solid var(--line-2);
+    margin-bottom: 40px;
+}
+.disc__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 0 18px;
+    margin-bottom: -1px;
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color .25s ease, border-color .25s ease;
+}
+.disc__tab:hover { color: var(--ink); }
+.disc__tab.is-on { color: var(--ink); border-bottom-color: var(--ink); }
+.disc__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px; height: 22px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 11px;
+    letter-spacing: 0;
+}
+/* Tab chỉ có tác dụng khi JS bật — không thì hiện hết, khỏi nút chết. */
+.disc__tabs { display: none; }
+html.js .disc__tabs { display: flex; }
+
+.disc__stage { position: relative; }
+.disc__rail {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+}
+.disc__rail::-webkit-scrollbar { display: none; }
+html.js .disc__rail { overflow: visible; gap: 0; }
+
+.disc__item { flex: 0 0 auto; width: min(660px, 82vw); scroll-snap-align: center; }
+html.js .disc__item { transition: opacity .3s ease, transform .3s ease; }
+html.js .disc__item.is-peek {
+    width: 300px;
+    opacity: .5;
+    pointer-events: none;
+}
+html.js .disc__item.is-peek .disc__info { display: none; }
+html.js .disc__item.is-peek .disc__media { aspect-ratio: 3 / 2; }
+html.js .disc__item.is-on { z-index: 2; }
+html.js .disc__item.is-peek:first-child { transform: translateX(60px); }
+html.js .disc__item.is-peek:last-child { transform: translateX(-60px); }
+
+.disc__media {
+    display: block;
+    position: relative;
+    aspect-ratio: 5 / 3;
+    background: var(--ph);
+    overflow: hidden;
+}
+.disc__media img { width: 100%; height: 100%; object-fit: cover; }
+
+.disc__info { text-align: center; padding-top: 32px; border-top: 1px solid var(--line-2); margin-top: 32px; }
+.disc__name { font-size: clamp(32px, 4.4vw, 52px); font-weight: 400; letter-spacing: -.02em; margin-bottom: 10px; }
+.disc__meta { font-size: 15px; color: var(--muted); margin-bottom: 24px; }
+.disc__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+.disc__actions .btn { width: 260px; height: 56px; }
+.disc__price { margin-top: 24px; font-size: 12px; color: var(--muted-2); }
+
+.disc__arrow { position: absolute; top: 28%; z-index: 3; display: none; }
+html.js .disc__arrow { display: inline-flex; }
+.disc__arrow--prev { left: 0; }
+.disc__arrow--next { right: 0; }
+.disc__stage[data-disc-single="true"] .disc__arrow { display: none; }
+
+.disc__pager { text-align: center; margin-top: 24px; font-size: 12px; letter-spacing: .14em; color: var(--muted-2); display: none; }
+html.js .disc__pager { display: block; }
+
 /* ═══════════ CÔNG CỤ MUA XE ═══════════ */
 .tools { border-bottom: 1px solid var(--line-2); }
 .tools__inner { padding-block: 44px; }
@@ -1006,8 +1198,23 @@ b, strong { font-weight: 700; }
     .site-footer__links { gap: 32px; }
 }
 
+@media (max-width: 960px) {
+    .disc__tabs { gap: 22px; }
+    .disc__actions .btn { width: auto; flex: 1 1 200px; }
+    html.js .disc__item.is-peek { display: none !important; }
+}
+
 @media (max-width: 680px) {
     :root { --pad: 20px; }
+
+    .hero__slide { min-height: 0; padding-block: 72px; }
+    .hero__nav { position: static; padding-block: 20px 32px; background: var(--dark); }
+    .hero__arrows { flex: none; }
+    .disc__item { width: 100%; }
+    .disc__actions { flex-direction: column; }
+    .disc__actions .btn { width: 100%; }
+    .disc__arrow { top: 22%; }
+    .arrow--round { width: 42px; height: 42px; }
 
     .block { padding-block: 56px; }
     .section { padding-block: 48px; }

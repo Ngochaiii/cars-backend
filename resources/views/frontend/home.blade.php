@@ -1,10 +1,11 @@
 {{--
     Trang chủ — bám bố cục bản thiết kế:
-      hero chiến dịch · công cụ mua xe · lưới xe · băng ưu đãi · tin tức
+      hero carousel · công cụ mua xe · coverflow dải sản phẩm ·
+      băng ưu đãi · pin & trạm sạc · khám phá đại lý · chăm sóc chủ xe
 
-    Hero lấy từ mặt hàng đầu tiên (ảnh + tên + giá) nên không cần bảng riêng.
-    Băng ưu đãi chỉ hiện khi Cài đặt có `offer_title` — không có thì bỏ qua
-    cả khối, không để chữ mẫu chết cứng trong template.
+    Hero và coverflow lấy dữ liệu từ mặt hàng trong DB, không bảng riêng.
+    Các băng nội dung (ưu đãi, pin & trạm sạc, chăm sóc chủ xe) đọc từ Cài
+    đặt — khoá nào trống thì cả khối tự ẩn, không để chữ mẫu chết trong view.
 
     Biến: $products · $posts
 --}}
@@ -16,61 +17,78 @@
 
 @section('content')
     @php
-        $lead      = $products->first();
-        $leadImage = $lead ? catalog_image(data_get($lead->hero, 'src')) : null;
+        $slides = $products->take(3);
+        $lead   = $products->first();
 
-        $offerTitle = catalog_setting('offer_title');
-        $offerText  = catalog_setting('offer_text');
-        $offerNote  = catalog_setting('offer_note');
+        // Tab coverflow = danh mục có hàng, kèm số lượng. Mỗi danh mục chỉ có
+        // đúng 1 xe thì tab thành vô nghĩa (bấm cái nào cũng ra 1 xe) — bỏ hẳn
+        // dải tab, để coverflow chạy thẳng trên toàn bộ danh sách.
+        $byCategory = $products->groupBy('category_id');
+        $tabs = $byCategory->contains(fn ($group) => $group->count() > 1)
+            ? $products->pluck('category')->filter()->unique('id')->values()
+            : collect();
     @endphp
 
-    {{-- ── Hero chiến dịch ────────────────────────────────────────────── --}}
-    <section class="hero {{ $leadImage ? 'hero--overlay' : 'hero--plain' }}">
-        @if ($leadImage)
-            <div class="hero__media">
-                <img src="{{ $leadImage }}" alt="{{ $lead->name }}" fetchpriority="high">
-            </div>
-        @endif
+    {{-- ── Hero carousel ──────────────────────────────────────────────── --}}
+    @if ($slides->isNotEmpty())
+        <section class="hero hero--carousel" data-hero>
+            @foreach ($slides as $i => $slide)
+                @php $img = catalog_image(data_get($slide->hero, 'src')); @endphp
 
-        <div class="hero__body">
-            <div class="wrap">
-                <div class="hero__inner">
-                    <span class="eyebrow">{{ catalog_setting('site_name', config('app.name')) }}</span>
-
-                    <h1>
-                        @if ($lead)
-                            {{ $lead->name }}
-                        @else
-                            {{ catalog_label('product.plural') }}
-                        @endif
-                    </h1>
-
-                    <p class="hero__lede">
-                        {{ $lead->tagline ?? catalog_setting('site_description')
-                            ?? 'Toàn bộ '.Str::lower(catalog_label('product.plural')).' đang mở bán — giá và thông số cập nhật theo từng '.Str::lower(catalog_label('variant.single')).'.' }}
-                    </p>
-
-                    @if ($lead && $lead->price_from)
-                        <div class="hero__price">
-                            <span class="hero__price-label">Giá từ</span>
-                            <span class="hero__price-now">{{ catalog_money($lead->price_from) }}</span>
+                <div class="hero__slide {{ $i === 0 ? 'is-on' : '' }}"
+                     data-hero-slide aria-hidden="{{ $i === 0 ? 'false' : 'true' }}">
+                    @if ($img)
+                        <div class="hero__media">
+                            <img src="{{ $img }}" alt="{{ $slide->name }}"
+                                 @if ($i === 0) fetchpriority="high" @else loading="lazy" @endif>
                         </div>
                     @endif
 
-                    <div class="hero__actions">
-                        @if ($lead)
-                            <a class="btn {{ $leadImage ? 'btn--accent' : '' }}"
-                               href="{{ route('products.show', $lead->slug) }}">Khám phá</a>
-                            <a class="btn {{ $leadImage ? 'btn--ghost' : 'btn--outline' }}"
-                               href="{{ route('products.index') }}">Xem tất cả</a>
-                        @else
-                            <a class="btn" href="{{ route('products.index') }}">Xem tất cả</a>
-                        @endif
+                    <div class="hero__body">
+                        <div class="wrap">
+                            <div class="hero__inner">
+                                <span class="eyebrow">
+                                    {{ $slide->name }}@if ($slide->category) · {{ $slide->category->name }}@endif
+                                </span>
+
+                                <h1>{{ $slide->tagline ?: $slide->name }}</h1>
+
+                                @if ($slide->price_from)
+                                    <p class="hero__lede">Giá từ {{ catalog_money($slide->price_from) }}</p>
+                                @endif
+
+                                <div class="hero__actions">
+                                    <a class="btn {{ $img ? 'btn--light' : '' }}"
+                                       href="{{ route('products.show', $slide->slug) }}">Khám phá {{ $slide->name }}</a>
+                                    <a class="btn {{ $img ? 'btn--ghost' : 'btn--outline' }}"
+                                       href="{{ route('products.index') }}">Xem tất cả</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
+            @endforeach
+
+            @if ($slides->count() > 1)
+                <div class="hero__nav wrap">
+                    <div class="hero__dots">
+                        @foreach ($slides as $i => $slide)
+                            <button type="button" class="hero__dot {{ $i === 0 ? 'is-on' : '' }}"
+                                    data-hero-dot="{{ $i }}" aria-current="{{ $i === 0 ? 'true' : 'false' }}">
+                                <span class="sr-only">{{ $slide->name }}</span>
+                            </button>
+                        @endforeach
+                        <span class="hero__count" data-hero-count>01 / {{ str_pad($slides->count(), 2, '0', STR_PAD_LEFT) }}</span>
+                    </div>
+
+                    <div class="hero__arrows">
+                        <button type="button" class="arrow" data-hero-prev aria-label="Slide trước">‹</button>
+                        <button type="button" class="arrow" data-hero-next aria-label="Slide sau">›</button>
+                    </div>
+                </div>
+            @endif
+        </section>
+    @endif
 
     {{-- ── Công cụ mua xe ─────────────────────────────────────────────── --}}
     <section class="tools">
@@ -83,11 +101,15 @@
                 </a>
 
                 @if ($lead)
-                    <a class="tools__item" href="{{ route('products.show', $lead->slug) }}">
+                    <a class="tools__item" href="{{ route('products.show', $lead->slug) }}#form-dat-coc">
+                        <div class="tools__name">Đặt cọc online</div>
+                        <div class="tools__sub">Giữ suất xe, hoàn cọc trong 7 ngày.</div>
+                    </a>
+                    <a class="tools__item" href="{{ route('products.show', $lead->slug) }}#form-dat-lich-lai-thu">
                         <div class="tools__name">Đăng ký lái thử</div>
                         <div class="tools__sub">Chọn khung giờ, lái thử tại nhà hoặc showroom.</div>
                     </a>
-                    <a class="tools__item" href="{{ route('products.show', $lead->slug) }}">
+                    <a class="tools__item" href="{{ route('products.show', $lead->slug) }}#fuel-calc">
                         <div class="tools__name">Tính chi phí sử dụng</div>
                         <div class="tools__sub">So sánh tiền điện với xe xăng, dầu tương đương.</div>
                     </a>
@@ -103,97 +125,78 @@
         </div>
     </section>
 
-    {{-- ── Dải sản phẩm ───────────────────────────────────────────────── --}}
-    <section class="block">
+    {{-- ── Coverflow dải sản phẩm ─────────────────────────────────────── --}}
+    <section class="block disc" data-disc>
         <div class="wrap">
-            <div class="section__head">
+            <div class="section__head disc__head">
                 <h2>Khám phá dải sản phẩm</h2>
             </div>
 
             @if ($products->isEmpty())
                 <p class="empty">Chưa có {{ Str::lower(catalog_label('product.plural')) }} nào được đăng.</p>
             @else
-                <ul class="cards">
-                    @each('frontend.partials.product-card', $products, 'product')
-                </ul>
+                @if ($tabs->isNotEmpty())
+                    <div class="disc__tabs">
+                        <button type="button" class="disc__tab is-on" data-disc-tab="all">
+                            Tất cả <span class="disc__count">{{ $products->count() }}</span>
+                        </button>
+                        @foreach ($tabs as $tab)
+                            <button type="button" class="disc__tab" data-disc-tab="{{ $tab->slug }}">
+                                {{ $tab->name }}
+                                <span class="disc__count">{{ $byCategory->get($tab->id)?->count() ?? 0 }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
+
+                <div class="disc__stage" data-disc-stage>
+                    <button type="button" class="arrow arrow--round disc__arrow disc__arrow--prev"
+                            data-disc-prev aria-label="Xe trước">‹</button>
+
+                    <div class="disc__rail">
+                        @foreach ($products as $car)
+                            <article class="disc__item" data-disc-item
+                                     data-disc-cat="{{ $car->category->slug ?? 'all' }}">
+                                <a class="disc__media" href="{{ route('products.show', $car->slug) }}">
+                                    @if ($img = catalog_image(data_get($car->hero, 'src')))
+                                        <img src="{{ $img }}" alt="{{ $car->name }}" loading="lazy">
+                                    @else
+                                        <span class="ph" style="position:absolute;inset:0">[ {{ $car->name }} ]</span>
+                                    @endif
+                                </a>
+
+                                <div class="disc__info">
+                                    <h3 class="disc__name">{{ $car->name }}</h3>
+                                    <p class="disc__meta">
+                                        {{ collect([
+                                            $car->category?->name,
+                                            collect($car->highlights ?? [])->take(2)
+                                                ->map(fn ($h) => trim(($h['value'] ?? '').' '.($h['unit'] ?? '')))
+                                                ->filter()->implode(' · '),
+                                        ])->filter()->implode(' · ') }}
+                                    </p>
+
+                                    <div class="disc__actions">
+                                        <a class="btn" href="{{ route('products.show', $car->slug) }}">Khám phá</a>
+                                        <a class="btn btn--outline" href="{{ route('products.show', $car->slug) }}#form-dat-coc">Đặt cọc</a>
+                                    </div>
+
+                                    @if ($car->price_from)
+                                        <p class="disc__price">Giá từ {{ catalog_money($car->price_from) }}</p>
+                                    @endif
+                                </div>
+                            </article>
+                        @endforeach
+                    </div>
+
+                    <button type="button" class="arrow arrow--round disc__arrow disc__arrow--next"
+                            data-disc-next aria-label="Xe sau">›</button>
+                </div>
+
+                <p class="disc__pager"><span data-disc-count>01 / {{ str_pad($products->count(), 2, '0', STR_PAD_LEFT) }}</span></p>
             @endif
         </div>
     </section>
 
-    {{-- ── Băng ưu đãi (Cài đặt → offer_title / offer_text / offer_note) ── --}}
-    @if (filled($offerTitle))
-        <section class="offer">
-            <div class="wrap offer__inner">
-                @if (filled($offerNote))
-                    <span class="eyebrow eyebrow--light">{{ $offerNote }}</span>
-                @endif
-                <h2>{{ $offerTitle }}</h2>
-                @if (filled($offerText))
-                    <p>{{ $offerText }}</p>
-                @endif
-                <div class="offer__actions">
-                    <a class="btn btn--light" href="{{ route('products.index') }}">Xem {{ Str::lower(catalog_label('product.plural')) }}</a>
-                    @if ($lead)
-                        <a class="btn btn--ghost" href="{{ route('products.show', $lead->slug) }}">Đặt cọc ngay</a>
-                    @endif
-                </div>
-            </div>
-        </section>
-    @endif
-
-    {{-- ── Tin tức ────────────────────────────────────────────────────── --}}
-    @if ($posts->isNotEmpty())
-        <section class="block block--soft">
-            <div class="wrap">
-                <div class="section__head">
-                    <h2>Tin mới từ đại lý</h2>
-                </div>
-
-                @php $tileLead = $posts->first(); $tileRest = $posts->slice(1)->take(2); @endphp
-
-                <div class="tiles {{ $tileRest->isEmpty() ? 'tiles--solo' : '' }}">
-                    <a class="tile" href="{{ route('posts.show', $tileLead->slug) }}">
-                        <div class="tile__media">
-                            @if ($cover = catalog_image($tileLead->cover))
-                                <img src="{{ $cover }}" alt="{{ $tileLead->title }}" loading="lazy">
-                            @else
-                                <div class="ph" style="height:100%">[ {{ $tileLead->title }} ]</div>
-                            @endif
-                        </div>
-                        @if ($tileLead->category)
-                            <div class="tile__kicker">{{ $tileLead->category->name }}</div>
-                        @endif
-                        <div class="tile__title">{{ $tileLead->title }}</div>
-                        @if ($tileLead->excerpt)
-                            <p>{{ Str::limit($tileLead->excerpt, 160) }}</p>
-                        @endif
-                    </a>
-
-                    @if ($tileRest->isNotEmpty())
-                        <div class="tiles__side">
-                            @foreach ($tileRest as $tile)
-                                <a class="tile" href="{{ route('posts.show', $tile->slug) }}">
-                                    <div class="tile__media">
-                                        @if ($cover = catalog_image($tile->cover))
-                                            <img src="{{ $cover }}" alt="{{ $tile->title }}" loading="lazy">
-                                        @else
-                                            <div class="ph" style="height:100%">[ {{ $tile->title }} ]</div>
-                                        @endif
-                                    </div>
-                                    @if ($tile->published_at)
-                                        <div class="tile__kicker">{{ $tile->published_at->format('d/m/Y') }}</div>
-                                    @endif
-                                    <div class="tile__title">{{ $tile->title }}</div>
-                                </a>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-
-                <p class="pagination-wrap">
-                    <a class="link-arrow" href="{{ route('posts.index') }}">Xem tất cả tin tức ›</a>
-                </p>
-            </div>
-        </section>
-    @endif
+    @include('frontend.partials.home-bands', ['lead' => $lead, 'posts' => $posts])
 @endsection

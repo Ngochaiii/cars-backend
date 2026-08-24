@@ -143,6 +143,15 @@ class CatalogDemoSeeder extends Seeder
         $setting::put('offer_note', 'Ưu đãi trong tháng');
         $setting::put('offer_title', 'Trả góp 0% lãi suất 24 tháng cho các dòng xe điện');
         $setting::put('offer_text', 'Kèm gói lắp sạc tại nhà miễn phí công lắp đặt cho khách đặt cọc tại đại lý.');
+
+        $setting::put('charging_note', 'Pin & trạm sạc');
+        $setting::put('charging_title', 'Sạc đầy trong lúc bạn đi chợ');
+        $setting::put('charging_text', 'Mạng lưới điểm sạc phủ khắp tỉnh, sạc nhanh 10–70% dưới 30 phút, kèm dịch vụ khảo sát và lắp đặt sạc tại nhà miễn phí công lắp.');
+
+        $setting::put('care_note', 'Chăm sóc chủ xe');
+        $setting::put('care_title', 'Yên tâm suốt 10 năm sở hữu');
+        // Dạng "giá trị|nhãn", ngăn nhau bằng dấu chấm phẩy.
+        $setting::put('care_stats', '10 năm|Bảo hành xe và pin;24/7|Cứu hộ lưu động toàn tỉnh;45 phút|Thời gian cứu hộ trung bình;4,9/5|Điểm hài lòng dịch vụ');
     }
 
     /**
