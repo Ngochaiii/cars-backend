@@ -3,10 +3,16 @@
     bấm "So sánh" là tải lại đúng trang này kèm query string, không cần JS.
     Biến: $product · $fuelCalc (từ ProductController@fuelCalc)
 --}}
+@php
+    $heroImage = catalog_image(data_get($product->hero, 'src'));
+@endphp
+
 <div class="fuel-calc">
-    <form method="GET" class="fuel-calc__form">
+    <form class="fuel-calc__panel" method="GET" action="#fuel-calc">
+        <p class="fuel-calc__intro">Vui lòng nhập thông tin xe động cơ đốt trong cần so sánh:</p>
+
         <div class="field">
-            <label>Loại nhiên liệu</label>
+            <span class="field__label">Loại nhiên liệu</span>
             <div class="segmented">
                 <label class="segmented__option">
                     <input type="radio" name="fuel" value="xang" @checked($fuelCalc['fuel'] === 'xang')>
@@ -20,23 +26,34 @@
         </div>
 
         <div class="field">
-            <label for="fuel-calc-cons">Mức tiêu thụ nhiên liệu / 100 km</label>
+            <label for="fuel-calc-cons">Mức tiêu thụ nhiên liệu / 100 km *</label>
             <input type="text" inputmode="decimal" id="fuel-calc-cons" name="cons"
                    value="{{ $fuelCalc['cons'] }}" placeholder="8">
         </div>
 
         <div class="field">
-            <label for="fuel-calc-km">Quãng đường di chuyển / tháng (km)</label>
+            <label for="fuel-calc-km">Quãng đường di chuyển / tháng (km) *</label>
             <input type="text" inputmode="decimal" id="fuel-calc-km" name="km"
                    value="{{ $fuelCalc['km'] }}" placeholder="3000">
         </div>
 
-        <div class="field field--full">
-            <button class="btn" type="submit">So sánh</button>
-        </div>
+        <button class="btn btn--accent btn--block" type="submit">So sánh</button>
+
+        <p class="fuel-calc__note">
+            (*) Nhập số, dùng dấu chấm "." cho phần thập phân. Ví dụ: 8.5 lít, 1023.5 km.
+            Giá điện tạm tính {{ catalog_money(config('catalog.fuel_calc.electricity_price')) }}/kWh khi sạc tại nhà.
+        </p>
     </form>
 
-    <div class="fuel-calc__result">
+    <div class="fuel-calc__panel fuel-calc__result" id="fuel-calc">
+        @if ($heroImage)
+            <div class="fuel-calc__media">
+                <img src="{{ $heroImage }}" alt="{{ $product->name }}" loading="lazy">
+            </div>
+        @endif
+
+        <div class="fuel-calc__title">Lợi thế chi phí nhiên liệu của {{ $product->name }}</div>
+
         <div class="fuel-calc__row">
             <span>Chi phí nhiên liệu xe xăng/dầu · tháng</span>
             <b>{{ catalog_money($fuelCalc['fuel_monthly']) }}</b>

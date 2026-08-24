@@ -1,29 +1,53 @@
-{{-- Thẻ mặt hàng dùng ở trang chủ, danh sách và danh mục. --}}
+{{--
+    Thẻ mặt hàng dùng ở trang chủ, danh sách và danh mục.
+
+    Bảng thông số nhỏ trong thẻ lấy 3 chỉ số đầu của `highlights` — mặt hàng
+    chưa khai chỉ số thì bỏ luôn bảng, thẻ vẫn cân.
+--}}
 @php
-    $image = catalog_image(data_get($product, 'hero.src'));
-    $url   = route('products.show', $product->slug);
+    $image      = catalog_image(data_get($product, 'hero.src'));
+    $url        = route('products.show', $product->slug);
+    $miniSpecs  = collect($product->highlights ?? [])->take(3);
 @endphp
 
 <li class="card">
-    @if ($image)
-        <a class="card__media" href="{{ $url }}">
+    <a class="card__media" href="{{ $url }}">
+        @if ($image)
             <img src="{{ $image }}" alt="{{ $product->name }}" loading="lazy">
-        </a>
-    @endif
-
-    <div class="card__body">
-        @if ($product->category)
-            <span class="card__meta">{{ $product->category->name }}</span>
+        @else
+            <span class="ph" style="position:absolute;inset:0">[ ảnh {{ $product->name }} ]</span>
         @endif
 
-        <h3 class="card__title"><a href="{{ $url }}">{{ $product->name }}</a></h3>
+        @if ($product->category)
+            <span class="card__tag">{{ $product->category->name }}</span>
+        @endif
+    </a>
+
+    <div class="card__body">
+        <div class="card__head">
+            <h3 class="card__title"><a href="{{ $url }}">{{ $product->name }}</a></h3>
+            @if ($product->price_from)
+                <span class="card__price">Từ <b>{{ catalog_money($product->price_from) }}</b></span>
+            @endif
+        </div>
 
         @if ($product->tagline)
             <span class="card__meta">{{ $product->tagline }}</span>
         @endif
 
-        @if ($product->price_from)
-            <span class="card__price">từ {{ catalog_money($product->price_from) }}</span>
+        @if ($miniSpecs->isNotEmpty())
+            <ul class="card__specs">
+                @foreach ($miniSpecs as $spec)
+                    <li class="card__spec">
+                        <b>{{ trim(($spec['value'] ?? '').' '.($spec['unit'] ?? '')) }}</b>
+                        <span>{{ $spec['label'] ?? '' }}</span>
+                    </li>
+                @endforeach
+            </ul>
         @endif
+
+        <div class="card__actions">
+            <a class="btn btn--sm" href="{{ $url }}">Xem chi tiết</a>
+        </div>
     </div>
 </li>

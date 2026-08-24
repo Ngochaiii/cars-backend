@@ -1,16 +1,41 @@
+{{--
+    Header dính đỉnh trang: thương hiệu trái · menu giữa · nút gọi phải.
+
+    Cài đặt tuỳ chọn (Cài đặt → khoá tự do, không có thì tự ẩn):
+      brand_sub  — dòng chữ nhỏ cạnh tên (VD "Bắc Giang")
+      promo_text — băng khuyến mãi đen trên cùng
+      promo_url  — link cho băng đó
+--}}
 @php
-    $logo    = catalog_image(catalog_setting('logo'));
-    $hotline = catalog_setting('hotline');
-    $items   = catalog_menu(config('catalog.frontend.menus.header', 'header'));
+    $logo      = catalog_image(catalog_setting('logo'));
+    $siteName  = catalog_setting('site_name', config('app.name'));
+    $brandSub  = catalog_setting('brand_sub');
+    $hotline   = catalog_setting('hotline');
+    $promoText = catalog_setting('promo_text');
+    $promoUrl  = catalog_setting('promo_url');
+    $items     = catalog_menu(config('catalog.frontend.menus.header', 'header'));
 @endphp
+
+@if (filled($promoText))
+    <div class="promo-bar">
+        @if (filled($promoUrl))
+            <a href="{{ $promoUrl }}">{{ $promoText }}</a>
+        @else
+            {{ $promoText }}
+        @endif
+    </div>
+@endif
 
 <header class="site-header">
     <div class="wrap site-header__inner">
         <a class="brand" href="{{ route('home') }}">
             @if ($logo)
-                <img src="{{ $logo }}" alt="{{ catalog_setting('site_name', config('app.name')) }}">
+                <img src="{{ $logo }}" alt="{{ $siteName }}">
             @else
-                {{ catalog_setting('site_name', config('app.name')) }}
+                <span class="brand__name">{{ $siteName }}</span>
+                @if (filled($brandSub))
+                    <span class="brand__sub">{{ $brandSub }}</span>
+                @endif
             @endif
         </a>
 
@@ -38,7 +63,7 @@
 
         @if (filled($hotline))
             <div class="header__cta">
-                <a class="btn btn--ghost" href="tel:{{ preg_replace('/\s+/', '', $hotline) }}">{{ $hotline }}</a>
+                <a class="btn" href="tel:{{ preg_replace('/\s+/', '', $hotline) }}">{{ $hotline }}</a>
             </div>
         @endif
     </div>

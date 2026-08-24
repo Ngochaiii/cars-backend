@@ -68,6 +68,22 @@ class CatalogDemoSeeder extends Seeder
                 'options' => ['qr' => 'Chuyển khoản QR', 'the' => 'Thẻ ngân hàng', 'showroom' => 'Tại showroom']],
             ['key' => 'note', 'label' => 'Ghi chú', 'type' => 'textarea', 'rules' => ['nullable'], 'sort' => 5],
         ]);
+
+        // Băng đăng ký nhận tin trên footer — khai ở
+        // config('catalog.frontend.newsletter_form'), chỉ một ô email.
+        $newsletter = Catalog::query('form')->updateOrCreate(
+            ['key' => 'dang-ky-nhan-tin'],
+            [
+                'name'            => 'Đăng ký nhận thông tin',
+                'description'     => 'Chương trình khuyến mãi và tin dịch vụ từ đại lý — 1–2 email mỗi tháng.',
+                'success_message' => 'Đã đăng ký! Hẹn gặp bạn trong hộp thư.',
+            ],
+        );
+
+        $newsletter->fields()->delete();
+        $newsletter->fields()->createMany([
+            ['key' => 'email', 'label' => 'Email', 'type' => 'email', 'rules' => ['required', 'email'], 'sort' => 1],
+        ]);
     }
 
     /** Trang tĩnh + bài viết — dùng đúng cơ chế `sections` của sản phẩm. */
@@ -118,6 +134,15 @@ class CatalogDemoSeeder extends Seeder
         $setting::put('hotline', '1900 0000');
         $setting::put('email', 'demo@example.test');
         $setting::put('address', 'Số 1, đường Demo, Hà Nội');
+        $setting::put('opening_hours', 'Mở cửa 8:00–19:00 hằng ngày');
+
+        // Các khoá dưới đây frontend đọc ra nếu có, bỏ trống thì khối tương
+        // ứng tự ẩn — xem partials/header.blade.php và home.blade.php.
+        $setting::put('brand_sub', 'Đại lý demo');
+        $setting::put('promo_text', 'Trả góp 0% lãi suất 24 tháng — xem chương trình đang chạy');
+        $setting::put('offer_note', 'Ưu đãi trong tháng');
+        $setting::put('offer_title', 'Trả góp 0% lãi suất 24 tháng cho các dòng xe điện');
+        $setting::put('offer_text', 'Kèm gói lắp sạc tại nhà miễn phí công lắp đặt cho khách đặt cọc tại đại lý.');
     }
 
     /**

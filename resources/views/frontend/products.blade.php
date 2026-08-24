@@ -21,16 +21,16 @@
         </ol>
     </div>
 
-    <section class="block">
+    <section class="block" style="padding-top:32px">
         <div class="wrap">
             <h1>{{ $heading }}</h1>
 
             @if (filled($intro ?? null))
-                <p class="lede">{{ $intro }}</p>
+                <p class="lede" style="margin-top:16px">{{ $intro }}</p>
             @endif
 
             @if ($categories->isNotEmpty())
-                <ul class="chips">
+                <ul class="chips" style="margin-top:28px">
                     <li>
                         <a class="chip {{ empty($category) ? 'chip--on' : '' }}" href="{{ route('products.index') }}">
                             Tất cả
@@ -48,7 +48,7 @@
             @if ($products->isEmpty())
                 <p class="empty">Chưa có {{ Str::lower(catalog_label('product.plural')) }} nào ở đây.</p>
             @else
-                <ul class="cards">
+                <ul class="cards cards--2" @if ($categories->isEmpty()) style="margin-top:36px" @endif>
                     @each('frontend.partials.product-card', $products, 'product')
                 </ul>
 

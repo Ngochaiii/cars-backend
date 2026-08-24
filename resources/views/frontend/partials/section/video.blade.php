@@ -8,13 +8,15 @@
 @endphp
 
 @if ($url)
-    @if (\App\Support\Media::isFile($url))
-        <video class="embed" controls preload="metadata" src="{{ $url }}"></video>
-    @else
-        <iframe class="embed" src="{{ $url }}" title="{{ $section['title'] ?? 'Video' }}"
-                loading="lazy" allowfullscreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe>
-    @endif
+    <div class="video-block">
+        @if (\App\Support\Media::isFile($url))
+            <video controls preload="metadata" src="{{ $url }}"></video>
+        @else
+            <iframe src="{{ $url }}" title="{{ $section['title'] ?? 'Video' }}"
+                    loading="lazy" allowfullscreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe>
+        @endif
+    </div>
 @endif
 
 @if (filled($section['items'] ?? null))

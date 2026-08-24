@@ -18,9 +18,13 @@
     $old = fn (string $key, mixed $default = null) => $isThisForm ? old($key, $default) : $default;
 @endphp
 
-<div class="lead-form-wrap">
+<div class="lead-form-wrap" id="form-{{ $form->key }}">
     @if ($sent)
-        <p class="notice notice--ok">{{ session('lead_success') }}</p>
+        <div class="lead-done">
+            <div class="lead-done__mark" aria-hidden="true">&check;</div>
+            <div class="lead-done__title">Đã nhận thông tin của bạn</div>
+            <p>{{ session('lead_success') }}</p>
+        </div>
     @endif
 
     <form class="lead-form" method="POST" action="{{ route('leads.store', $form) }}">
@@ -101,7 +105,7 @@
         @endforeach
 
         <div class="field field--full">
-            <button class="btn" type="submit">Gửi thông tin</button>
+            <button class="btn btn--accent" type="submit">{{ $form->name }}</button>
         </div>
     </form>
 </div>

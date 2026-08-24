@@ -2,7 +2,7 @@
 <ul class="highlights">
     @foreach ($highlights as $h)
         <li>
-            <b>{{ $h['value'] ?? '' }} {{ $h['unit'] ?? '' }}</b>
+            <b>{{ trim(($h['value'] ?? '').' '.($h['unit'] ?? '')) }}</b>
             <span>{{ $h['label'] ?? '' }}</span>
         </li>
     @endforeach

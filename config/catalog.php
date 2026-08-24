@@ -187,6 +187,10 @@ return [
         // trang qua mục kiểu `form` (VD "dat-lich-lai-thu" gắn tự động cho
         // mọi xe trong BrandSeeder) thì không lặp lại ở đây. [] = không hiện.
         'product_forms' => ['dat-coc'],
+
+        // Form ở băng đăng ký nhận tin ngay trên footer — chỉ cần ô email.
+        // null = ẩn hẳn băng đó.
+        'newsletter_form' => 'dang-ky-nhan-tin',
     ],
 
     /*

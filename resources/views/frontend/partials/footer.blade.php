@@ -1,8 +1,10 @@
 @php
-    $items   = catalog_menu(config('catalog.frontend.menus.footer', 'footer'));
-    $hotline = catalog_setting('hotline');
-    $email   = catalog_setting('email');
-    $address = catalog_setting('address');
+    $items    = catalog_menu(config('catalog.frontend.menus.footer', 'footer'));
+    $siteName = catalog_setting('site_name', config('app.name'));
+    $brandSub = catalog_setting('brand_sub');
+    $hotline  = catalog_setting('hotline');
+    $email    = catalog_setting('email');
+    $address  = catalog_setting('address');
 
     // Mạng xã hội khai ở Cài đặt → chỉ hiện cái nào đã điền.
     $socials = collect([
@@ -14,19 +16,34 @@
 @endphp
 
 <footer class="site-footer">
-    <div class="wrap">
-        <div class="site-footer__cols">
+    <div class="wrap site-footer__cols">
+        <div class="site-footer__brand">
+            <div class="brand">
+                <span class="brand__name">{{ $siteName }}</span>
+                @if (filled($brandSub))
+                    <span class="brand__sub">{{ $brandSub }}</span>
+                @endif
+            </div>
+            @if (filled($address))
+                <p>{{ $address }}</p>
+            @endif
+            @if (filled($hotline))
+                <p>Hotline: <a href="tel:{{ preg_replace('/\s+/', '', $hotline) }}">{{ $hotline }}</a></p>
+            @endif
+            @if (filled($email))
+                <p>Email: <a href="mailto:{{ $email }}">{{ $email }}</a></p>
+            @endif
+        </div>
+
+        <div class="site-footer__links">
             <div>
-                <h3>{{ catalog_setting('site_name', config('app.name')) }}</h3>
-                @if (filled($address))
-                    <p>{{ $address }}</p>
-                @endif
-                @if (filled($hotline))
-                    <p>Hotline: <a href="tel:{{ preg_replace('/\s+/', '', $hotline) }}">{{ $hotline }}</a></p>
-                @endif
-                @if (filled($email))
-                    <p>Email: <a href="mailto:{{ $email }}">{{ $email }}</a></p>
-                @endif
+                <h3>{{ catalog_label('product.plural') }}</h3>
+                <ul>
+                    <li><a href="{{ route('products.index') }}">Tất cả {{ Str::lower(catalog_label('product.plural')) }}</a></li>
+                    @if (catalog_feature('posts'))
+                        <li><a href="{{ route('posts.index') }}">Tin tức &amp; ưu đãi</a></li>
+                    @endif
+                </ul>
             </div>
 
             @if ($items->isNotEmpty())
@@ -63,10 +80,14 @@
                 </div>
             @endif
         </div>
+    </div>
 
-        <div class="site-footer__bottom">
-            <span>© {{ now()->year }} {{ catalog_setting('site_name', config('app.name')) }}</span>
-            <span>{{ catalog_setting('tax_code') }}</span>
+    <div class="site-footer__bottom">
+        <div class="wrap">
+            <span>© {{ now()->year }} {{ $siteName }}@if (filled(catalog_setting('tax_code'))). MST {{ catalog_setting('tax_code') }}@endif</span>
+            @if (filled($hotline))
+                <span>Hotline {{ $hotline }}</span>
+            @endif
         </div>
     </div>
 </footer>

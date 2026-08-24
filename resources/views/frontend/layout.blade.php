@@ -5,6 +5,8 @@
       $title · $description · $canonical · $ogImage · $jsonld · $bodyClass
 
     CSS là file tĩnh public/css/frontend.css — không vite, không build.
+    Font nạp bằng <link> chứ không @import trong CSS: @import bắt trình duyệt
+    tải xong frontend.css, parse, rồi mới đi lấy font — chậm hơn hẳn.
 --}}
 @php
     $siteName = catalog_setting('site_name', config('app.name'));
@@ -39,7 +41,11 @@
         <link rel="icon" href="{{ $favicon }}">
     @endif
 
-    {{-- CSS demo, cố ý tối thiểu. Giao diện thật dán đè vào file này. --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap">
+
     <link rel="stylesheet" href="{{ asset('css/frontend.css') }}">
 
     @isset($jsonld)
@@ -55,6 +61,7 @@
         @yield('content')
     </main>
 
+    @include('frontend.partials.newsletter')
     @include('frontend.partials.footer')
 </body>
 </html>

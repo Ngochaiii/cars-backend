@@ -7,36 +7,39 @@
 ])
 
 @section('content')
-    <article>
-        <div class="wrap">
-            <ol class="breadcrumb">
-                <li><a href="{{ route('home') }}">Trang chủ</a></li>
-                <li><a href="{{ route('posts.index') }}">Tin tức</a></li>
+    <article class="wrap">
+        <div class="article__head wrap--narrow" style="margin:0 auto;padding-inline:0">
+            <div class="article__kicker">
+                <a href="{{ route('posts.index') }}">Tin tức</a>
                 @if ($post->category)
-                    <li><a href="{{ route('post-categories.show', $post->category->slug) }}">{{ $post->category->name }}</a></li>
+                    / <a href="{{ route('post-categories.show', $post->category->slug) }}">{{ $post->category->name }}</a>
                 @endif
-                <li>{{ Str::limit($post->title, 40) }}</li>
-            </ol>
-        </div>
-
-        <header class="block">
-            <div class="wrap wrap--narrow">
                 @if ($post->published_at)
-                    <span class="eyebrow">{{ $post->published_at->format('d/m/Y') }}</span>
-                @endif
-
-                <h1>{{ $post->title }}</h1>
-
-                @if ($post->excerpt)
-                    <p class="lede">{{ $post->excerpt }}</p>
-                @endif
-
-                @if ($cover = catalog_image($post->cover))
-                    <img src="{{ $cover }}" alt="{{ $post->title }}" style="border-radius: var(--radius)">
+                    · {{ $post->published_at->format('d/m/Y') }}
                 @endif
             </div>
-        </header>
+
+            <h1>{{ $post->title }}</h1>
+
+            @if ($post->excerpt)
+                <p class="article__lede">{{ $post->excerpt }}</p>
+            @endif
+        </div>
+
+        <div class="article__cover">
+            @if ($cover = catalog_image($post->cover))
+                <img src="{{ $cover }}" alt="{{ $post->title }}">
+            @else
+                <div class="ph" style="height:100%">[ ảnh bài viết ]</div>
+            @endif
+        </div>
 
         @include('frontend.partials.sections', ['sections' => $sections])
+
+        <div class="article__foot wrap--narrow" style="margin:0 auto;padding-inline:0">
+            <a class="article__back" href="{{ route('posts.index') }}">← Tất cả tin tức</a>
+        </div>
     </article>
+
+    <div style="height:80px"></div>
 @endsection
