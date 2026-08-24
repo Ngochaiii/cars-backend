@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Frontend\AccessoryController;
+use App\Http\Controllers\Frontend\BookingController;
 use App\Http\Controllers\Frontend\CategoryController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\LeadController;
@@ -9,6 +11,7 @@ use App\Http\Controllers\Frontend\PostController;
 use App\Http\Controllers\Frontend\PostIndexController;
 use App\Http\Controllers\Frontend\ProductController;
 use App\Http\Controllers\Frontend\ProductIndexController;
+use App\Http\Controllers\Frontend\ServiceController;
 use App\Http\Controllers\SitemapController;
 use App\Support\Url;
 use Illuminate\Support\Facades\Route;
@@ -50,6 +53,29 @@ if (catalog_feature('posts')) {
 
     Route::get(trim(Url::prefix('post_category'), '/').'/{postCategory:slug}', PostCategoryController::class)
         ->name('post-categories.show');
+}
+
+/*
+|--------------------------------------------------------------------------
+| Trang cố định — không theo slug
+|--------------------------------------------------------------------------
+| Ba trang này của bản thiết kế không gắn với một bản ghi nào: đặt cọc &
+| lái thử, phụ kiện, trạm sạc & dịch vụ. Tiền tố URL vẫn lấy từ
+| config('catalog.routes'), bật/tắt ở config('catalog.frontend') — hãng nào
+| không có thì route không tồn tại, view dùng Route::has() nên link tự ẩn.
+|
+| Phải khai TRƯỚC route trang tĩnh /{page:slug} ở cuối file.
+*/
+if (catalog_feature('forms') && filled(config('catalog.frontend.booking.forms'))) {
+    Route::get(trim(Url::prefix('booking'), '/'), BookingController::class)->name('booking');
+}
+
+if (filled(config('catalog.frontend.accessory_category'))) {
+    Route::get(trim(Url::prefix('accessory'), '/'), AccessoryController::class)->name('accessories');
+}
+
+if (config('catalog.frontend.services_page', false)) {
+    Route::get(trim(Url::prefix('service'), '/'), ServiceController::class)->name('services');
 }
 
 /*

@@ -1,15 +1,18 @@
 <?php
 
+use App\Models\MenuItem;
 use App\Support\Catalog;
 use App\Support\Media;
 use App\Support\Money;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 if (! function_exists('catalog_model')) {
     /**
      * Core không hardcode Product::class — model tra qua config để dự án
      * nào cần thêm hành vi thì extend rồi trỏ lại.
      *
-     * @return class-string<\Illuminate\Database\Eloquent\Model>
+     * @return class-string<Model>
      */
     function catalog_model(string $key): string
     {
@@ -46,9 +49,9 @@ if (! function_exists('catalog_menu')) {
      * catalog_menu('header') → các mục gốc kèm con cháu, đã sắp thứ tự.
      * Menu không có thì trả collection rỗng — layout không cần @if.
      *
-     * @return \Illuminate\Support\Collection<int, \App\Models\MenuItem>
+     * @return Collection<int, MenuItem>
      */
-    function catalog_menu(string $key): \Illuminate\Support\Collection
+    function catalog_menu(string $key): Collection
     {
         return Catalog::menu($key);
     }
@@ -67,5 +70,34 @@ if (! function_exists('catalog_money')) {
     function catalog_money(mixed $amount): ?string
     {
         return Money::format($amount);
+    }
+}
+
+if (! function_exists('catalog_rows')) {
+    /**
+     * Đọc một khoá Cài đặt dạng "bảng nhỏ" thành các dòng đã tách cột.
+     *
+     * Vài khối của thiết kế (chỉ số chăm sóc chủ xe, danh sách trạm sạc,
+     * thẻ dịch vụ) là bảng 2–4 cột nhưng quá nhỏ để đẻ ra một bảng DB.
+     * Người nhập gõ mỗi dòng một mục, cột ngăn bằng `|`:
+     *
+     *     10 năm|Bảo hành xe và pin
+     *     24/7|Cứu hộ lưu động toàn tỉnh
+     *
+     * Xuống dòng hoặc `;` đều tính là hết một dòng — ô textarea và ô một
+     * dòng trong admin dùng chung được một khoá.
+     *
+     * @return Collection<int, array<int, string>>
+     */
+    function catalog_rows(?string $value, int $columns = 2): Collection
+    {
+        return collect(preg_split('/[\r\n;]+/', (string) $value))
+            ->map(fn (string $row) => array_pad(
+                array_map('trim', explode('|', trim($row), $columns)),
+                $columns,
+                '',
+            ))
+            ->filter(fn (array $row) => filled($row[0]))
+            ->values();
     }
 }

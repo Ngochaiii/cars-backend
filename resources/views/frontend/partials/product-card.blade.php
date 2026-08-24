@@ -47,7 +47,12 @@
         @endif
 
         <div class="card__actions">
-            <a class="btn btn--sm" href="{{ $url }}">Xem chi tiết</a>
+            @if (Route::has('booking'))
+                <a class="btn btn--sm" href="{{ route('booking', ['xe' => $product->slug]) }}">Đặt cọc</a>
+                <a class="btn btn--sm btn--outline" href="{{ $url }}">Xem chi tiết</a>
+            @else
+                <a class="btn btn--sm" href="{{ $url }}">Xem chi tiết</a>
+            @endif
         </div>
     </div>
 </li>

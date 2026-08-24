@@ -3,7 +3,10 @@
 namespace Database\Seeders;
 
 use App\Support\Catalog;
+use App\Support\Url;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 /**
  * Khung của một site: cài đặt, menu, form đặt lịch, một trang tĩnh, một bài
@@ -19,6 +22,7 @@ class CatalogDemoSeeder extends Seeder
         $this->form();
         $this->content();
         $this->settings();
+        $this->accessories();
         $this->menus();
     }
 
@@ -33,9 +37,9 @@ class CatalogDemoSeeder extends Seeder
         $testDrive = Catalog::query('form')->updateOrCreate(
             ['key' => 'dat-lich-lai-thu'],
             [
-                'name'             => 'Đặt lịch lái thử',
-                'description'      => 'Để lại thông tin, tư vấn viên sẽ liên hệ lại.',
-                'success_message'  => 'Đã nhận thông tin, chúng tôi sẽ liên hệ sớm.',
+                'name' => 'Đặt lịch lái thử',
+                'description' => 'Để lại thông tin, tư vấn viên sẽ liên hệ lại.',
+                'success_message' => 'Đã nhận thông tin, chúng tôi sẽ liên hệ sớm.',
             ],
         );
 
@@ -53,9 +57,9 @@ class CatalogDemoSeeder extends Seeder
         $deposit = Catalog::query('form')->updateOrCreate(
             ['key' => 'dat-coc'],
             [
-                'name'             => 'Đặt cọc',
-                'description'      => 'Cọc giữ suất xe — hoàn lại 100% trong 7 ngày nếu bạn đổi ý. Thanh toán sau khi tư vấn viên xác nhận.',
-                'success_message'  => 'Đã nhận yêu cầu đặt cọc, tư vấn viên sẽ gọi lại trong vòng 2 giờ làm việc để xác nhận.',
+                'name' => 'Đặt cọc',
+                'description' => 'Cọc giữ suất xe — hoàn lại 100% trong 7 ngày nếu bạn đổi ý. Thanh toán sau khi tư vấn viên xác nhận.',
+                'success_message' => 'Đã nhận yêu cầu đặt cọc, tư vấn viên sẽ gọi lại trong vòng 2 giờ làm việc để xác nhận.',
             ],
         );
 
@@ -74,8 +78,8 @@ class CatalogDemoSeeder extends Seeder
         $newsletter = Catalog::query('form')->updateOrCreate(
             ['key' => 'dang-ky-nhan-tin'],
             [
-                'name'            => 'Đăng ký nhận thông tin',
-                'description'     => 'Chương trình khuyến mãi và tin dịch vụ từ đại lý — 1–2 email mỗi tháng.',
+                'name' => 'Đăng ký nhận thông tin',
+                'description' => 'Chương trình khuyến mãi và tin dịch vụ từ đại lý — 1–2 email mỗi tháng.',
                 'success_message' => 'Đã đăng ký! Hẹn gặp bạn trong hộp thư.',
             ],
         );
@@ -92,13 +96,30 @@ class CatalogDemoSeeder extends Seeder
         Catalog::query('page')->updateOrCreate(
             ['slug' => 'gioi-thieu'],
             [
-                'title'    => 'Giới thiệu',
-                'status'   => 'published',
-                'sections' => [[
-                    'title' => 'Về chúng tôi',
-                    'type'  => 'text',
-                    'body'  => "Trang tĩnh mẫu.\nSửa nội dung trong admin → Trang.",
-                ]],
+                'title' => 'Giới thiệu',
+                'status' => 'published',
+                // Bám bố cục "Về chúng tôi" của bản thiết kế: ảnh mặt tiền,
+                // hai đoạn giới thiệu, rồi dải chỉ số (layout `stats`).
+                'sections' => [
+                    [
+                        'type' => 'media',
+                        'layout' => 'cols-1',
+                        'items' => [['label' => 'Ảnh mặt tiền showroom']],
+                    ],
+                    [
+                        'type' => 'text',
+                        'body' => "Đại lý ủy quyền chính hãng, showroom trưng bày đủ dải xe, khu lái thử riêng và xưởng dịch vụ đạt chuẩn hãng.\nSửa nội dung trong admin → Trang.",
+                    ],
+                    [
+                        'type' => 'table',
+                        'layout' => 'stats',
+                        'rows' => [
+                            ['value' => '2022', 'label' => 'Năm thành lập'],
+                            ['value' => '8 khoang', 'label' => 'Xưởng dịch vụ'],
+                            ['value' => '4,9/5', 'label' => 'Đánh giá khách hàng'],
+                        ],
+                    ],
+                ],
             ],
         );
 
@@ -110,15 +131,15 @@ class CatalogDemoSeeder extends Seeder
         Catalog::query('post')->updateOrCreate(
             ['slug' => 'bai-viet-mau'],
             [
-                'title'            => 'Bài viết mẫu',
-                'excerpt'          => 'Tóm tắt ngắn hiện ở thẻ bài viết.',
+                'title' => 'Bài viết mẫu',
+                'excerpt' => 'Tóm tắt ngắn hiện ở thẻ bài viết.',
                 'post_category_id' => $postCategory->id,
-                'status'           => 'published',
-                'published_at'     => now()->subDays(3),
-                'sections'         => [[
+                'status' => 'published',
+                'published_at' => now()->subDays(3),
+                'sections' => [[
                     'title' => 'Đoạn một',
-                    'type'  => 'text',
-                    'body'  => 'Bài viết dùng chung bộ mục với trang xe.',
+                    'type' => 'text',
+                    'body' => 'Bài viết dùng chung bộ mục với trang xe.',
                 ]],
             ],
         );
@@ -150,8 +171,82 @@ class CatalogDemoSeeder extends Seeder
 
         $setting::put('care_note', 'Chăm sóc chủ xe');
         $setting::put('care_title', 'Yên tâm suốt 10 năm sở hữu');
-        // Dạng "giá trị|nhãn", ngăn nhau bằng dấu chấm phẩy.
+        // Dạng "giá trị|nhãn", mỗi mục một dòng (dấu chấm phẩy cũng được).
         $setting::put('care_stats', '10 năm|Bảo hành xe và pin;24/7|Cứu hộ lưu động toàn tỉnh;45 phút|Thời gian cứu hộ trung bình;4,9/5|Điểm hài lòng dịch vụ');
+
+        // Trang Trạm sạc & dịch vụ. Cột 4 của `stations` là ok | warn, quyết
+        // định màu chữ trạng thái.
+        $setting::put('service_note', 'Trạm sạc & dịch vụ');
+        $setting::put('service_title', 'Sạc và bảo dưỡng, ngay trong tỉnh');
+        $setting::put('stations', implode("\n", [
+            'Trạm Vincom|Còn 6/8 cổng|DC 150 kW · 1,2 km · Mở 24/7|ok',
+            'Trạm Big C|Còn 3/6 cổng|DC 60 kW · 2,8 km · 8:00–22:00|ok',
+            'Trạm Bến xe khách|Còn 1/10 cổng|DC 250 kW · 3,5 km · Mở 24/7|warn',
+            'Trạm KCN|Còn 8/12 cổng|AC 11 kW + DC 60 kW · 9,4 km|ok',
+        ]));
+        // Nhãn không kèm link thì frontend ẩn nút — điền cả hai hoặc bỏ cả hai.
+        $setting::put('stations_more', 'Xem toàn bộ trạm trong tỉnh');
+        $setting::put('stations_more_url', 'https://www.google.com/maps/search/tr%E1%BA%A1m+s%E1%BA%A1c');
+
+        $setting::put('services_title', 'Dịch vụ tại showroom');
+        $setting::put('services', implode("\n", [
+            'Bảo dưỡng định kỳ|Đặt lịch trước, nhận xe trong ngày. Xe thay thế miễn phí cho bảo dưỡng trên 4 giờ.|Đặt lịch',
+            'Lắp sạc tại nhà|Khảo sát miễn phí, lắp đặt bộ sạc AC 7,4 kW đạt chuẩn an toàn trong 1 buổi.|Đăng ký khảo sát',
+            'Cứu hộ 24/7|Đội cứu hộ lưu động toàn tỉnh, có mặt trung bình trong 45 phút.|Hotline cứu hộ',
+        ]));
+
+        $setting::put('visit_title', 'Ghé thăm showroom');
+        $setting::put('map_url', 'https://www.google.com/maps');
+    }
+
+    /**
+     * Danh mục phụ kiện + vài mặt hàng mẫu cho trang /phu-kien.
+     *
+     * Phụ kiện là mặt hàng bình thường, chỉ khác danh mục — danh mục này khai
+     * ở config('catalog.frontend.accessory_category') và bị loại khỏi trang
+     * chủ lẫn /san-pham.
+     */
+    protected function accessories(): void
+    {
+        $slug = config('catalog.frontend.accessory_category');
+
+        if (blank($slug)) {
+            return;
+        }
+
+        $category = Catalog::query('category')->updateOrCreate(
+            ['slug' => $slug],
+            [
+                'name' => 'Phụ kiện xe',
+                'description' => 'Phụ kiện chính hãng, lắp đặt tại showroom.',
+                'sort' => 90,
+            ],
+        );
+
+        $items = [
+            ['Bộ sạc treo tường AC 11 kW', 11790000],
+            ['Sạc di động 2,2 kW', 6500000],
+            ['Thảm sàn 3D theo xe', 2400000],
+            ['Camera hành trình trước/sau', 3200000],
+            ['Ô dù gấp 2 tầng', 414000],
+            ['Áo phủ xe chống nắng', 1150000],
+            ['Bơm lốp điện mini', 890000],
+            ['Mô hình xe tỉ lệ 1:24', 2074000],
+        ];
+
+        foreach ($items as $i => [$name, $price]) {
+            Catalog::query('product')->updateOrCreate(
+                ['slug' => Str::slug($name)],
+                [
+                    'name' => $name,
+                    'category_id' => $category->id,
+                    'price_from' => $price,
+                    'status' => 'published',
+                    'published_at' => now()->subDay(),
+                    'sort' => $i + 1,
+                ],
+            );
+        }
     }
 
     /**
@@ -165,15 +260,23 @@ class CatalogDemoSeeder extends Seeder
 
         $header->items()->create([
             'label' => catalog_label('product.plural'),
-            'url'   => \App\Support\Url::prefix('product') ?: '/',
-            'sort'  => 1,
+            'url' => Url::prefix('product') ?: '/',
+            'sort' => 1,
         ]);
-        $header->items()->create(['label' => 'Tin tức', 'url' => \App\Support\Url::prefix('post'), 'sort' => 2]);
-        $header->items()->create(['label' => 'Giới thiệu', 'url' => '/gioi-thieu', 'sort' => 3]);
+        if (Route::has('accessories')) {
+            $header->items()->create(['label' => 'Phụ kiện', 'url' => Url::prefix('accessory'), 'sort' => 2]);
+        }
+
+        if (Route::has('services')) {
+            $header->items()->create(['label' => 'Trạm sạc & Dịch vụ', 'url' => Url::prefix('service'), 'sort' => 3]);
+        }
+
+        $header->items()->create(['label' => 'Tin tức', 'url' => Url::prefix('post'), 'sort' => 4]);
+        $header->items()->create(['label' => 'Giới thiệu', 'url' => '/gioi-thieu', 'sort' => 5]);
 
         $footer = Catalog::query('menu')->updateOrCreate(['key' => 'footer'], ['name' => 'Menu chân trang']);
         $footer->items()->delete();
         $footer->items()->create(['label' => 'Giới thiệu', 'url' => '/gioi-thieu', 'sort' => 1]);
-        $footer->items()->create(['label' => 'Tin tức', 'url' => \App\Support\Url::prefix('post'), 'sort' => 2]);
+        $footer->items()->create(['label' => 'Tin tức', 'url' => Url::prefix('post'), 'sort' => 2]);
     }
 }

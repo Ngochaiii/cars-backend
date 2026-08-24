@@ -13,6 +13,7 @@ class HomeController extends Controller
         return view('frontend.home', [
             'products' => Catalog::query('product')
                 ->published()
+                ->notInCategory(config('catalog.frontend.accessory_category'))
                 ->with('category')
                 ->orderBy('sort')
                 ->take((int) config('catalog.frontend.home.products', 8))

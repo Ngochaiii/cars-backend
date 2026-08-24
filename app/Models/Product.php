@@ -30,12 +30,12 @@ class Product extends Model
     protected function casts(): array
     {
         return [
-            'hero'         => 'array',
-            'highlights'   => 'array',
-            'sections'     => 'array',
-            'specs'        => 'array',
-            'seo'          => 'array',
-            'price_from'   => 'decimal:2',
+            'hero' => 'array',
+            'highlights' => 'array',
+            'sections' => 'array',
+            'specs' => 'array',
+            'seo' => 'array',
+            'price_from' => 'decimal:2',
             'published_at' => 'datetime',
         ];
     }
@@ -64,6 +64,25 @@ class Product extends Model
     {
         return $query->where('status', 'published')
             ->where(fn (Builder $q) => $q->whereNull('published_at')->orWhere('published_at', '<=', now()));
+    }
+
+    /**
+     * Loại một danh mục ra khỏi danh sách, theo slug. Dùng để giữ phụ kiện
+     * khỏi lẫn vào dải xe ở trang chủ và /san-pham (danh mục khai ở
+     * config('catalog.frontend.accessory_category')).
+     *
+     * Slug rỗng hoặc chưa có danh mục nào mang slug đó thì không lọc gì —
+     * dự án không dùng trang phụ kiện vẫn chạy y như cũ.
+     */
+    public function scopeNotInCategory(Builder $query, ?string $slug): Builder
+    {
+        if (blank($slug)) {
+            return $query;
+        }
+
+        return $query->whereNot(
+            fn (Builder $q) => $q->whereHas('category', fn (Builder $c) => $c->where('slug', $slug))
+        );
     }
 
     /**

@@ -1362,6 +1362,155 @@ html.js .tabs__panel + .tabs__panel { margin-top: 0; }
     color: var(--faint);
 }
 
+/* ═══════════ THẺ PHỤ KIỆN ═══════════ */
+/* Lưới 4 cột, ảnh thấp hơn thẻ xe, tên chừa 2 dòng để hàng nút thẳng nhau. */
+.cards--4 { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+
+.card--tight .card__body { padding: 18px 20px 20px; }
+.card__media--wide { aspect-ratio: 3 / 2; }
+.card__name { font-size: 14.5px; font-weight: 600; line-height: 1.4; min-height: 40px; }
+.card__name a:hover { color: var(--accent); }
+.card__cost { font-size: 14px; font-weight: 700; color: var(--ink); margin-top: 4px; }
+.card--tight .card__actions { padding-top: 14px; }
+
+/* ═══════════ TRẠM SẠC & DỊCH VỤ ═══════════ */
+.stations { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 24px; }
+.stations__map { border-radius: 4px; overflow: hidden; aspect-ratio: 4 / 3; background: var(--ph); }
+.stations__map img { width: 100%; height: 100%; object-fit: cover; }
+.stations__list { display: flex; flex-direction: column; gap: 12px; }
+
+.station {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 20px 22px;
+    background: #fff;
+    transition: border-color .2s ease;
+}
+.station:hover { border-color: #b5b5b0; }
+.station__head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.station__head b { font-size: 15px; font-weight: 600; color: var(--ink); }
+.station__status { flex: none; font-size: 12px; font-weight: 600; color: var(--good); }
+.station__status.is-warn { color: #b45309; }
+.station__info { font-size: 13px; color: var(--muted-2); margin-top: 4px; }
+
+.service-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+.service { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 28px; }
+.service h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+.service p { font-size: 13.5px; line-height: 1.65; color: #6b6b68; margin-bottom: 18px; }
+
+.link-underline {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 2px;
+}
+.link-underline:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Bản đồ nhỏ trong thẻ liên hệ ở trang tĩnh. */
+.info-card__map { margin-top: 22px; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; background: var(--ph); }
+.info-card__map img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ═══════════ TRANG ĐẶT CỌC & LÁI THỬ ═══════════ */
+/* Cột trái là tiến trình, cột phải là wizard. Tắt JS thì cả hai bước nằm
+   liền nhau trong cùng một <form> — không có nút chết. */
+.booking { display: grid; grid-template-columns: 480px minmax(0, 1fr); min-height: 760px; }
+
+.booking__rail { background: var(--soft); border-right: 1px solid var(--line); padding: 56px var(--pad); }
+.booking__kicker {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 14px;
+}
+.booking__rail h1 { font-size: clamp(26px, 3vw, 34px); line-height: 1.2; margin-bottom: 18px; }
+.booking__lede { font-size: 14.5px; line-height: 1.7; color: #6b6b68; margin-bottom: 36px; }
+
+.booking__steps { display: flex; flex-direction: column; }
+.booking__step { display: flex; gap: 16px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+.booking__step-num { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--faint); }
+.booking__step b { display: block; font-size: 15px; font-weight: 600; color: var(--muted-2); }
+.booking__step em { display: block; font-size: 13px; font-style: normal; color: #b5b5b0; margin-top: 2px; }
+.booking__step.is-on .booking__step-num,
+.booking__step.is-on b { color: var(--ink); }
+.booking__step.is-on em { color: var(--muted-2); }
+.booking__step.is-done .booking__step-num { color: var(--good); }
+
+.booking__help { margin-top: 40px; padding: 24px; background: #fff; border: 1px solid var(--line); border-radius: 4px; }
+.booking__help b { display: block; font-size: 13px; color: var(--ink); margin-bottom: 6px; }
+.booking__help p { font-size: 13px; color: #6b6b68; line-height: 1.7; }
+.booking__help a { border-bottom: 1px solid currentColor; }
+
+.booking__main { padding: 56px var(--pad) 72px; background: #fff; }
+.booking__modes { display: flex; gap: 10px; margin-bottom: 36px; }
+.booking__modes .chip { height: 42px; padding: 0 24px; font-size: 13.5px; }
+
+.booking__form { max-width: 720px; }
+.booking__fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.booking__fieldset + .booking__fieldset { margin-top: 40px; }
+.booking__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+.booking__fields .field--full { grid-column: 1 / -1; }
+
+.booking__actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; }
+.booking__actions .btn { height: 52px; }
+
+/* Nút chuyển bước chỉ có tác dụng khi JS bật. Tắt JS thì cả hai bước nằm
+   liền nhau trong cùng một <form> và nút Gửi vẫn chạy — không để nút chết. */
+[data-booking-next], [data-booking-prev] { display: none; }
+html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex; }
+.booking__error { margin-bottom: 20px; font-weight: 500; }
+
+.booking__deposit {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 32px;
+    padding: 22px 24px;
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+}
+.booking__deposit span { display: block; font-size: 13px; color: var(--muted-2); }
+.booking__deposit b { display: block; font-size: 24px; font-weight: 700; color: var(--ink); margin-top: 2px; }
+.booking__deposit p { font-size: 12.5px; color: var(--muted-2); line-height: 1.6; max-width: 300px; margin: 0; }
+
+/* Bước 3 — màn cảm ơn sau khi POST xong. */
+.booking__done { max-width: 620px; text-align: center; padding-top: 24px; }
+.booking__done h2 { font-size: clamp(26px, 3vw, 34px); margin-bottom: 14px; }
+.booking__done p { font-size: 15px; line-height: 1.7; color: #6b6b68; margin-bottom: 36px; }
+.booking__done .booking__actions { justify-content: center; }
+
+/* Lưới thẻ bấm — chọn xe, phương thức cọc, khung giờ. Vẫn là radio thật
+   nên tắt JS vẫn chọn và gửi được. */
+.pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.pick-grid--wide { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+
+.pick {
+    display: block;
+    position: relative;
+    border: 1px solid var(--line-in);
+    border-radius: 4px;
+    padding: 16px 18px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+.pick:hover { border-color: var(--ink); }
+.pick b { display: block; font-size: 15px; font-weight: 700; color: var(--ink); }
+.pick span { display: block; font-size: 12.5px; color: var(--muted-2); margin-top: 2px; }
+.pick input { position: absolute; opacity: 0; width: 0; height: 0; }
+.pick input:focus-visible ~ b { outline: 2px solid var(--accent); outline-offset: 3px; }
+.pick:has(input:checked), .pick.is-on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+
+/* ═══════════ HEADER — SỐ ĐIỆN THOẠI CẠNH NÚT ═══════════ */
+.header__cta { display: flex; align-items: center; gap: 18px; }
+.header__tel { font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+.header__tel:hover { color: var(--accent); }
+
 /* ═══════════ RESPONSIVE ═══════════ */
 @media (max-width: 1180px) {
     :root { --pad: 40px; }
@@ -1397,6 +1546,15 @@ html.js .tabs__panel + .tabs__panel { margin-top: 0; }
     .split__body p, .hero__lede { max-width: none; }
 
     .cards, .cards--2, .cards--3 { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+    .cards--4 { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+
+    .stations { grid-template-columns: minmax(0, 1fr); }
+    .stations__map { aspect-ratio: 16 / 9; }
+
+    /* Cột tiến trình lên trên, wizard xuống dưới. */
+    .booking { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+    .booking__rail { border-right: 0; border-bottom: 1px solid var(--line); padding-block: 40px; }
+    .booking__main { padding-block: 40px 56px; }
 
     .newsletter__inner { flex-direction: column; align-items: flex-start; }
     .newsletter__form { width: 100%; }
@@ -1452,6 +1610,16 @@ html.js .tabs__panel + .tabs__panel { margin-top: 0; }
     .tools__item:nth-child(2n) { border-right: 0; }
 
     .cards, .cards--2, .cards--3 { grid-template-columns: minmax(0, 1fr); }
+    .cards--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .booking__fields { grid-template-columns: minmax(0, 1fr); }
+    .booking__actions { flex-direction: column; }
+    .booking__actions .btn { width: 100%; }
+    .booking__deposit { flex-direction: column; align-items: flex-start; }
+    .booking__deposit p { max-width: none; }
+    .pick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .header__tel { display: none; }
+    .station__head { flex-direction: column; gap: 4px; }
     .card__body { padding: 22px; }
     .card__head { flex-direction: column; gap: 6px; }
     .card__actions { flex-direction: column; }

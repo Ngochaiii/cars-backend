@@ -100,7 +100,18 @@
                     <div class="tools__sub">So sánh giá và thông số từng {{ Str::lower(catalog_label('variant.single')) }}.</div>
                 </a>
 
-                @if ($lead)
+                {{-- Có trang đặt cọc riêng thì trỏ thẳng vào đó; không thì
+                     về form nằm cuối trang chi tiết như trước. --}}
+                @if (Route::has('booking'))
+                    <a class="tools__item" href="{{ route('booking', ['hinh-thuc' => 'dat-coc']) }}">
+                        <div class="tools__name">Đặt cọc online</div>
+                        <div class="tools__sub">Giữ suất xe, hoàn cọc trong 7 ngày.</div>
+                    </a>
+                    <a class="tools__item" href="{{ route('booking', ['hinh-thuc' => 'dat-lich-lai-thu']) }}">
+                        <div class="tools__name">Đăng ký lái thử</div>
+                        <div class="tools__sub">Chọn khung giờ, lái thử tại nhà hoặc showroom.</div>
+                    </a>
+                @elseif ($lead)
                     <a class="tools__item" href="{{ route('products.show', $lead->slug) }}#form-dat-coc">
                         <div class="tools__name">Đặt cọc online</div>
                         <div class="tools__sub">Giữ suất xe, hoàn cọc trong 7 ngày.</div>
@@ -109,13 +120,21 @@
                         <div class="tools__name">Đăng ký lái thử</div>
                         <div class="tools__sub">Chọn khung giờ, lái thử tại nhà hoặc showroom.</div>
                     </a>
+                @endif
+
+                @if ($lead)
                     <a class="tools__item" href="{{ route('products.show', $lead->slug) }}#fuel-calc">
                         <div class="tools__name">Tính chi phí sử dụng</div>
                         <div class="tools__sub">So sánh tiền điện với xe xăng, dầu tương đương.</div>
                     </a>
                 @endif
 
-                @if (catalog_feature('posts'))
+                @if (Route::has('services'))
+                    <a class="tools__item" href="{{ route('services') }}">
+                        <div class="tools__name">Trạm sạc &amp; dịch vụ</div>
+                        <div class="tools__sub">Điểm sạc trong tỉnh và lịch bảo dưỡng.</div>
+                    </a>
+                @elseif (catalog_feature('posts'))
                     <a class="tools__item" href="{{ route('posts.index') }}">
                         <div class="tools__name">Tin tức &amp; ưu đãi</div>
                         <div class="tools__sub">Chương trình đang chạy tại đại lý.</div>
@@ -178,7 +197,10 @@
 
                                     <div class="disc__actions">
                                         <a class="btn" href="{{ route('products.show', $car->slug) }}">Khám phá</a>
-                                        <a class="btn btn--outline" href="{{ route('products.show', $car->slug) }}#form-dat-coc">Đặt cọc</a>
+                                        <a class="btn btn--outline"
+                                           href="{{ Route::has('booking')
+                                               ? route('booking', ['xe' => $car->slug])
+                                               : route('products.show', $car->slug).'#form-dat-coc' }}">Đặt cọc</a>
                                     </div>
 
                                     @if ($car->price_from)

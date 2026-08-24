@@ -205,12 +205,117 @@
         show(0);
     }
 
+    /* ── Trang đặt cọc: đổi tab hình thức + wizard 2 bước ────────────── */
+    /* Không có script thì cả hai bước nằm liền nhau trong cùng một <form>
+       và các tab là link thật (?hinh-thuc=) — không có nút chết. */
+    function initBooking(root) {
+        var panes = root.querySelectorAll('[data-booking-pane]');
+        if (!panes.length) return;
+
+        var intros = root.querySelectorAll('[data-booking-intro]');
+        var modes = root.querySelectorAll('[data-booking-mode]');
+        var steps = root.querySelectorAll('[data-booking-step]');
+
+        function activeKey() {
+            for (var i = 0; i < panes.length; i++) {
+                if (!panes[i].hidden) return panes[i].dataset.bookingPane;
+            }
+            return panes[0].dataset.bookingPane;
+        }
+
+        function pane(key) {
+            for (var i = 0; i < panes.length; i++) {
+                if (panes[i].dataset.bookingPane === key) return panes[i];
+            }
+            return null;
+        }
+
+        /* Bước 3 (màn cảm ơn) không có fieldset — coi như đã xong cả 3. */
+        function showStep(key, n) {
+            var host = pane(key);
+            if (!host) return;
+
+            var sets = host.querySelectorAll('[data-booking-pane-step]');
+            if (!sets.length) { markSteps(3); return; }
+
+            for (var i = 0; i < sets.length; i++) {
+                sets[i].hidden = +sets[i].dataset.bookingPaneStep !== n;
+            }
+            markSteps(n);
+
+            var kicker = null;
+            for (var k = 0; k < intros.length; k++) {
+                if (intros[k].dataset.bookingIntro === key) {
+                    kicker = intros[k].querySelector('[data-booking-kicker]');
+                }
+            }
+            if (kicker) kicker.textContent = kicker.textContent.replace(/bước \d\/3/, 'bước ' + n + '/3');
+        }
+
+        function markSteps(n) {
+            for (var i = 0; i < steps.length; i++) {
+                var num = +steps[i].dataset.bookingStep;
+                steps[i].classList.toggle('is-on', num === n);
+                steps[i].classList.toggle('is-done', num < n);
+                var badge = steps[i].querySelector('.booking__step-num');
+                if (badge) badge.textContent = num < n ? '✓' : String(num);
+            }
+        }
+
+        function showMode(key) {
+            for (var i = 0; i < panes.length; i++) panes[i].hidden = panes[i].dataset.bookingPane !== key;
+            for (var j = 0; j < intros.length; j++) intros[j].hidden = intros[j].dataset.bookingIntro !== key;
+            for (var m = 0; m < modes.length; m++) {
+                modes[m].classList.toggle('chip--on', modes[m].dataset.bookingMode === key);
+            }
+            showStep(key, 1);
+        }
+
+        root.addEventListener('click', function (e) {
+            var mode = e.target.closest('[data-booking-mode]');
+            var next = e.target.closest('[data-booking-next]');
+            var prev = e.target.closest('[data-booking-prev]');
+
+            if (mode) {
+                e.preventDefault();
+                showMode(mode.dataset.bookingMode);
+                history.replaceState(null, '', mode.getAttribute('href'));
+            } else if (next) {
+                e.preventDefault();
+                showStep(activeKey(), 2);
+                root.scrollIntoView({ block: 'start', behavior: 'smooth' });
+            } else if (prev) {
+                e.preventDefault();
+                showStep(activeKey(), 1);
+                root.scrollIntoView({ block: 'start', behavior: 'smooth' });
+            }
+        });
+
+        /* Thẻ chọn: đánh dấu cái đang chọn trong cùng một nhóm radio. */
+        root.addEventListener('change', function (e) {
+            var input = e.target.closest('.pick input');
+            if (!input) return;
+
+            var group = root.querySelectorAll('.pick input[name="' + input.name + '"]');
+            for (var i = 0; i < group.length; i++) {
+                group[i].closest('.pick').classList.toggle('is-on', group[i].checked);
+            }
+        });
+
+        /* Ô đang lỗi validate nằm ở bước nào thì mở đúng bước đó. */
+        var key = activeKey();
+        var bad = pane(key) && pane(key).querySelector('.field__error');
+        var set = bad && bad.closest('[data-booking-pane-step]');
+        showStep(key, set ? +set.dataset.bookingPaneStep : 1);
+    }
+
     function boot() {
         document.querySelectorAll('[data-hero]').forEach(initHero);
         document.querySelectorAll('[data-disc]').forEach(initDiscovery);
         document.querySelectorAll('[data-swatches]').forEach(initSwatches);
         document.querySelectorAll('[data-gallery]').forEach(initGallery);
         document.querySelectorAll('[data-tabs]').forEach(initTabs);
+        document.querySelectorAll('.booking').forEach(initBooking);
     }
 
     if (document.readyState === 'loading') {

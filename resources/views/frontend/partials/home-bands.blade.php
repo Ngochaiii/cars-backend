@@ -31,7 +31,9 @@
             @endif
             <div class="offer__actions">
                 <a class="btn btn--light" href="{{ route('products.index') }}">Xem {{ Str::lower(catalog_label('product.plural')) }}</a>
-                @if ($lead)
+                @if (Route::has('booking'))
+                    <a class="btn btn--ghost" href="{{ route('booking') }}">Đặt cọc ngay</a>
+                @elseif ($lead)
                     <a class="btn btn--ghost" href="{{ route('products.show', $lead->slug) }}#form-dat-coc">Đặt cọc ngay</a>
                 @endif
             </div>
@@ -49,9 +51,15 @@
                 @if ($text = catalog_setting('charging_text'))
                     <p>{{ $text }}</p>
                 @endif
-                @if ($lead)
-                    <a class="btn" href="{{ route('products.show', $lead->slug) }}#fuel-calc">Tính chi phí sạc</a>
-                @endif
+                <div class="hero__actions">
+                    @if (Route::has('services'))
+                        <a class="btn" href="{{ route('services') }}">Xem trạm sạc</a>
+                    @endif
+                    @if ($lead)
+                        <a class="btn {{ Route::has('services') ? 'btn--outline' : '' }}"
+                           href="{{ route('products.show', $lead->slug) }}#fuel-calc">Tính chi phí sạc</a>
+                    @endif
+                </div>
             </div>
 
             <div class="split__media">
@@ -144,7 +152,11 @@
                     </div>
                 @endif
 
-                @if ($lead)
+                @if (Route::has('booking'))
+                    <div class="hero__actions">
+                        <a class="btn" href="{{ route('booking', ['hinh-thuc' => 'dat-lich-lai-thu']) }}">Đăng ký lái thử</a>
+                    </div>
+                @elseif ($lead)
                     <div class="hero__actions">
                         <a class="btn" href="{{ route('products.show', $lead->slug) }}#form-dat-lich-lai-thu">Đăng ký lái thử</a>
                     </div>

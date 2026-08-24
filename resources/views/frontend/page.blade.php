@@ -15,6 +15,8 @@
         $hotline = catalog_setting('hotline');
         $email   = catalog_setting('email');
         $hours   = catalog_setting('opening_hours');
+        $mapImg  = catalog_image(catalog_setting('map_image'));
+        $mapUrl  = catalog_setting('map_url');
         $hasInfo = filled($address) || filled($hotline) || filled($email) || filled($hours);
     @endphp
 
@@ -37,13 +39,23 @@
                         </div>
 
                         <aside class="info-card">
-                            <h3>Liên hệ</h3>
+                            <h3>{{ catalog_setting('visit_title', 'Ghé thăm showroom') }}</h3>
                             <p>
                                 @if (filled($address)){{ $address }}<br>@endif
                                 @if (filled($hours)){{ $hours }}<br>@endif
                                 @if (filled($hotline))Hotline: {{ $hotline }}<br>@endif
                                 @if (filled($email)){{ $email }}@endif
                             </p>
+
+                            @if ($mapImg)
+                                <div class="info-card__map">
+                                    <img src="{{ $mapImg }}" alt="Bản đồ chỉ đường" loading="lazy">
+                                </div>
+                            @endif
+
+                            @if (filled($mapUrl))
+                                <a class="btn btn--sm" href="{{ $mapUrl }}" rel="noopener" target="_blank">Chỉ đường trên Google Maps</a>
+                            @endif
                         </aside>
                     </div>
                 @endif

@@ -6,6 +6,15 @@
     $email    = catalog_setting('email');
     $address  = catalog_setting('address');
 
+    // Link tới từng hình thức đặt (đặt cọc / lái thử) — lấy tên form thay vì
+    // gõ cứng, admin đổi tên form là footer đổi theo.
+    $bookingForms = Route::has('booking')
+        ? \App\Support\Catalog::query('form')
+            ->whereIn('key', (array) config('catalog.frontend.booking.forms', []))
+            ->where('is_active', true)
+            ->get()
+        : collect();
+
     // Mạng xã hội khai ở Cài đặt → chỉ hiện cái nào đã điền.
     $socials = collect([
         'Facebook' => catalog_setting('facebook'),
@@ -37,31 +46,42 @@
 
         <div class="site-footer__links">
             <div>
-                <h3>{{ catalog_label('product.plural') }}</h3>
+                <h3>Sản phẩm</h3>
                 <ul>
                     <li><a href="{{ route('products.index') }}">Tất cả {{ Str::lower(catalog_label('product.plural')) }}</a></li>
-                    @if (catalog_feature('posts'))
-                        <li><a href="{{ route('posts.index') }}">Tin tức &amp; ưu đãi</a></li>
+                    @if (Route::has('accessories'))
+                        <li><a href="{{ route('accessories') }}">Phụ kiện xe</a></li>
                     @endif
                 </ul>
             </div>
 
-            @if ($items->isNotEmpty())
+            @if (Route::has('booking') || Route::has('services'))
                 <div>
-                    <h3>Liên kết</h3>
+                    <h3>Dịch vụ</h3>
                     <ul>
-                        @foreach ($items as $item)
-                            <li>
-                                @if ($url = $item->resolvedUrl())
-                                    <a href="{{ $url }}">{{ $item->label }}</a>
-                                @else
-                                    {{ $item->label }}
-                                @endif
-                            </li>
+                        @foreach ($bookingForms as $bookingForm)
+                            <li><a href="{{ route('booking', ['hinh-thuc' => $bookingForm->key]) }}">{{ $bookingForm->name }}</a></li>
                         @endforeach
+                        @if (Route::has('services'))
+                            <li><a href="{{ route('services') }}">Trạm sạc &amp; bảo dưỡng</a></li>
+                        @endif
                     </ul>
                 </div>
             @endif
+
+            <div>
+                <h3>Đại lý</h3>
+                <ul>
+                    @if (catalog_feature('posts'))
+                        <li><a href="{{ route('posts.index') }}">Tin tức &amp; ưu đãi</a></li>
+                    @endif
+                    @foreach ($items as $item)
+                        @if ($url = $item->resolvedUrl())
+                            <li><a href="{{ $url }}">{{ $item->label }}</a></li>
+                        @endif
+                    @endforeach
+                </ul>
+            </div>
 
             @if ($socials->isNotEmpty())
                 <div>

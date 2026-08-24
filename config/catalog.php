@@ -1,5 +1,23 @@
 <?php
 
+use App\Models\Category;
+use App\Models\Dealer;
+use App\Models\Form;
+use App\Models\FormField;
+use App\Models\Lead;
+use App\Models\Menu;
+use App\Models\MenuItem;
+use App\Models\Page;
+use App\Models\Post;
+use App\Models\PostCategory;
+use App\Models\Product;
+use App\Models\ProductOption;
+use App\Models\ProductVariant;
+use App\Models\Province;
+use App\Models\Redirect;
+use App\Models\Setting;
+use App\Models\Template;
+
 /*
 |--------------------------------------------------------------------------
 | Cấu hình mặc định của core
@@ -15,29 +33,29 @@ return [
 
     // Chữ hiển thị trong admin. Không bao giờ lấy từ tên cột.
     'labels' => [
-        'product'  => ['single' => 'Xe',        'plural' => 'Dòng xe'],
-        'variant'  => ['single' => 'Phiên bản', 'plural' => 'Phiên bản'],
-        'option'   => ['single' => 'Màu xe',    'plural' => 'Bảng màu'],
+        'product' => ['single' => 'Xe',        'plural' => 'Dòng xe'],
+        'variant' => ['single' => 'Phiên bản', 'plural' => 'Phiên bản'],
+        'option' => ['single' => 'Màu xe',    'plural' => 'Bảng màu'],
         'sections' => 'Chi tiết xe',
-        'specs'    => 'Thông số kỹ thuật',
+        'specs' => 'Thông số kỹ thuật',
     ],
 
     // Bật/tắt từng khối. Admin ẩn khối tắt, API không trả field tương ứng.
     'features' => [
-        'variants'   => true,
-        'options'    => true,
-        'specs'      => true,
+        'variants' => true,
+        'options' => true,
+        'specs' => true,
         'highlights' => true,
-        'posts'      => true,
-        'pages'      => true,
-        'forms'      => true,
-        'dealers'    => true,
-        'fee_calc'   => true,
+        'posts' => true,
+        'pages' => true,
+        'forms' => true,
+        'dealers' => true,
+        'fee_calc' => true,
 
         // So sánh chi phí nhiên liệu xe điện vs xe xăng/dầu ở trang chi tiết
         // xe — khác `fee_calc` (lệ phí lăn bánh). Cần biến thể có battery_kwh
         // + range_km, không thì mục tự ẩn dù bật.
-        'fuel_calc'  => true,
+        'fuel_calc' => true,
     ],
 
     // Gợi ý tên khi bấm "Thêm mục" trong repeater sections.
@@ -45,25 +63,29 @@ return [
 
     // Layout cho phép chọn trong một mục.
     'section_layouts' => [
-        'slider'   => 'Slider',
-        'cols-1'   => '1 cột',
-        'cols-2'   => '2 cột',
-        'cols-3'   => '3 cột',
+        'slider' => 'Slider',
+        'cols-1' => '1 cột',
+        'cols-2' => '2 cột',
+        'cols-3' => '3 cột',
 
         // Bố cục dựng theo bản thiết kế — xem partials/section/media.blade.php.
-        'gallery'  => 'Thư viện lớn (1 ảnh to + 2 ảnh nhỏ)',
-        'split'    => 'Chữ một bên, ảnh một bên',
+        'gallery' => 'Thư viện lớn (1 ảnh to + 2 ảnh nhỏ)',
+        'split' => 'Chữ một bên, ảnh một bên',
         'carousel' => 'Băng chuyền (mũi tên chuyển ảnh)',
-        'tabs'     => 'Tab đánh số (01, 02, 03…)',
+        'tabs' => 'Tab đánh số (01, 02, 03…)',
+
+        // Cho mục kiểu `table`: mỗi dòng thành một ô chỉ số lớn thay vì
+        // hàng bảng — dùng ở trang "Về chúng tôi".
+        'stats' => 'Dải chỉ số (số to, nhãn nhỏ)',
     ],
 
     // Kiểu mục. 9/10 lần chỉ dùng `media`.
     'section_types' => [
-        'media'  => 'Ảnh',
-        'text'   => 'Văn bản',
-        'video'  => 'Video',
-        'table'  => 'Bảng',
-        'form'   => 'Form',
+        'media' => 'Ảnh',
+        'text' => 'Văn bản',
+        'video' => 'Video',
+        'table' => 'Bảng',
+        'form' => 'Form',
         'custom' => 'Khối riêng',
     ],
 
@@ -80,33 +102,81 @@ return [
     */
     'settings' => [
         'general' => [
-            'label'  => 'Chung',
+            'label' => 'Chung',
             'fields' => [
                 'site_name' => ['label' => 'Tên website', 'type' => 'text'],
 
                 // Meta description của trang chủ.
                 'site_description' => ['label' => 'Mô tả ngắn', 'type' => 'textarea'],
 
-                'hotline'   => ['label' => 'Hotline', 'type' => 'text'],
-                'email'     => ['label' => 'Email liên hệ', 'type' => 'email'],
-                'address'   => ['label' => 'Địa chỉ', 'type' => 'textarea'],
-                'logo'      => ['label' => 'Logo', 'type' => 'image'],
-                'favicon'   => ['label' => 'Favicon', 'type' => 'image'],
+                'hotline' => ['label' => 'Hotline', 'type' => 'text'],
+                'email' => ['label' => 'Email liên hệ', 'type' => 'email'],
+                'address' => ['label' => 'Địa chỉ', 'type' => 'textarea'],
+                'opening_hours' => ['label' => 'Giờ mở cửa', 'type' => 'text'],
+                'tax_code' => ['label' => 'Mã số thuế', 'type' => 'text'],
+                'logo' => ['label' => 'Logo', 'type' => 'image'],
+                'favicon' => ['label' => 'Favicon', 'type' => 'image'],
+                'map_image' => ['label' => 'Ảnh bản đồ chỉ đường', 'type' => 'image'],
+                'map_url' => ['label' => 'Link Google Maps', 'type' => 'url'],
+                'visit_title' => ['label' => 'Tiêu đề thẻ liên hệ ở trang tĩnh', 'type' => 'text'],
+            ],
+        ],
+
+        // Các khối nội dung của trang chủ. Khoá nào để trống thì cả khối tự
+        // ẩn ở frontend — không có chữ mẫu chết trong view.
+        'home' => [
+            'label' => 'Trang chủ',
+            'fields' => [
+                'brand_sub' => ['label' => 'Dòng phụ cạnh tên (VD "Bắc Giang")', 'type' => 'text'],
+                'header_cta' => ['label' => 'Nhãn nút bên phải header', 'type' => 'text'],
+                'promo_text' => ['label' => 'Băng khuyến mãi trên cùng', 'type' => 'text'],
+                'promo_url' => ['label' => 'Link băng khuyến mãi', 'type' => 'url'],
+
+                'offer_note' => ['label' => 'Ưu đãi — dòng nhỏ', 'type' => 'text'],
+                'offer_title' => ['label' => 'Ưu đãi — tiêu đề', 'type' => 'text'],
+                'offer_text' => ['label' => 'Ưu đãi — mô tả', 'type' => 'textarea'],
+
+                'charging_note' => ['label' => 'Pin & trạm sạc — dòng nhỏ', 'type' => 'text'],
+                'charging_title' => ['label' => 'Pin & trạm sạc — tiêu đề', 'type' => 'text'],
+                'charging_text' => ['label' => 'Pin & trạm sạc — mô tả', 'type' => 'textarea'],
+                'charging_image' => ['label' => 'Pin & trạm sạc — ảnh', 'type' => 'image'],
+
+                'care_note' => ['label' => 'Chăm sóc chủ xe — dòng nhỏ', 'type' => 'text'],
+                'care_title' => ['label' => 'Chăm sóc chủ xe — tiêu đề', 'type' => 'text'],
+                'care_image' => ['label' => 'Chăm sóc chủ xe — ảnh', 'type' => 'image'],
+                'care_stats' => ['label' => 'Chăm sóc chủ xe — chỉ số (mỗi dòng "10 năm|Bảo hành xe và pin")', 'type' => 'textarea'],
+            ],
+        ],
+
+        // Trang Trạm sạc & dịch vụ — xem frontend/services.blade.php.
+        'service' => [
+            'label' => 'Trạm sạc & dịch vụ',
+            'fields' => [
+                'service_note' => ['label' => 'Dòng nhỏ trên tiêu đề', 'type' => 'text'],
+                'service_title' => ['label' => 'Tiêu đề trang', 'type' => 'text'],
+                'service_map' => ['label' => 'Ảnh bản đồ trạm sạc', 'type' => 'image'],
+
+                'stations' => ['label' => 'Danh sách trạm (mỗi dòng "Tên|Trạng thái|Thông tin|ok hoặc warn")', 'type' => 'textarea'],
+                'stations_more' => ['label' => 'Nhãn nút xem thêm trạm', 'type' => 'text'],
+                'stations_more_url' => ['label' => 'Link nút xem thêm trạm', 'type' => 'url'],
+
+                'services_title' => ['label' => 'Tiêu đề khối dịch vụ', 'type' => 'text'],
+                'services' => ['label' => 'Dịch vụ (mỗi dòng "Tên|Mô tả|Nhãn nút|Link")', 'type' => 'textarea'],
             ],
         ],
         'social' => [
-            'label'  => 'Mạng xã hội',
+            'label' => 'Mạng xã hội',
             'fields' => [
                 'facebook' => ['label' => 'Facebook', 'type' => 'url'],
-                'youtube'  => ['label' => 'YouTube', 'type' => 'url'],
-                'tiktok'   => ['label' => 'TikTok', 'type' => 'url'],
-                'zalo'     => ['label' => 'Zalo', 'type' => 'text'],
+                'youtube' => ['label' => 'YouTube', 'type' => 'url'],
+                'tiktok' => ['label' => 'TikTok', 'type' => 'url'],
+                'zalo' => ['label' => 'Zalo', 'type' => 'text'],
             ],
         ],
         'tracking' => [
-            'label'  => 'Đo lường',
+            'label' => 'Đo lường',
             'fields' => [
-                'gtm_id'         => ['label' => 'Google Tag Manager ID', 'type' => 'text'],
+                'gtm_id' => ['label' => 'Google Tag Manager ID', 'type' => 'text'],
                 'facebook_pixel' => ['label' => 'Facebook Pixel ID', 'type' => 'text'],
             ],
         ],
@@ -120,23 +190,23 @@ return [
     | extend model của core rồi trỏ lại ở đây.
     */
     'models' => [
-        'product'       => \App\Models\Product::class,
-        'variant'       => \App\Models\ProductVariant::class,
-        'option'        => \App\Models\ProductOption::class,
-        'category'      => \App\Models\Category::class,
-        'post'          => \App\Models\Post::class,
-        'post_category' => \App\Models\PostCategory::class,
-        'page'          => \App\Models\Page::class,
-        'menu'          => \App\Models\Menu::class,
-        'menu_item'     => \App\Models\MenuItem::class,
-        'setting'       => \App\Models\Setting::class,
-        'redirect'      => \App\Models\Redirect::class,
-        'form'          => \App\Models\Form::class,
-        'form_field'    => \App\Models\FormField::class,
-        'lead'          => \App\Models\Lead::class,
-        'template'      => \App\Models\Template::class,
-        'province'      => \App\Models\Province::class,
-        'dealer'        => \App\Models\Dealer::class,
+        'product' => Product::class,
+        'variant' => ProductVariant::class,
+        'option' => ProductOption::class,
+        'category' => Category::class,
+        'post' => Post::class,
+        'post_category' => PostCategory::class,
+        'page' => Page::class,
+        'menu' => Menu::class,
+        'menu_item' => MenuItem::class,
+        'setting' => Setting::class,
+        'redirect' => Redirect::class,
+        'form' => Form::class,
+        'form_field' => FormField::class,
+        'lead' => Lead::class,
+        'template' => Template::class,
+        'province' => Province::class,
+        'dealer' => Dealer::class,
     ],
 
     /*
@@ -145,10 +215,10 @@ return [
     |--------------------------------------------------------------------------
     */
     'api' => [
-        'enabled'    => true,
-        'prefix'     => 'api/v1',
+        'enabled' => true,
+        'prefix' => 'api/v1',
         'middleware' => ['api'],
-        'per_page'   => 24,
+        'per_page' => 24,
     ],
 
     /*
@@ -180,7 +250,7 @@ return [
 
         'home' => [
             'products' => 8,    // số thẻ sản phẩm trên trang chủ
-            'posts'    => 3,    // số tin mới nhất
+            'posts' => 3,    // số tin mới nhất
         ],
 
         // Khoá menu dựng ở màn hình Menu. Chưa tạo thì phần đó không render.
@@ -197,6 +267,37 @@ return [
         // Form ở băng đăng ký nhận tin ngay trên footer — chỉ cần ô email.
         // null = ẩn hẳn băng đó.
         'newsletter_form' => 'dang-ky-nhan-tin',
+
+        /*
+        | Trang "Đặt cọc & lái thử" (/dat-coc) — wizard 3 bước.
+        |
+        | `forms` là các form khách chọn ở đầu trang, theo thứ tự tab; mỗi
+        | form vẫn POST vào /gui-form/{form} như mọi form khác nên honeypot,
+        | chống trùng và mail y hệt. null = tắt hẳn trang.
+        */
+        'booking' => [
+            'forms' => ['dat-coc', 'dat-lich-lai-thu'],
+
+            // Ô nào lên bước 1 (đứng cạnh bộ chọn xe); còn lại xuống bước 2.
+            'step1_fields' => ['location_type'],
+
+            // Ô select nào hiện thành lưới thẻ bấm thay vì dropdown. Quá số
+            // lựa chọn này thì tự về dropdown cho khỏi vỡ lưới.
+            'card_fields' => ['payment_method', 'preferred_time', 'location_type'],
+            'card_max_options' => 4,
+
+            // Số tiền cọc hiện ở bảng tóm tắt bước 2. null = ẩn bảng đó.
+            'deposit' => 15000000,
+        ],
+
+        // Danh mục dùng cho trang Phụ kiện (/phu-kien). Mặt hàng thuộc danh
+        // mục này KHÔNG hiện ở trang chủ và danh sách xe — phụ kiện lẫn vào
+        // dải xe là lỗi thấy ngay. null = tắt hẳn trang.
+        'accessory_category' => 'phu-kien',
+
+        // Trang Trạm sạc & dịch vụ (/tram-sac-dich-vu). Nội dung lấy từ
+        // Cài đặt → Trạm sạc & dịch vụ. false = tắt hẳn trang.
+        'services_page' => true,
     ],
 
     /*
@@ -209,8 +310,8 @@ return [
     */
     'fuel_calc' => [
         'electricity_price' => 3900,   // đ/kWh
-        'petrol_price'       => 24500, // đ/lít xăng
-        'diesel_price'       => 21500, // đ/lít dầu
+        'petrol_price' => 24500, // đ/lít xăng
+        'diesel_price' => 21500, // đ/lít dầu
     ],
 
     /*
@@ -235,11 +336,17 @@ return [
     | Đây là hình dạng URL của frontend, mỗi hãng đổi được mà không sửa core.
     */
     'routes' => [
-        'product'  => '/san-pham',
+        'product' => '/san-pham',
         'category' => '/danh-muc',
-        'post'     => '/tin-tuc',
+        'post' => '/tin-tuc',
         'post_category' => '/chuyen-muc',
-        'page'     => '',   // trang tĩnh nằm ngay gốc: /gioi-thieu
+        'page' => '',   // trang tĩnh nằm ngay gốc: /gioi-thieu
+
+        // Ba trang cố định của frontend (không theo slug). Bật/tắt ở
+        // `frontend` bên dưới, không phải ở đây.
+        'booking' => '/dat-coc',
+        'accessory' => '/phu-kien',
+        'service' => '/tram-sac-dich-vu',
     ],
 
     'seo' => [
@@ -251,9 +358,9 @@ return [
 
         // Tổ chức đứng sau — dùng cho JSON-LD Organization
         'organization' => [
-            'name'    => null,   // null thì lấy settings('site_name')
-            'logo'    => null,   // null thì lấy settings('logo')
-            'sameAs'  => [],     // link mạng xã hội
+            'name' => null,   // null thì lấy settings('site_name')
+            'logo' => null,   // null thì lấy settings('logo')
+            'sameAs' => [],     // link mạng xã hội
         ],
     ],
 

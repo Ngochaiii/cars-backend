@@ -52,6 +52,16 @@
                     <li class="nav__item">
                         <a class="nav__link" href="{{ route('products.index') }}">{{ catalog_label('product.plural') }}</a>
                     </li>
+                    @if (Route::has('accessories'))
+                        <li class="nav__item">
+                            <a class="nav__link" href="{{ route('accessories') }}">Phụ kiện</a>
+                        </li>
+                    @endif
+                    @if (Route::has('services'))
+                        <li class="nav__item">
+                            <a class="nav__link" href="{{ route('services') }}">Trạm sạc &amp; Dịch vụ</a>
+                        </li>
+                    @endif
                     @if (catalog_feature('posts'))
                         <li class="nav__item">
                             <a class="nav__link" href="{{ route('posts.index') }}">Tin tức</a>
@@ -61,10 +71,16 @@
             </ul>
         </nav>
 
-        @if (filled($hotline))
-            <div class="header__cta">
-                <a class="btn" href="tel:{{ preg_replace('/\s+/', '', $hotline) }}">{{ $hotline }}</a>
-            </div>
-        @endif
+        <div class="header__cta">
+            @if (filled($hotline))
+                <a class="header__tel" href="tel:{{ preg_replace('/\s+/', '', $hotline) }}">{{ $hotline }}</a>
+            @endif
+
+            @if (Route::has('booking'))
+                <a class="btn btn--sm" href="{{ route('booking') }}">{{ catalog_setting('header_cta', 'Đặt cọc & lái thử') }}</a>
+            @elseif (filled($hotline))
+                <a class="btn btn--sm" href="tel:{{ preg_replace('/\s+/', '', $hotline) }}">Gọi tư vấn</a>
+            @endif
+        </div>
     </div>
 </header>
