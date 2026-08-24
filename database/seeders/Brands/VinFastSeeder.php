@@ -211,7 +211,10 @@ class VinFastSeeder extends BrandSeeder
                 ],
             ],
 
-            'seo' => ['title' => 'VinFast VF 5 Plus — giá và thông số kỹ thuật'],
+            'seo' => [
+                'title'       => 'VinFast VF 5 Plus — giá và thông số kỹ thuật',
+                'description' => 'SUV điện cỡ A cho gia đình trẻ: gọn trong phố, khoang cabin rộng hơn phân khúc và chi phí vận hành thấp hơn hẳn xe xăng cùng cỡ.',
+            ],
         ];
     }
 
@@ -237,11 +240,14 @@ class VinFastSeeder extends BrandSeeder
                     'items'  => ['Góc trước', 'Góc sau', 'Nội thất', 'Khoang hành lý'],
                 ],
                 'Ngoại thất' => [
-                    'intro'  => 'Dải đèn LED liền mạch, tay nắm cửa dạng ẩn.',
-                    'layout' => 'cols-2',
-                    'items'  => ['Đèn trước', 'Mâm 19 inch'],
+                    'intro'  => 'Thân xe tối ưu khí động học, dải đèn LED liền mạch chạy suốt đầu xe '
+                        .'và tay nắm cửa dạng ẩn — nhận diện rõ cả khi đứng yên lẫn khi chuyển động.',
+                    'layout' => 'gallery',
+                    'items'  => ['Góc 3/4 phía trước', 'Dải đèn LED', 'Mâm 19 inch'],
                 ],
                 'Nội thất' => [
+                    'intro'  => 'Ghế ngồi ôm sát cơ thể, nâng đỡ tốt hơn ở chặng dài. '
+                        .'Không gian rộng rãi cho cả hàng ghế sau.',
                     'layout' => 'cols-2',
                     'items'  => ['Màn hình 12,9 inch', 'Ghế chỉnh điện'],
                 ],
@@ -313,7 +319,10 @@ class VinFastSeeder extends BrandSeeder
                 ],
             ],
 
-            'seo' => ['title' => 'VinFast VF 6 — giá Eco và Plus, thông số kỹ thuật'],
+            'seo' => [
+                'title'       => 'VinFast VF 6 — giá Eco và Plus, thông số kỹ thuật',
+                'description' => 'SUV điện cỡ B với quãng đường 480 km mỗi lần sạc, hai phiên bản Eco và Plus — lựa chọn cân bằng giữa không gian, công nghệ và chi phí.',
+            ],
         ];
     }
 
@@ -401,7 +410,10 @@ class VinFastSeeder extends BrandSeeder
                 ],
             ],
 
-            'seo' => ['title' => 'VinFast VF 7 — giá Eco và Plus, thông số kỹ thuật'],
+            'seo' => [
+                'title'       => 'VinFast VF 7 — giá Eco và Plus, thông số kỹ thuật',
+                'description' => 'SUV điện cỡ C, bản Plus dẫn động hai cầu và gói ADAS nâng cao — thiết kế hoàn toàn mới cho người chủ động chọn lối sống xanh.',
+            ],
         ];
     }
 
@@ -495,7 +507,10 @@ class VinFastSeeder extends BrandSeeder
                 ],
             ],
 
-            'seo' => ['title' => 'VinFast VF 8 — giá Eco và Plus, thông số kỹ thuật'],
+            'seo' => [
+                'title'       => 'VinFast VF 8 — giá Eco và Plus, thông số kỹ thuật',
+                'description' => 'SUV điện cỡ D dẫn động hai cầu tiêu chuẩn, màn hình 15,6 inch và không gian rộng rãi cho gia đình hay đi xa.',
+            ],
         ];
     }
 

@@ -28,17 +28,8 @@
         {{-- ── Hero ───────────────────────────────────────────────────── --}}
         @include('frontend.partials.hero', ['product' => $product, 'heroForms' => $forms])
 
-        {{-- ── Chỉ số nổi bật ─────────────────────────────────────────── --}}
-        @if (catalog_feature('highlights') && filled($product->highlights))
-            <section class="section" style="padding-block:72px">
-                <div class="wrap">
-                    @include('frontend.partials.highlights', ['highlights' => $product->highlights])
-                </div>
-            </section>
-        @endif
-
         <div class="wrap">
-            <ol class="breadcrumb" style="padding-top:0">
+            <ol class="breadcrumb">
                 <li><a href="{{ route('home') }}">Trang chủ</a></li>
                 <li><a href="{{ route('products.index') }}">{{ catalog_label('product.plural') }}</a></li>
                 @if ($product->category)
@@ -50,12 +41,17 @@
 
         {{-- ── Đoạn mở đầu (lấy từ mô tả SEO, không có thì bỏ) ────────── --}}
         @if (filled($intro))
-            <section class="section" style="text-align:center">
-                <div class="wrap wrap--narrow">
-                    <h2 style="margin-bottom:22px">{{ $product->tagline ?: $product->name }}</h2>
-                    <p class="lede" style="margin-inline:auto">{{ $intro }}</p>
-                </div>
+            <section class="intro">
+                <h2>{{ $product->tagline ?: $product->name }}</h2>
+                <p>{{ $intro }}</p>
             </section>
+        @endif
+
+        {{-- ── Chỉ số nổi bật ─────────────────────────────────────────── --}}
+        @if (catalog_feature('highlights') && filled($product->highlights))
+            <div class="wrap kpi-strip">
+                @include('frontend.partials.highlights', ['highlights' => $product->highlights])
+            </div>
         @endif
 
         {{-- ── Phiên bản ──────────────────────────────────────────────── --}}
@@ -70,7 +66,7 @@
 
         {{-- ── Bảng màu ───────────────────────────────────────────────── --}}
         @if (catalog_feature('options') && $product->options->isNotEmpty())
-            <section class="section block--tint" style="padding-block:88px">
+            <section class="section block--tint">
                 <div class="wrap" style="text-align:center">
                     <div class="section__head" style="margin-bottom:32px">
                         <h2>{{ catalog_label('option.plural') }}</h2>
@@ -100,7 +96,7 @@
 
         {{-- ── So sánh chi phí nhiên liệu ─────────────────────────────── --}}
         @if (catalog_feature('fuel_calc') && $fuelCalc)
-            <section class="section block--tint" style="padding-block:96px">
+            <section class="section block--tint">
                 <div class="wrap">
                     <div class="section__head">
                         <h2>So sánh giữa {{ $product->name }} và xe động cơ đốt trong</h2>
@@ -113,7 +109,7 @@
 
         {{-- Form(s) cuối trang: khoá khai ở config('catalog.frontend.product_forms'). --}}
         @foreach ($forms as $f)
-            <section class="section" style="padding-block:96px">
+            <section class="section">
                 <div class="wrap">
                     <div class="section__head" style="text-align:center">
                         <h2>{{ $f->name }}</h2>
