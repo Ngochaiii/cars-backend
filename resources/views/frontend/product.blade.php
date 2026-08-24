@@ -55,17 +55,29 @@
             </section>
         @endif
 
-        {{-- Form cuối trang: khoá form khai ở config('catalog.frontend.product_form'). --}}
-        @if (! empty($form))
+        @if (catalog_feature('fuel_calc') && $fuelCalc)
             <section class="section block--soft">
                 <div class="wrap">
                     <div class="section__head">
-                        <h2>{{ $form->name }}</h2>
-                        <p>Để lại thông tin, tư vấn viên sẽ liên hệ lại.</p>
+                        <h2>So sánh chi phí nhiên liệu</h2>
+                        <p>{{ $product->name }} so với xe động cơ đốt trong tương đương — số liệu tham khảo.</p>
                     </div>
-                    @include('frontend.partials.lead-form', ['form' => $form, 'product' => $product])
+                    @include('frontend.partials.fuel-calculator', ['product' => $product, 'fuelCalc' => $fuelCalc])
                 </div>
             </section>
         @endif
+
+        {{-- Form(s) cuối trang: khoá khai ở config('catalog.frontend.product_forms'). --}}
+        @foreach ($forms as $f)
+            <section class="section block--soft">
+                <div class="wrap">
+                    <div class="section__head">
+                        <h2>{{ $f->name }}</h2>
+                        <p>{{ $f->description ?: 'Để lại thông tin, tư vấn viên sẽ liên hệ lại.' }}</p>
+                    </div>
+                    @include('frontend.partials.lead-form', ['form' => $f, 'product' => $product])
+                </div>
+            </section>
+        @endforeach
     </article>
 @endsection

@@ -147,6 +147,18 @@ class ProductForm
                         MoneyInput::make('price', 'Giá'),
                         MoneyInput::make('price_original', 'Giá gạch'),
                         TextInput::make('note')->label('Ghi chú'),
+
+                        TextInput::make('battery_kwh')
+                            ->label('Dung lượng pin (kWh)')
+                            ->numeric()
+                            ->step(0.01)
+                            ->visible(Catalog::feature('fuel_calc'))
+                            ->helperText('Dùng cho bộ so sánh chi phí nhiên liệu. Xe xăng dầu bỏ trống.'),
+
+                        TextInput::make('range_km')
+                            ->label('Quãng đường mỗi lần sạc (km)')
+                            ->numeric()
+                            ->visible(Catalog::feature('fuel_calc')),
                     ])
                     ->columns(2)
                     ->columnSpanFull(),

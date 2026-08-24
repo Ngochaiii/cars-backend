@@ -16,6 +16,7 @@ use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
@@ -86,6 +87,13 @@ class FormResource extends Resource
                         ->required()
                         ->unique(ignoreRecord: true)
                         ->helperText('Frontend gọi /api/v1/forms/{khoá}'),
+
+                    Textarea::make('description')
+                        ->label('Giới thiệu ngắn')
+                        ->placeholder('Để lại thông tin, tư vấn viên sẽ liên hệ lại.')
+                        ->helperText('Hiện ngay dưới tên form ở frontend.')
+                        ->rows(2)
+                        ->columnSpanFull(),
 
                     TextInput::make('success_message')
                         ->label('Lời cảm ơn sau khi gửi')

@@ -22,20 +22,51 @@ class CatalogDemoSeeder extends Seeder
         $this->menus();
     }
 
-    /** Form đặt lịch lái thử — brand seeder nhúng form này vào cuối trang xe. */
+    /**
+     * Hai form ở trang chi tiết xe:
+     *   - "dat-lich-lai-thu": brand seeder tự nhúng giữa trang (xem
+     *     BrandSeeder::formKey()/sections()).
+     *   - "dat-coc": nằm cuối trang, khai ở config('catalog.frontend.product_forms').
+     */
     protected function form(): void
     {
-        $form = Catalog::query('form')->updateOrCreate(
+        $testDrive = Catalog::query('form')->updateOrCreate(
             ['key' => 'dat-lich-lai-thu'],
-            ['name' => 'Đặt lịch lái thử', 'success_message' => 'Đã nhận thông tin, chúng tôi sẽ liên hệ sớm.'],
+            [
+                'name'             => 'Đặt lịch lái thử',
+                'description'      => 'Để lại thông tin, tư vấn viên sẽ liên hệ lại.',
+                'success_message'  => 'Đã nhận thông tin, chúng tôi sẽ liên hệ sớm.',
+            ],
         );
 
-        $form->fields()->delete();
-        $form->fields()->createMany([
+        $testDrive->fields()->delete();
+        $testDrive->fields()->createMany([
             ['key' => 'name', 'label' => 'Họ tên', 'type' => 'text', 'rules' => ['required'], 'sort' => 1, 'width' => 'half'],
             ['key' => 'phone', 'label' => 'Điện thoại', 'type' => 'tel', 'rules' => ['required'], 'sort' => 2, 'width' => 'half'],
-            ['key' => 'email', 'label' => 'Email', 'type' => 'email', 'rules' => ['nullable'], 'sort' => 3],
-            ['key' => 'note', 'label' => 'Ghi chú', 'type' => 'textarea', 'rules' => ['nullable'], 'sort' => 4],
+            ['key' => 'preferred_time', 'label' => 'Khung giờ mong muốn', 'type' => 'select', 'rules' => ['nullable'], 'sort' => 3, 'width' => 'half',
+                'options' => ['sang-t7' => 'Sáng thứ 7', 'chieu-t7' => 'Chiều thứ 7', 'sang-cn' => 'Sáng chủ nhật', 'chieu-cn' => 'Chiều chủ nhật']],
+            ['key' => 'location_type', 'label' => 'Hình thức', 'type' => 'select', 'rules' => ['nullable'], 'sort' => 4, 'width' => 'half',
+                'options' => ['tai-nha' => 'Lái thử tại nhà', 'showroom' => 'Tại showroom']],
+            ['key' => 'note', 'label' => 'Ghi chú', 'type' => 'textarea', 'rules' => ['nullable'], 'sort' => 5],
+        ]);
+
+        $deposit = Catalog::query('form')->updateOrCreate(
+            ['key' => 'dat-coc'],
+            [
+                'name'             => 'Đặt cọc',
+                'description'      => 'Cọc giữ suất xe — hoàn lại 100% trong 7 ngày nếu bạn đổi ý. Thanh toán sau khi tư vấn viên xác nhận.',
+                'success_message'  => 'Đã nhận yêu cầu đặt cọc, tư vấn viên sẽ gọi lại trong vòng 2 giờ làm việc để xác nhận.',
+            ],
+        );
+
+        $deposit->fields()->delete();
+        $deposit->fields()->createMany([
+            ['key' => 'name', 'label' => 'Họ và tên', 'type' => 'text', 'rules' => ['required'], 'sort' => 1, 'width' => 'half'],
+            ['key' => 'phone', 'label' => 'Số điện thoại', 'type' => 'tel', 'rules' => ['required'], 'sort' => 2, 'width' => 'half'],
+            ['key' => 'email', 'label' => 'Email', 'type' => 'email', 'rules' => ['nullable'], 'sort' => 3, 'width' => 'half'],
+            ['key' => 'payment_method', 'label' => 'Phương thức thanh toán cọc', 'type' => 'select', 'rules' => ['nullable'], 'sort' => 4, 'width' => 'half',
+                'options' => ['qr' => 'Chuyển khoản QR', 'the' => 'Thẻ ngân hàng', 'showroom' => 'Tại showroom']],
+            ['key' => 'note', 'label' => 'Ghi chú', 'type' => 'textarea', 'rules' => ['nullable'], 'sort' => 5],
         ]);
     }
 

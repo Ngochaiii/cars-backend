@@ -30,7 +30,14 @@ class StoreLead
 
         // Luật validate dựng từ form_fields, không hardcode. ValidationException
         // tự trả 422 JSON cho API và redirect kèm lỗi cho form Blade.
-        $data = $request->validate(
+        //
+        // Bag đặt tên theo $form->key: khi trang có nhiều form dùng chung tên
+        // trường (VD "name", "phone" ở cả "Đặt cọc" lẫn "Đăng ký lái thử"),
+        // lỗi của form này không được tràn sang @error() của form khác. Chỉ
+        // ảnh hưởng cách lỗi được gắn vào session cho Blade — JSON trả về
+        // cho API vẫn y hệt vì response không phụ thuộc tên bag.
+        $data = $request->validateWithBag(
+            $form->key,
             $form->validationRules(),
             [],
             $form->validationAttributes(),

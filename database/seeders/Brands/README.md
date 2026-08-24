@@ -52,7 +52,7 @@ không phải để chạy cùng lúc.
 | `tables` | array | mục bảng: `'Tên mục' => ['nhãn' => 'giá trị']` |
 | `form` | bool | nhúng form đặt lịch ở cuối (mặc định `true`) |
 | `colors` | array | `'Tên màu' => '#hex'` |
-| `variants` | array | `[['name','price','price_original','note','is_default']]` |
+| `variants` | array | `[['name','price','price_original','note','is_default','battery_kwh','range_km']]` — hai khoá cuối chỉ hãng xe điện cần khai, dùng cho bộ so sánh chi phí nhiên liệu ở trang chi tiết (`config('catalog.features.fuel_calc')`) |
 | `specs` | array | `'Nhóm' => ['nhãn' => 'giá trị']` |
 | `seo` | array | `['title','description']` |
 

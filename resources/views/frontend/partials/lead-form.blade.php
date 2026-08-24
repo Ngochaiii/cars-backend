@@ -7,6 +7,15 @@
 @php
     $honeypot = config('catalog.leads.honeypot', 'website');
     $sent     = session('lead_success') && session('lead_form_key') === $form->key;
+
+    // Trang có thể có nhiều form dùng chung tên trường (VD "Đặt cọc" và
+    // "Đăng ký lái thử" đều có "name"/"phone"). Lỗi validate đã tách theo
+    // bag $form->key (xem StoreLead) — old() thì không có khái niệm bag,
+    // nên chỉ đọc lại giá trị cũ khi CHÍNH form này vừa lỗi, không thì
+    // form khác lỗi sẽ vô tình làm form này hiện lại giá trị không phải
+    // của nó.
+    $isThisForm = $errors->{$form->key}->any();
+    $old = fn (string $key, mixed $default = null) => $isThisForm ? old($key, $default) : $default;
 @endphp
 
 <div class="lead-form-wrap">
@@ -44,7 +53,7 @@
                     @case('textarea')
                         <textarea id="f-{{ $form->key }}-{{ $field->key }}" name="{{ $field->key }}" rows="4"
                                   placeholder="{{ $field->placeholder }}"
-                                  @if ($required) required @endif>{{ old($field->key) }}</textarea>
+                                  @if ($required) required @endif>{{ $old($field->key) }}</textarea>
                         @break
 
                     @case('select')
@@ -52,7 +61,7 @@
                                 @if ($required) required @endif>
                             <option value="">{{ $field->placeholder ?: '— Chọn —' }}</option>
                             @foreach ((array) $field->options as $value => $label)
-                                <option value="{{ $value }}" @selected(old($field->key) == $value)>{{ $label }}</option>
+                                <option value="{{ $value }}" @selected($old($field->key) == $value)>{{ $label }}</option>
                             @endforeach
                         </select>
                         @break
@@ -68,8 +77,8 @@
                                                name="{{ $field->key }}{{ $isCheckbox ? '[]' : '' }}"
                                                value="{{ $value }}"
                                                @checked($isCheckbox
-                                                   ? in_array($value, (array) old($field->key, []), false)
-                                                   : old($field->key) == $value)>
+                                                   ? in_array($value, (array) $old($field->key, []), false)
+                                                   : $old($field->key) == $value)>
                                         {{ $label }}
                                     </label>
                                 </li>
@@ -79,13 +88,13 @@
 
                     @default
                         <input type="{{ $field->type }}" id="f-{{ $form->key }}-{{ $field->key }}"
-                               name="{{ $field->key }}" value="{{ old($field->key) }}"
+                               name="{{ $field->key }}" value="{{ $old($field->key) }}"
                                placeholder="{{ $field->placeholder }}"
                                @if ($field->type === 'tel') inputmode="tel" @endif
                                @if ($required) required @endif>
                 @endswitch
 
-                @error($field->key)
+                @error($field->key, $form->key)
                     <p class="field__error">{{ $message }}</p>
                 @enderror
             </div>

@@ -98,6 +98,9 @@ class MauSeeder extends BrandSeeder
                 'variants' => [
                     ['name' => 'Bản tiêu chuẩn', 'price' => 599_000_000, 'note' => 'Ghi chú tuỳ chọn'],
                     ['name' => 'Bản cao cấp', 'price' => 699_000_000, 'price_original' => 729_000_000],
+                    // Xe điện thêm 'battery_kwh' => 59.6, 'range_km' => 480 vào từng
+                    // biến thể để bật bộ so sánh chi phí ở trang chi tiết
+                    // (config('catalog.features.fuel_calc')). Xe xăng dầu bỏ qua.
                 ],
 
                 // ── Thông số: 'Nhóm' => ['nhãn' => 'giá trị'] ─────────────

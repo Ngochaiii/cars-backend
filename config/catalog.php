@@ -33,6 +33,11 @@ return [
         'forms'      => true,
         'dealers'    => true,
         'fee_calc'   => true,
+
+        // So sánh chi phí nhiên liệu xe điện vs xe xăng/dầu ở trang chi tiết
+        // xe — khác `fee_calc` (lệ phí lăn bánh). Cần biến thể có battery_kwh
+        // + range_km, không thì mục tự ẩn dù bật.
+        'fuel_calc'  => true,
     ],
 
     // Gợi ý tên khi bấm "Thêm mục" trong repeater sections.
@@ -178,8 +183,24 @@ return [
             'footer' => 'footer',
         ],
 
-        // Form hiện ở cuối trang chi tiết sản phẩm. null = không hiện.
-        'product_form' => 'dat-lich-lai-thu',
+        // Form hiện ở cuối trang chi tiết sản phẩm — key nào đã nhúng giữa
+        // trang qua mục kiểu `form` (VD "dat-lich-lai-thu" gắn tự động cho
+        // mọi xe trong BrandSeeder) thì không lặp lại ở đây. [] = không hiện.
+        'product_forms' => ['dat-coc'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fuel calculator (giá điện/nhiên liệu tham khảo)
+    |--------------------------------------------------------------------------
+    |
+    | Đổi theo giá điện/xăng dầu thực tế của thời điểm — không phải báo giá
+    | chính thức. electricity_price tính cho sạc tại nhà.
+    */
+    'fuel_calc' => [
+        'electricity_price' => 3900,   // đ/kWh
+        'petrol_price'       => 24500, // đ/lít xăng
+        'diesel_price'       => 21500, // đ/lít dầu
     ],
 
     /*

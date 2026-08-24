@@ -802,6 +802,99 @@ img {
     width: auto;
 }
 
+/* ---------- Fuel calculator ---------- */
+
+.fuel-calc {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: stretch;
+}
+
+.fuel-calc__form {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.fuel-calc__form .field label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.fuel-calc__result {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.fuel-calc__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 15px;
+    color: var(--muted);
+}
+
+.fuel-calc__row b {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.fuel-calc__row--total {
+    border-bottom: none;
+    padding-top: 20px;
+}
+
+.fuel-calc__row--total span { font-weight: 600; color: var(--ink); }
+.fuel-calc__row--total b { font-size: 30px; color: var(--accent); }
+
+.segmented {
+    display: inline-flex;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    overflow: hidden;
+    width: fit-content;
+}
+
+.segmented__option { position: relative; }
+
+.segmented__option input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+.segmented__option span {
+    display: inline-flex;
+    align-items: center;
+    height: 46px;
+    padding: 0 30px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+}
+
+.segmented__option:not(:first-child) span { border-left: 1px solid #d9d9d9; }
+.segmented__option input:checked + span { background: var(--ink); color: #fff; }
+.segmented__option input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
+
 /* ---------- Breadcrumb ---------- */
 
 .breadcrumb {
@@ -995,6 +1088,7 @@ img {
     .highlights { grid-template-columns: repeat(2, 1fr); }
     .items, .layout-cols-2, .layout-cols-3 { grid-template-columns: 1fr; }
     .lead-form { grid-template-columns: 1fr; }
+    .fuel-calc { grid-template-columns: 1fr; }
     .site-footer__cols { flex-direction: column; gap: 28px; padding-block: 40px; }
     .site-footer__cols > div:not(:first-child) { flex-basis: auto; }
     .data-table { min-width: 0; }

@@ -99,9 +99,11 @@ class VinFastSeeder extends BrandSeeder
 
             'variants' => [
                 [
-                    'name'  => 'VF 3 tiêu chuẩn',
-                    'price' => 240_000_000,
-                    'note'  => 'Giá thuê pin. Mua kèm pin khoảng 322 triệu.',
+                    'name'        => 'VF 3 tiêu chuẩn',
+                    'price'       => 240_000_000,
+                    'note'        => 'Giá thuê pin. Mua kèm pin khoảng 322 triệu.',
+                    'battery_kwh' => 18.64,
+                    'range_km'    => 215,
                 ],
             ],
 
@@ -181,9 +183,11 @@ class VinFastSeeder extends BrandSeeder
 
             'variants' => [
                 [
-                    'name'  => 'VF 5 Plus',
-                    'price' => 458_000_000,
-                    'note'  => 'Giá thuê pin. Mua kèm pin khoảng 538 triệu.',
+                    'name'        => 'VF 5 Plus',
+                    'price'       => 458_000_000,
+                    'note'        => 'Giá thuê pin. Mua kèm pin khoảng 538 triệu.',
+                    'battery_kwh' => 37.23,
+                    'range_km'    => 326,
                 ],
             ],
 
@@ -265,14 +269,18 @@ class VinFastSeeder extends BrandSeeder
 
             'variants' => [
                 [
-                    'name'  => 'VF 6 Eco',
-                    'price' => 689_000_000,
-                    'note'  => 'Giá thuê pin. 174 mã lực, quãng đường 480 km (NEDC).',
+                    'name'        => 'VF 6 Eco',
+                    'price'       => 689_000_000,
+                    'note'        => 'Giá thuê pin. 174 mã lực, quãng đường 480 km (NEDC).',
+                    'battery_kwh' => 59.6,
+                    'range_km'    => 480,
                 ],
                 [
-                    'name'  => 'VF 6 Plus',
-                    'price' => 749_000_000,
-                    'note'  => 'Giá thuê pin. 201 mã lực, thêm gói ADAS và mâm 19 inch.',
+                    'name'        => 'VF 6 Plus',
+                    'price'       => 749_000_000,
+                    'note'        => 'Giá thuê pin. 201 mã lực, thêm gói ADAS và mâm 19 inch.',
+                    'battery_kwh' => 59.6,
+                    'range_km'    => 460,
                 ],
             ],
 
@@ -349,14 +357,18 @@ class VinFastSeeder extends BrandSeeder
 
             'variants' => [
                 [
-                    'name'  => 'VF 7 Eco',
-                    'price' => 799_000_000,
-                    'note'  => 'Giá thuê pin. 174 mã lực, dẫn động cầu trước.',
+                    'name'        => 'VF 7 Eco',
+                    'price'       => 799_000_000,
+                    'note'        => 'Giá thuê pin. 174 mã lực, dẫn động cầu trước.',
+                    'battery_kwh' => 59.6,
+                    'range_km'    => 450,
                 ],
                 [
-                    'name'  => 'VF 7 Plus',
-                    'price' => 949_000_000,
-                    'note'  => 'Giá thuê pin. 348 mã lực, dẫn động AWD, cửa sổ trời toàn cảnh.',
+                    'name'        => 'VF 7 Plus',
+                    'price'       => 949_000_000,
+                    'note'        => 'Giá thuê pin. 348 mã lực, dẫn động AWD, cửa sổ trời toàn cảnh.',
+                    'battery_kwh' => 75.3,
+                    'range_km'    => 431,
                 ],
             ],
 
@@ -439,14 +451,18 @@ class VinFastSeeder extends BrandSeeder
 
             'variants' => [
                 [
-                    'name'  => 'VF 8 Eco',
-                    'price' => 1_109_000_000,
-                    'note'  => 'Giá thuê pin. 349 mã lực, quãng đường 420 km (NEDC).',
+                    'name'        => 'VF 8 Eco',
+                    'price'       => 1_109_000_000,
+                    'note'        => 'Giá thuê pin. 349 mã lực, quãng đường 420 km (NEDC).',
+                    'battery_kwh' => 82,
+                    'range_km'    => 420,
                 ],
                 [
-                    'name'  => 'VF 8 Plus',
-                    'price' => 1_269_000_000,
-                    'note'  => 'Giá thuê pin. 402 mã lực, nội thất da, mâm 21 inch.',
+                    'name'        => 'VF 8 Plus',
+                    'price'       => 1_269_000_000,
+                    'note'        => 'Giá thuê pin. 402 mã lực, nội thất da, mâm 21 inch.',
+                    'battery_kwh' => 82,
+                    'range_km'    => 447,
                 ],
             ],
 
@@ -523,14 +539,18 @@ class VinFastSeeder extends BrandSeeder
 
             'variants' => [
                 [
-                    'name'  => 'VF 9 Eco',
-                    'price' => 1_491_000_000,
-                    'note'  => 'Giá thuê pin. 7 chỗ, quãng đường 438 km (NEDC).',
+                    'name'        => 'VF 9 Eco',
+                    'price'       => 1_491_000_000,
+                    'note'        => 'Giá thuê pin. 7 chỗ, quãng đường 438 km (NEDC).',
+                    'battery_kwh' => 92,
+                    'range_km'    => 438,
                 ],
                 [
-                    'name'  => 'VF 9 Plus',
-                    'price' => 1_769_000_000,
-                    'note'  => 'Giá thuê pin. Ghế thương gia hàng hai, treo khí nén.',
+                    'name'        => 'VF 9 Plus',
+                    'price'       => 1_769_000_000,
+                    'note'        => 'Giá thuê pin. Ghế thương gia hàng hai, treo khí nén.',
+                    'battery_kwh' => 92,
+                    'range_km'    => 423,
                 ],
             ],
 

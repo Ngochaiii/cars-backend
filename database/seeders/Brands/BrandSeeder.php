@@ -113,6 +113,10 @@ abstract class BrandSeeder extends Seeder
                 'note'           => $variant['note'] ?? null,
                 'is_default'     => $variant['is_default'] ?? ($i === 0),
                 'sort'           => $i + 1,
+                // Đặc thù xe điện — chỉ MauSeeder/hãng xe điện mới khai, xe
+                // xăng dầu bỏ trống thì calculator ở trang chi tiết tự ẩn.
+                'battery_kwh'    => $variant['battery_kwh'] ?? null,
+                'range_km'       => $variant['range_km'] ?? null,
             ]);
         }
     }
