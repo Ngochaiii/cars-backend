@@ -45,10 +45,16 @@ return [
 
     // Layout cho phép chọn trong một mục.
     'section_layouts' => [
-        'slider' => 'Slider',
-        'cols-1' => '1 cột',
-        'cols-2' => '2 cột',
-        'cols-3' => '3 cột',
+        'slider'   => 'Slider',
+        'cols-1'   => '1 cột',
+        'cols-2'   => '2 cột',
+        'cols-3'   => '3 cột',
+
+        // Bố cục dựng theo bản thiết kế — xem partials/section/media.blade.php.
+        'gallery'  => 'Thư viện lớn (1 ảnh to + 2 ảnh nhỏ)',
+        'split'    => 'Chữ một bên, ảnh một bên',
+        'carousel' => 'Băng chuyền (mũi tên chuyển ảnh)',
+        'tabs'     => 'Tab đánh số (01, 02, 03…)',
     ],
 
     // Kiểu mục. 9/10 lần chỉ dùng `media`.

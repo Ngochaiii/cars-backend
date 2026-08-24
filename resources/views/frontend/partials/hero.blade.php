@@ -3,6 +3,10 @@
       - type = image → ảnh nền, chữ trắng đè lên, có lớp phủ tối cho dễ đọc
       - type = video → nhúng video (YouTube/Vimeo/mp4) làm nền
       - không có hero → khối chữ trên nền xám nhạt, không để trang trống hốc
+
+    Ảnh hero gộp với ảnh của các mục kiểu `media` thành một băng chuyền —
+    không cần thêm cột `gallery` vào bảng products. Chỉ một ảnh thì không
+    dựng băng chuyền, khỏi thừa nút.
 --}}
 @php
     $hero    = $product->hero ?? [];
@@ -13,9 +17,29 @@
     $variant  = $product->variants->firstWhere('is_default', true) ?? $product->variants->first();
     $priceNow = $product->price_from ?: $variant?->price;
     $priceWas = $variant?->price_original;
+
+    // Băng chuyền chỉ dựng cho hero ẢNH — hero video thì để video chạy yên.
+    $shots = collect();
+
+    if ($media && ! $isVideo) {
+        $shots->push(['src' => $media, 'label' => $product->name]);
+
+        foreach ($product->renderableSections() as $sec) {
+            if (($sec['type'] ?? 'media') !== 'media') {
+                continue;
+            }
+            foreach ($sec['items'] ?? [] as $item) {
+                if ($img = catalog_image($item['image'] ?? null)) {
+                    $shots->push(['src' => $img, 'label' => $item['label'] ?? ($sec['title'] ?? '')]);
+                }
+            }
+        }
+
+        $shots = $shots->unique('src')->take(5)->values();
+    }
 @endphp
 
-<section class="hero {{ $media ? 'hero--overlay' : 'hero--plain' }}">
+<section class="hero {{ $media ? 'hero--overlay' : 'hero--plain' }}" @if ($shots->count() > 1) data-gallery @endif>
     @if ($media)
         <div class="hero__media">
             @if ($isVideo)
@@ -25,6 +49,14 @@
                 @else
                     <iframe src="{{ $media }}" title="{{ $product->name }}" loading="lazy" allowfullscreen></iframe>
                 @endif
+            @elseif ($shots->count() > 1)
+                @foreach ($shots as $i => $shot)
+                    <img class="hero__shot {{ $i === 0 ? 'is-on' : '' }}"
+                         data-gal-slide data-gal-label="{{ $shot['label'] }}"
+                         src="{{ $shot['src'] }}" alt="{{ $shot['label'] }}"
+                         aria-hidden="{{ $i === 0 ? 'false' : 'true' }}"
+                         @if ($i === 0) fetchpriority="high" @else loading="lazy" @endif>
+                @endforeach
             @else
                 <img src="{{ $media }}" alt="{{ $product->name }}" fetchpriority="high">
             @endif
@@ -53,7 +85,31 @@
                         @endif
                     </div>
                 @endif
+
+                @if (! empty($heroForms ?? null))
+                    <div class="hero__actions">
+                        @foreach ($heroForms as $i => $hf)
+                            <a class="btn {{ $i === 0 ? 'btn--accent' : 'btn--ghost' }}" href="#form-{{ $hf->key }}">{{ $hf->name }}</a>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </div>
     </div>
+
+    @if ($shots->count() > 1)
+        <button type="button" class="arrow arrow--float arrow--float-prev" data-gal-prev aria-label="Ảnh trước">‹</button>
+        <button type="button" class="arrow arrow--float arrow--float-next" data-gal-next aria-label="Ảnh sau">›</button>
+
+        <div class="hero__gal">
+            <div class="hero__gal-dots">
+                @foreach ($shots as $i => $shot)
+                    <button type="button" class="hero__gal-dot {{ $i === 0 ? 'is-on' : '' }}" data-gal-dot="{{ $i }}">
+                        <span class="sr-only">{{ $shot['label'] }}</span>
+                    </button>
+                @endforeach
+            </div>
+            <span class="hero__gal-label" data-gal-label>{{ $shots->first()['label'] }}</span>
+        </div>
+    @endif
 </section>

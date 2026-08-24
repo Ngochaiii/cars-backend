@@ -67,7 +67,7 @@ class VinFastSeeder extends BrandSeeder
 
             'media' => [
                 'Thư viện' => [
-                    'layout' => 'slider',
+                    'layout' => 'carousel',
                     'items'  => ['Góc trước', 'Góc sau', 'Khoang lái'],
                 ],
                 'Ngoại thất' => [
@@ -152,7 +152,7 @@ class VinFastSeeder extends BrandSeeder
 
             'media' => [
                 'Thư viện' => [
-                    'layout' => 'slider',
+                    'layout' => 'carousel',
                     'items'  => ['Góc trước', 'Góc sau', 'Nội thất'],
                 ],
                 'Nội thất' => [
@@ -233,7 +233,7 @@ class VinFastSeeder extends BrandSeeder
 
             'media' => [
                 'Thư viện' => [
-                    'layout' => 'slider',
+                    'layout' => 'carousel',
                     'items'  => ['Góc trước', 'Góc sau', 'Nội thất', 'Khoang hành lý'],
                 ],
                 'Ngoại thất' => [
@@ -244,6 +244,16 @@ class VinFastSeeder extends BrandSeeder
                 'Nội thất' => [
                     'layout' => 'cols-2',
                     'items'  => ['Màn hình 12,9 inch', 'Ghế chỉnh điện'],
+                ],
+                'Trải nghiệm mỗi ngày' => [
+                    'intro'  => 'Bốn nâng cấp thấy rõ trong lúc dùng xe hằng ngày.',
+                    'layout' => 'tabs',
+                    'items'  => [
+                        'Kiến trúc điện – điện tử',
+                        'Hỗ trợ lái ADAS',
+                        'Trợ lý ảo tiếng Việt',
+                        'Hệ thống treo thích ứng',
+                    ],
                 ],
             ],
 
@@ -325,7 +335,7 @@ class VinFastSeeder extends BrandSeeder
 
             'media' => [
                 'Thư viện' => [
-                    'layout' => 'slider',
+                    'layout' => 'carousel',
                     'items'  => ['Góc trước', 'Góc bên', 'Góc sau', 'Nội thất'],
                 ],
                 'Ngoại thất' => [
@@ -413,7 +423,7 @@ class VinFastSeeder extends BrandSeeder
 
             'media' => [
                 'Thư viện' => [
-                    'layout' => 'slider',
+                    'layout' => 'carousel',
                     'items'  => ['Góc trước', 'Góc bên', 'Góc sau', 'Nội thất', 'Khoang hành lý'],
                 ],
                 'Ngoại thất' => [
@@ -507,7 +517,7 @@ class VinFastSeeder extends BrandSeeder
 
             'media' => [
                 'Thư viện' => [
-                    'layout' => 'slider',
+                    'layout' => 'carousel',
                     'items'  => ['Góc trước', 'Góc bên', 'Góc sau', 'Hàng ghế hai', 'Hàng ghế ba'],
                 ],
                 'Nội thất' => [

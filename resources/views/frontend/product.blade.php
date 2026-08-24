@@ -26,7 +26,7 @@
 
     <article>
         {{-- ── Hero ───────────────────────────────────────────────────── --}}
-        @include('frontend.partials.hero', ['product' => $product])
+        @include('frontend.partials.hero', ['product' => $product, 'heroForms' => $forms])
 
         {{-- ── Chỉ số nổi bật ─────────────────────────────────────────── --}}
         @if (catalog_feature('highlights') && filled($product->highlights))
@@ -75,7 +75,7 @@
                     <div class="section__head" style="margin-bottom:32px">
                         <h2>{{ catalog_label('option.plural') }}</h2>
                     </div>
-                    @include('frontend.partials.options', ['options' => $product->options])
+                    @include('frontend.partials.options', ['options' => $product->options, 'product' => $product])
                 </div>
             </section>
         @endif
