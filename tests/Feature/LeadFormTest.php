@@ -19,10 +19,13 @@ class LeadFormTest extends TestCase
 {
     protected Form $form;
 
+    protected Form $deposit;
+
     protected function setUp(): void
     {
         parent::setUp();
 
+        // Form nhúng giữa trang chi tiết (brand seeder gắn tự động cho mọi xe).
         $this->form = Form::create([
             'key'             => 'dat-lich-lai-thu',
             'name'            => 'Đặt lịch lái thử',
@@ -32,6 +35,19 @@ class LeadFormTest extends TestCase
         $this->form->fields()->createMany([
             ['key' => 'name', 'label' => 'Họ tên', 'type' => 'text', 'rules' => ['required'], 'sort' => 1],
             ['key' => 'phone', 'label' => 'Điện thoại', 'type' => 'tel', 'rules' => ['required'], 'sort' => 2],
+        ]);
+
+        // Form nằm CUỐI trang chi tiết — khoá khai ở
+        // config('catalog.frontend.product_forms'), mặc định là 'dat-coc'.
+        $this->deposit = Form::create([
+            'key'             => 'dat-coc',
+            'name'            => 'Đặt cọc',
+            'success_message' => 'Tư vấn viên sẽ gọi lại trong 2 giờ làm việc.',
+        ]);
+
+        $this->deposit->fields()->createMany([
+            ['key' => 'name', 'label' => 'Họ và tên', 'type' => 'text', 'rules' => ['required'], 'sort' => 1],
+            ['key' => 'phone', 'label' => 'Số điện thoại', 'type' => 'tel', 'rules' => ['required'], 'sort' => 2],
         ]);
     }
 
@@ -55,10 +71,13 @@ class LeadFormTest extends TestCase
 
     public function test_thieu_field_bat_buoc_thi_quay_lai_kem_loi(): void
     {
+        // StoreLead dùng validateWithBag($form->key) để lỗi của form này không
+        // tràn sang @error() của form khác trên cùng trang — nên lỗi nằm ở bag
+        // 'dat-lich-lai-thu', không phải bag mặc định.
         $this->from('/')
             ->post('/gui-form/dat-lich-lai-thu', ['name' => 'Đạt'])
             ->assertRedirect('/')
-            ->assertSessionHasErrors('phone');
+            ->assertSessionHasErrors('phone', null, 'dat-lich-lai-thu');
 
         $this->assertSame(0, Lead::count());
     }
@@ -107,19 +126,23 @@ class LeadFormTest extends TestCase
 
         $this->get('/san-pham/lexus-gx-550')
             ->assertOk()
-            ->assertSee('Đặt lịch lái thử')
-            ->assertSee('Họ tên')
+            ->assertSee('Đặt cọc')
+            ->assertSee('Họ và tên')
             ->assertSee('name="_token"', false)      // CSRF
             ->assertSee('class="honeypot"', false);  // ô bẫy bot
 
-        // Đổi config sang form không tồn tại → khối form biến mất, trang vẫn chạy
-        config(['catalog.frontend.product_form' => null]);
+        // Bỏ hết khoá trong config → khối form biến mất, trang vẫn chạy
+        config(['catalog.frontend.product_forms' => []]);
 
-        $this->get('/san-pham/lexus-gx-550')->assertOk()->assertDontSee('Họ tên');
+        $this->get('/san-pham/lexus-gx-550')->assertOk()->assertDontSee('Họ và tên');
     }
 
     public function test_form_da_nhung_giua_trang_thi_khong_dung_lai_o_cuoi(): void
     {
+        // Config phải trỏ vào CHÍNH form được nhúng giữa trang, không thì test
+        // xanh vì lý do sai: form cuối trang là cái khác nên có lặp cũng không lộ.
+        config(['catalog.frontend.product_forms' => ['dat-lich-lai-thu']]);
+
         Product::create([
             'name'     => 'Lexus GX 550',
             'status'   => 'published',
