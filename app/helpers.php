@@ -101,3 +101,31 @@ if (! function_exists('catalog_rows')) {
             ->values();
     }
 }
+
+if (! function_exists('catalog_money_short')) {
+    /**
+     * Giá rút gọn kiểu bản thiết kế: 799.000.000 → "799 triệu",
+     * 1.090.000.000 → "1,09 tỷ".
+     *
+     * Dùng ở hero trang chi tiết và thẻ chọn xe — chỗ cần đọc lướt. Bảng giá
+     * và form vẫn dùng catalog_money() đầy đủ, không rút gọn tiền người ta
+     * sắp trả.
+     */
+    function catalog_money_short(mixed $amount): ?string
+    {
+        if (blank($amount) || ! is_numeric($amount)) {
+            return null;
+        }
+
+        $amount = (float) $amount;
+
+        [$value, $unit] = $amount >= 1_000_000_000
+            ? [$amount / 1_000_000_000, 'tỷ']
+            : [$amount / 1_000_000, 'triệu'];
+
+        // Bỏ số 0 thừa sau dấu phẩy: 1,00 → 1 · 1,09 → 1,09 · 799,0 → 799
+        $text = rtrim(rtrim(number_format($value, 2, ',', '.'), '0'), ',');
+
+        return $text.' '.$unit;
+    }
+}

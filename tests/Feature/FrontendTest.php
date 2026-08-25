@@ -76,17 +76,23 @@ class FrontendTest extends TestCase
 
     // --- Trang chi tiết mặt hàng ---
 
-    public function test_trang_chi_tiet_hien_du_hero_chi_so_phien_ban_mau_va_thong_so(): void
+    /**
+     * Trang chi tiết bám bản thiết kế: hero lấy TAGLINE làm tiêu đề và hiện
+     * giá rút gọn ("5,99 tỷ"), không dựng mục liệt kê phiên bản riêng. Phiên
+     * bản vẫn nằm trong DB và vẫn cấp giá cho hero, bảng so sánh chi phí và
+     * bước chọn xe khi đặt cọc — chỉ không render thành một khối trên trang.
+     */
+    public function test_trang_chi_tiet_hien_du_hero_chi_so_mau_va_thong_so(): void
     {
         $product = Product::create([
-            'name'         => 'Lexus GX 550',
-            'tagline'      => 'Bản lĩnh chinh phục',
-            'status'       => 'published',
+            'name' => 'Lexus GX 550',
+            'tagline' => 'Bản lĩnh chinh phục',
+            'status' => 'published',
             'published_at' => now(),
-            'price_from'   => 5_990_000_000,
-            'hero'         => ['type' => 'image', 'src' => 'catalog/hero/gx550.webp'],
-            'highlights'   => [['value' => '349', 'unit' => 'mã lực', 'label' => 'Công suất']],
-            'specs'        => [['group' => 'Động cơ', 'rows' => [['label' => 'Dung tích', 'value' => '3.445 cm³']]]],
+            'price_from' => 5_990_000_000,
+            'hero' => ['type' => 'image', 'src' => 'catalog/hero/gx550.webp'],
+            'highlights' => [['value' => '349', 'unit' => 'mã lực', 'label' => 'Công suất']],
+            'specs' => [['group' => 'Động cơ', 'rows' => [['label' => 'Dung tích', 'value' => '3.445 cm³']]]],
         ]);
 
         $product->variants()->create(['name' => 'GX 550 Luxury', 'price' => 6_890_000_000, 'is_default' => true]);
@@ -95,12 +101,11 @@ class FrontendTest extends TestCase
         $this->get('/san-pham/lexus-gx-550')
             ->assertOk()
             ->assertSee('Lexus GX 550')
-            ->assertSee('Bản lĩnh chinh phục')
-            ->assertSee('5.990.000.000 đ')      // giá có dấu phân cách nghìn
+            ->assertSee('Bản lĩnh chinh phục')  // tagline là tiêu đề lớn của hero
+            ->assertSee('5,99 tỷ')              // hero dùng giá rút gọn
             ->assertSee('349')
             ->assertSee('Công suất')
-            ->assertSee('GX 550 Luxury')
-            ->assertSee('6.890.000.000 đ')
+            ->assertDontSee('GX 550 Luxury')    // thiết kế không có mục phiên bản
             ->assertSee('Caviar Black')
             ->assertSee('Dung tích')
             ->assertSee('3.445 cm³')
@@ -120,9 +125,9 @@ class FrontendTest extends TestCase
         config(['catalog.features.variants' => false, 'catalog.features.specs' => false]);
 
         $product = Product::create([
-            'name'   => 'Lexus GX 550',
+            'name' => 'Lexus GX 550',
             'status' => 'published',
-            'specs'  => [['group' => 'Động cơ', 'rows' => [['label' => 'Dung tích', 'value' => '3.445 cm³']]]],
+            'specs' => [['group' => 'Động cơ', 'rows' => [['label' => 'Dung tích', 'value' => '3.445 cm³']]]],
         ]);
         $product->variants()->create(['name' => 'GX 550 Luxury']);
 
@@ -137,8 +142,8 @@ class FrontendTest extends TestCase
     public function test_muc_media_bo_trong_nhan_thi_khong_render_the_nhan(): void
     {
         Product::create([
-            'name'     => 'Lexus GX 550',
-            'status'   => 'published',
+            'name' => 'Lexus GX 550',
+            'status' => 'published',
             'sections' => [
                 [
                     'title' => 'Thư viện', 'intro' => '', 'type' => 'media', 'layout' => 'slider',
@@ -166,8 +171,8 @@ class FrontendTest extends TestCase
     public function test_muc_van_ban_va_muc_bang(): void
     {
         Page::create([
-            'title'    => 'Giới thiệu',
-            'status'   => 'published',
+            'title' => 'Giới thiệu',
+            'status' => 'published',
             'sections' => [
                 ['title' => 'Về chúng tôi', 'type' => 'text', 'body' => "Dòng một.\nDòng hai."],
                 ['title' => 'Tỷ lệ mua lại', 'type' => 'table', 'rows' => [
@@ -187,8 +192,8 @@ class FrontendTest extends TestCase
     public function test_muc_video_doi_link_youtube_thanh_khoi_nhung(): void
     {
         Product::create([
-            'name'     => 'Lexus GX 550',
-            'status'   => 'published',
+            'name' => 'Lexus GX 550',
+            'status' => 'published',
             'sections' => [[
                 'title' => 'Phim giới thiệu', 'type' => 'video',
                 'video_url' => 'https://www.youtube.com/watch?v=abc123XYZ',
@@ -206,8 +211,8 @@ class FrontendTest extends TestCase
         $form->fields()->create(['key' => 'name', 'label' => 'Họ tên', 'type' => 'text', 'rules' => ['required']]);
 
         Page::create([
-            'title'    => 'Liên hệ',
-            'status'   => 'published',
+            'title' => 'Liên hệ',
+            'status' => 'published',
             'sections' => [['title' => 'Gửi câu hỏi', 'type' => 'form', 'form_key' => 'lien-he']],
         ]);
 
@@ -225,8 +230,8 @@ class FrontendTest extends TestCase
     public function test_muc_rong_khong_render(): void
     {
         Product::create([
-            'name'     => 'Lexus GX 550',
-            'status'   => 'published',
+            'name' => 'Lexus GX 550',
+            'status' => 'published',
             'sections' => [
                 ['title' => 'Mục chưa nhập gì', 'type' => 'media', 'items' => []],
                 ['title' => 'Thư viện', 'type' => 'media', 'items' => [['image' => 'a.webp']]],

@@ -73,6 +73,28 @@ class CatalogDemoSeeder extends Seeder
             ['key' => 'note', 'label' => 'Ghi chú', 'type' => 'textarea', 'rules' => ['nullable'], 'sort' => 5],
         ]);
 
+        // Form cuối trang chi tiết xe — khai ở
+        // config('catalog.frontend.product_forms'). Bản thiết kế chỉ có MỘT
+        // form ở trang chi tiết, đúng bốn ô: họ tên, điện thoại, email và ô
+        // đồng ý xử lý dữ liệu.
+        $consult = Catalog::query('form')->updateOrCreate(
+            ['key' => 'dang-ky-tu-van'],
+            [
+                'name' => 'Đăng ký tư vấn',
+                'description' => 'Vui lòng để lại thông tin, đại lý sẽ cập nhật cho Quý khách thông tin sản phẩm và ưu đãi mới nhất.',
+                'success_message' => 'Đã nhận thông tin của bạn. Tư vấn viên sẽ liên hệ trong vòng 2 giờ làm việc.',
+            ],
+        );
+
+        $consult->fields()->delete();
+        $consult->fields()->createMany([
+            ['key' => 'name', 'label' => 'Họ và tên', 'type' => 'text', 'rules' => ['required'], 'sort' => 1],
+            ['key' => 'phone', 'label' => 'Số điện thoại', 'type' => 'tel', 'rules' => ['required'], 'sort' => 2],
+            ['key' => 'email', 'label' => 'Email', 'type' => 'email', 'rules' => ['required', 'email'], 'sort' => 3],
+            ['key' => 'agree', 'label' => 'Đồng ý xử lý dữ liệu', 'type' => 'checkbox', 'rules' => ['required'], 'sort' => 4,
+                'options' => ['1' => 'Tôi đồng ý cho đại lý xử lý dữ liệu cá nhân của tôi theo chính sách bảo vệ dữ liệu.']],
+        ]);
+
         // Băng đăng ký nhận tin trên footer — khai ở
         // config('catalog.frontend.newsletter_form'), chỉ một ô email.
         $newsletter = Catalog::query('form')->updateOrCreate(

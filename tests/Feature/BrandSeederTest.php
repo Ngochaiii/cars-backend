@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\Menu;
+use App\Models\MenuItem;
 use App\Models\Product;
 use Database\Seeders\Brands\MauSeeder;
 use Database\Seeders\Brands\VinFastSeeder;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -106,12 +109,12 @@ class BrandSeederTest extends TestCase
         $products = Product::orderBy('sort')->pluck('name', 'slug');
 
         $this->assertSame([
-            'vinfast-vf-3'      => 'VinFast VF 3',
+            'vinfast-vf-3' => 'VinFast VF 3',
             'vinfast-vf-5-plus' => 'VinFast VF 5 Plus',
-            'vinfast-vf-6'      => 'VinFast VF 6',
-            'vinfast-vf-7'      => 'VinFast VF 7',
-            'vinfast-vf-8'      => 'VinFast VF 8',
-            'vinfast-vf-9'      => 'VinFast VF 9',
+            'vinfast-vf-6' => 'VinFast VF 6',
+            'vinfast-vf-7' => 'VinFast VF 7',
+            'vinfast-vf-8' => 'VinFast VF 8',
+            'vinfast-vf-9' => 'VinFast VF 9',
         ], $products->all());
 
         // Mọi xe đều publish và có danh mục, không sót cái nào ở nháp
@@ -124,10 +127,10 @@ class BrandSeederTest extends TestCase
         // DatabaseSeeder dùng WithoutModelEvents → hook `saving` của MenuItem
         // (tự thừa kế menu_id từ cha) KHÔNG chạy, mà cột đó NOT NULL.
         // Seeder phải tự gán, không được dựa vào event.
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
-        $menu = \App\Models\Menu::where('key', 'header')->sole();
-        $children = \App\Models\MenuItem::whereNotNull('parent_id')->get();
+        $menu = Menu::where('key', 'header')->sole();
+        $children = MenuItem::whereNotNull('parent_id')->get();
 
         $this->assertCount(6, $children);
         $this->assertSame([$menu->id], $children->pluck('menu_id')->unique()->all());
@@ -140,9 +143,8 @@ class BrandSeederTest extends TestCase
         $this->get('/san-pham/vinfast-vf-8')
             ->assertOk()
             ->assertSee('VinFast VF 8')
-            ->assertSee('1.109.000.000 đ')   // giá từ
-            ->assertSee('VF 8 Plus')
-            ->assertSee('Dung lượng pin')
+            ->assertSee('1,11 tỷ')           // hero dùng giá rút gọn như bản thiết kế
+            ->assertSee('Dung lượng pin')    // bảng thông số dựng từ seeder
             ->assertSee('82 kWh');
     }
 }

@@ -27,8 +27,8 @@ class LeadFormTest extends TestCase
 
         // Form nhúng giữa trang chi tiết (brand seeder gắn tự động cho mọi xe).
         $this->form = Form::create([
-            'key'             => 'dat-lich-lai-thu',
-            'name'            => 'Đặt lịch lái thử',
+            'key' => 'dat-lich-lai-thu',
+            'name' => 'Đặt lịch lái thử',
             'success_message' => 'Tư vấn viên sẽ gọi lại trong 15 phút.',
         ]);
 
@@ -37,11 +37,13 @@ class LeadFormTest extends TestCase
             ['key' => 'phone', 'label' => 'Điện thoại', 'type' => 'tel', 'rules' => ['required'], 'sort' => 2],
         ]);
 
-        // Form nằm CUỐI trang chi tiết — khoá khai ở
-        // config('catalog.frontend.product_forms'), mặc định là 'dat-coc'.
+        // Form nằm CUỐI trang chi tiết. Test tự khai khoá mình đang kiểm thay
+        // vì dựa vào mặc định của config: mặc định đó là lựa chọn giao diện
+        // của một hãng (bản thiết kế VinFast dùng 'dang-ky-tu-van'), đổi nó
+        // không được làm đỏ test về cơ chế form.
         $this->deposit = Form::create([
-            'key'             => 'dat-coc',
-            'name'            => 'Đặt cọc',
+            'key' => 'dat-coc',
+            'name' => 'Đặt cọc',
             'success_message' => 'Tư vấn viên sẽ gọi lại trong 2 giờ làm việc.',
         ]);
 
@@ -49,6 +51,8 @@ class LeadFormTest extends TestCase
             ['key' => 'name', 'label' => 'Họ và tên', 'type' => 'text', 'rules' => ['required'], 'sort' => 1],
             ['key' => 'phone', 'label' => 'Số điện thoại', 'type' => 'tel', 'rules' => ['required'], 'sort' => 2],
         ]);
+
+        config(['catalog.frontend.product_forms' => [$this->deposit->key]]);
     }
 
     public function test_gui_form_tao_lead_va_quay_ve_kem_cau_cam_on(): void
@@ -144,8 +148,8 @@ class LeadFormTest extends TestCase
         config(['catalog.frontend.product_forms' => ['dat-lich-lai-thu']]);
 
         Product::create([
-            'name'     => 'Lexus GX 550',
-            'status'   => 'published',
+            'name' => 'Lexus GX 550',
+            'status' => 'published',
             'sections' => [[
                 'title' => 'Đăng ký lái thử', 'type' => 'form', 'form_key' => 'dat-lich-lai-thu',
             ]],

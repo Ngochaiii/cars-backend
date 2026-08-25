@@ -20,8 +20,15 @@
     @php
         $defaultVariant = $product->variants->firstWhere('is_default', true) ?? $product->variants->first();
         $heroImage      = catalog_image(data_get($product->hero, 'src'));
-        $intro          = data_get($product->seo, 'description');
+        // Khối mở đầu có tiêu đề RIÊNG, không lặp lại tagline đang làm h1 ở
+        // hero — bản thiết kế dùng hai câu khác nhau.
+        $introTitle     = data_get($product->hero, 'intro_title');
+        $intro          = data_get($product->hero, 'intro_body') ?: data_get($product->seo, 'description');
         $orderForm      = $forms->first();
+
+        // Link brochure khai ở Cài đặt (chung cho cả hãng) — trống thì nút
+        // brochure không dựng.
+        $brochure       = catalog_setting('brochure_url');
     @endphp
 
     <article>
@@ -40,10 +47,14 @@
         </div>
 
         {{-- ── Đoạn mở đầu (lấy từ mô tả SEO, không có thì bỏ) ────────── --}}
-        @if (filled($intro))
+        @if (filled($intro) || filled($introTitle))
             <section class="intro">
-                <h2>{{ $product->tagline ?: $product->name }}</h2>
-                <p>{{ $intro }}</p>
+                @if (filled($introTitle))
+                    <h2>{{ $introTitle }}</h2>
+                @endif
+                @if (filled($intro))
+                    <p>{{ $intro }}</p>
+                @endif
             </section>
         @endif
 
@@ -54,23 +65,17 @@
             </div>
         @endif
 
-        {{-- ── Phiên bản ──────────────────────────────────────────────── --}}
-        @if (catalog_feature('variants') && $product->variants->isNotEmpty())
-            <section class="section">
-                <div class="wrap">
-                    <div class="section__head"><h2>{{ catalog_label('variant.plural') }}</h2></div>
-                    @include('frontend.partials.variants', ['variants' => $product->variants])
-                </div>
-            </section>
-        @endif
+        {{-- Bản thiết kế KHÔNG có khối liệt kê phiên bản ở trang chi tiết:
+             phiên bản xuất hiện ở bảng thông số và ở bước chọn xe khi đặt
+             cọc. Dữ liệu phiên bản vẫn dùng để lấy giá, giá gạch và số liệu
+             cho bảng so sánh chi phí — chỉ không dựng thành một mục riêng.
+             Muốn hiện lại thì include partials/variants ở đây. --}}
 
         {{-- ── Bảng màu ───────────────────────────────────────────────── --}}
         @if (catalog_feature('options') && $product->options->isNotEmpty())
             <section class="section block--tint">
+                {{-- Không tiêu đề: thiết kế để ảnh xe và dãy màu tự nói. --}}
                 <div class="wrap" style="text-align:center">
-                    <div class="section__head" style="margin-bottom:32px">
-                        <h2>{{ catalog_label('option.plural') }}</h2>
-                    </div>
                     @include('frontend.partials.options', ['options' => $product->options, 'product' => $product])
                 </div>
             </section>
@@ -85,6 +90,19 @@
                 <div class="wrap">
                     <div class="section__head"><h2>{{ catalog_label('specs') }}</h2></div>
                     @include('frontend.partials.specs', ['specs' => $product->specs])
+
+                    {{-- Hàng nút dưới bảng, như thiết kế. Brochure chỉ hiện
+                         khi có link thật — nhãn không kèm link là nút chết. --}}
+                    @if ($brochure || $orderForm)
+                        <div class="spec-actions">
+                            @if ($brochure)
+                                <a class="btn btn--outline-accent" href="{{ $brochure }}" rel="noopener" target="_blank">Tải brochure</a>
+                            @endif
+                            @if ($orderForm)
+                                <a class="btn btn--accent" href="#form-{{ $orderForm->key }}">{{ $orderForm->name }}</a>
+                            @endif
+                        </div>
+                    @endif
 
                     <p class="specs__note">
                         (*) Thông số và hình ảnh mang tính minh họa. Quãng đường di chuyển tính theo chu trình
@@ -133,9 +151,9 @@
                         <div>
                             <div class="order-bar__name">{{ $product->name }}</div>
                             @if ($product->price_from)
-                                <div class="order-bar__price">Từ {{ catalog_money($product->price_from) }}</div>
+                                <div class="order-bar__price">Từ {{ catalog_money_short($product->price_from) }}</div>
                             @elseif ($defaultVariant?->price)
-                                <div class="order-bar__price">Từ {{ catalog_money($defaultVariant->price) }}</div>
+                                <div class="order-bar__price">Từ {{ catalog_money_short($defaultVariant->price) }}</div>
                             @endif
                         </div>
                     </div>

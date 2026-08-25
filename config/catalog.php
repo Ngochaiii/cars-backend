@@ -120,6 +120,7 @@ return [
                 'map_image' => ['label' => 'Ảnh bản đồ chỉ đường', 'type' => 'image'],
                 'map_url' => ['label' => 'Link Google Maps', 'type' => 'url'],
                 'visit_title' => ['label' => 'Tiêu đề thẻ liên hệ ở trang tĩnh', 'type' => 'text'],
+                'brochure_url' => ['label' => 'Link brochure (nút ở trang chi tiết)', 'type' => 'url'],
             ],
         ],
 
@@ -263,7 +264,7 @@ return [
         // Form hiện ở cuối trang chi tiết sản phẩm — key nào đã nhúng giữa
         // trang qua mục kiểu `form` (VD "dat-lich-lai-thu" gắn tự động cho
         // mọi xe trong BrandSeeder) thì không lặp lại ở đây. [] = không hiện.
-        'product_forms' => ['dat-coc'],
+        'product_forms' => ['dang-ky-tu-van'],
 
         // Form ở băng đăng ký nhận tin ngay trên footer — chỉ cần ô email.
         // null = ẩn hẳn băng đó.

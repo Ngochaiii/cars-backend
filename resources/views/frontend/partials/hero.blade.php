@@ -18,6 +18,10 @@
     $priceNow = $product->price_from ?: $variant?->price;
     $priceWas = $variant?->price_original;
 
+    // Đoạn dẫn dưới tiêu đề. Tagline đã lên làm h1 nên đoạn này lấy từ
+    // hero.lede, không có thì mô tả SEO, vẫn không có thì bỏ hẳn.
+    $lede = $hero['lede'] ?? data_get($product->seo, 'description');
+
     // Băng chuyền chỉ dựng cho hero ẢNH — hero video thì để video chạy yên.
     $shots = collect();
 
@@ -70,29 +74,41 @@
                     {{ $product->name }}@if ($product->category) · {{ $product->category->name }}@endif
                 </span>
 
-                <h1>{{ $product->name }}</h1>
+                {{-- Bản thiết kế lấy CÂU TAGLINE làm tiêu đề lớn, tên xe đã
+                     nằm ở dòng nhỏ phía trên rồi. Xe chưa đặt tagline thì lùi
+                     về tên, khỏi để hero cụt đầu. --}}
+                <h1>{{ $product->tagline ?: $product->name }}</h1>
 
-                @if ($product->tagline)
-                    <p class="hero__lede">{{ $product->tagline }}</p>
+                @if ($lede)
+                    <p class="hero__lede">{{ $lede }}</p>
                 @endif
 
                 @if ($priceNow)
+                    {{-- Giá rút gọn ("799 triệu") như thiết kế — hero để đọc
+                         lướt, con số đầy đủ nằm ở phiên bản và form. --}}
                     <div class="hero__price">
                         <span class="hero__price-label">{{ catalog_label('product.single') }} từ</span>
-                        <span class="hero__price-now">{{ catalog_money($priceNow) }}</span>
+                        <span class="hero__price-now">{{ catalog_money_short($priceNow) }}</span>
                         @if ($priceWas && $priceWas > $priceNow)
-                            <span class="hero__price-was">{{ catalog_money($priceWas) }}</span>
+                            <span class="hero__price-was">{{ catalog_money_short($priceWas) }}</span>
                         @endif
                     </div>
                 @endif
 
-                @if (! empty($heroForms ?? null))
-                    <div class="hero__actions">
-                        @foreach ($heroForms as $i => $hf)
+                {{-- Bản thiết kế có hai nút: đặt cọc (nhấn) và lái thử. Có
+                     trang /dat-coc thì trỏ thẳng vào đó kèm xe đang xem; chưa
+                     có thì lùi về neo tới form nằm cuối trang. --}}
+                <div class="hero__actions">
+                    @if (Route::has('booking'))
+                        <a class="btn btn--accent" href="{{ route('booking', ['xe' => $product->slug]) }}">Đặt cọc</a>
+                        <a class="btn btn--ghost"
+                           href="{{ route('booking', ['xe' => $product->slug, 'hinh-thuc' => 'dat-lich-lai-thu']) }}">Đăng ký lái thử</a>
+                    @else
+                        @foreach ($heroForms ?? [] as $i => $hf)
                             <a class="btn {{ $i === 0 ? 'btn--accent' : 'btn--ghost' }}" href="#form-{{ $hf->key }}">{{ $hf->name }}</a>
                         @endforeach
-                    </div>
-                @endif
+                    @endif
+                </div>
             </div>
         </div>
     </div>

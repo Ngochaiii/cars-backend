@@ -978,6 +978,26 @@ html.js .tabs__panel + .tabs__panel { margin-top: 0; }
 .items.layout-split .split__body p:last-child { margin-bottom: 0; }
 
 /* ═══════════ THÔNG SỐ KỸ THUẬT ═══════════ */
+/* Lưới phẳng 4 cột theo thiết kế: nhãn nhỏ trên, giá trị đậm dưới. */
+.spec-flat {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0 48px;
+    border-top: 1px solid var(--line-3);
+    margin: 0;
+}
+.spec-flat > div { padding: 24px 0; border-bottom: 1px solid var(--line-3); }
+.spec-flat dt { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.spec-flat dd { margin: 0; font-size: 19px; font-weight: 600; color: var(--ink-2); }
+
+/* Hai đoạn ghi chú cạnh nhau ngay dưới bảng. */
+.spec-notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 64px; margin-top: 64px; }
+.spec-notes h3 { font-size: clamp(20px, 2vw, 24px); font-weight: 600; margin-bottom: 16px; }
+.spec-notes p { font-size: 16px; line-height: 1.9; color: #555; margin: 0; }
+
+/* Hàng nút dưới bảng thông số. */
+.spec-actions { display: flex; flex-wrap: wrap; gap: 14px; margin: 56px 0 40px; }
+
 .specs { border-top: 1px solid var(--line-3); }
 .specs details { border-bottom: 1px solid var(--line-3); }
 .specs summary {
@@ -1575,6 +1595,8 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
 
 @media (max-width: 960px) {
     .spec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
+    .spec-flat { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
+    .spec-notes { gap: 32px; margin-top: 40px; }
     .items.layout-gallery, .items.layout-split { grid-template-columns: minmax(0, 1fr); gap: 18px; }
     .items.layout-gallery .item:first-child { grid-row: auto; }
     .items.layout-gallery .item__media { aspect-ratio: 16 / 10; height: auto; min-height: 0; }
@@ -1640,6 +1662,9 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
 
     .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
     .spec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+    .spec-flat { grid-template-columns: minmax(0, 1fr); }
+    .spec-actions { flex-direction: column; }
+    .spec-actions .btn { width: 100%; }
     .fuel-calc__panel { padding: 26px 22px; }
     .lead-form { grid-template-columns: minmax(0, 1fr); }
     .segmented { width: 100%; }

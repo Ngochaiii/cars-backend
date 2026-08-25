@@ -18,6 +18,16 @@ namespace Database\Seeders\Brands;
  */
 class VinFastSeeder extends BrandSeeder
 {
+    /**
+     * Bản thiết kế chỉ có MỘT form ở trang chi tiết ("Đăng ký tư vấn", khai
+     * ở config('catalog.frontend.product_forms')), không nhúng form lái thử
+     * giữa trang. Lái thử vẫn đặt được ở /dat-coc.
+     */
+    protected function formKey(): ?string
+    {
+        return null;
+    }
+
     protected function brand(): string
     {
         return 'VinFast';
@@ -331,10 +341,17 @@ class VinFastSeeder extends BrandSeeder
         return [
             'slug' => 'vinfast-vf-7',
             'name' => 'VinFast VF 7',
-            'tagline' => 'SUV điện cỡ C, bản Plus dẫn động hai cầu',
+            // Tagline là TIÊU ĐỀ LỚN ở hero (xem partials/hero.blade.php) nên
+            // viết như một câu quảng cáo, không phải mô tả phân khúc.
+            'tagline' => 'Khi phong cách trở thành dấu ấn',
             'category' => 'suv-co-c',
             'price_from' => 799_000_000,
             'hero' => true,
+            'hero_lede' => 'Thiết kế hoàn toàn mới, công nghệ dẫn đầu và trải nghiệm chuẩn 5 sao — '
+                .'VF 7 sẵn sàng đồng hành cùng gia đình bạn trên mọi hành trình.',
+            'intro_title' => 'Thiết kế phong cách cho thế hệ khách hàng hiện đại',
+            'intro_body' => 'Ngoại hình hoàn toàn mới với các đường nét liền mạch, tỷ lệ cân đối và '
+                .'chi tiết tinh giản — VF 7 thể hiện gu thẩm mỹ của người chủ động chọn lối sống xanh.',
 
             // Bốn chỉ số, đúng dải KPI của bản thiết kế ở trang chi tiết VF 7.
             'highlights' => [
@@ -390,17 +407,8 @@ class VinFastSeeder extends BrandSeeder
                 ],
             ],
 
-            'story' => [
-                'Vận hành' => "Bản Plus dùng hai mô-tơ, dẫn động bốn bánh AWD.\n"
-                    .'Bản Eco một mô-tơ cầu trước, ưu tiên quãng đường đi được.',
-            ],
-
-            'tables' => [
-                'Thời gian sạc' => [
-                    'Sạc nhanh DC (10–70%)' => 'khoảng 25 phút',
-                    'Sạc AC 11 kW (0–100%)' => 'khoảng 8 giờ',
-                ],
-            ],
+            // Bản thiết kế không có mục "Vận hành" và "Thời gian sạc" rời ở
+            // trang chi tiết — hai thông tin đó đã nằm trong bảng thông số.
 
             'colors' => [
                 'Trắng' => '#F2F2F2',
@@ -414,6 +422,8 @@ class VinFastSeeder extends BrandSeeder
                 [
                     'name' => 'VF 7 Eco',
                     'price' => 799_000_000,
+                    // Giá gạch ở hero, đúng bản thiết kế (799 / gạch 899).
+                    'price_original' => 899_000_000,
                     'note' => 'Giá thuê pin. 174 mã lực, dẫn động cầu trước.',
                     'battery_kwh' => 59.6,
                     'range_km' => 450,
@@ -425,6 +435,14 @@ class VinFastSeeder extends BrandSeeder
                     'battery_kwh' => 75.3,
                     'range_km' => 431,
                 ],
+            ],
+
+            // Hai đoạn ghi chú dưới bảng thông số, đúng bản thiết kế.
+            'spec_notes' => [
+                'An toàn & an ninh' => 'Tự động khóa cửa khi xe di chuyển · Cảnh báo chống trộm · '
+                    .'Giám sát áp suất lốp dTPMS · Camera 360 độ · Khung xe đạt chuẩn an toàn khu vực.',
+                'Hỗ trợ lái nâng cao ADAS' => 'Trợ lái trên cao tốc · Ga tự động thích ứng · '
+                    .'Phanh khẩn cấp tự động AEB · Giữ làn và cảnh báo chệch làn · Đèn chiếu xa tự động.',
             ],
 
             'specs' => [
