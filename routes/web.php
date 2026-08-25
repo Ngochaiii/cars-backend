@@ -87,7 +87,12 @@ if (config('catalog.frontend.services_page', false)) {
 | — production không có lý do gì phục vụ mấy trang này.
 */
 if (app()->environment('local')) {
-    Route::view('mau/chi-tiet-xe', 'frontend.mau.chi-tiet-xe')->name('mau.chi-tiet-xe');
+    foreach ([
+        'trang-chu', 'o-to-dien', 'chi-tiet-xe', 'dat-coc-lai-thu',
+        'phu-kien', 'tram-sac-dich-vu', 'tin-tuc', 'bai-viet', 've-chung-toi',
+    ] as $mau) {
+        Route::view("mau/{$mau}", "frontend.mau.{$mau}")->name("mau.{$mau}");
+    }
 }
 
 /*

@@ -3,16 +3,22 @@
     resources/views/frontend/website 2 (màn hình #detail).
 
     ĐÂY LÀ BẢN ĐỐI CHIẾU, CHƯA NỐI BACKEND. Không có biến, không truy vấn,
-    không route động: mọi chữ và số đều là dữ liệu mẫu của bản thiết kế
-    (đang ở xe VF 7). Mở /mau/chi-tiet-xe để so cạnh trang thật
-    /san-pham/{slug} rồi ghép từng khối một.
+    không route động: mọi chữ và số đều là dữ liệu mẫu của bản thiết kế.
+    Mở /mau/chi-tiet-xe để so cạnh trang thật rồi ghép từng khối một.
 
-    Style để nguyên dạng inline như bản thiết kế xuất ra — cố tình không
-    gom vào frontend.css, để bản này không bao giờ trôi khỏi bản gốc khi
-    CSS của site thay đổi.
+    KHÔNG thêm `box-sizing: border-box`. Bản thiết kế dựng theo content-box:
+    khối `max-width:1280px; padding:0 32px` ăn 1344px chứ không phải 1280px.
+    Đặt border-box vào là mọi khối hụt đúng 64px và chữ xuống dòng khác bản
+    gốc — đây đúng là chỗ bản cắt từng lệch 5% chiều ngang.
+
+    Style để nguyên dạng inline như bản thiết kế xuất ra — cố tình không gom
+    vào frontend.css, để bản này không trôi khỏi bản gốc khi CSS site đổi.
 
     Nút bấm ở đây là chữ tĩnh, không có JS: băng chuyền, tab, bộ chọn màu
     đứng yên ở trạng thái đầu.
+
+    File này SINH RA từ DOM đã render, đừng sửa tay — sửa xong lần sau dump
+    lại là mất.
 --}}
 <!DOCTYPE html>
 <html lang="vi">
@@ -27,7 +33,6 @@
           href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap">
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { margin: 0; background: #fff; font-family: 'Be Vietnam Pro', system-ui, sans-serif; }
         @keyframes dv-pulse { 0%, 100% { opacity: 1 } 50% { opacity: .45 } }
         @keyframes dv-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
