@@ -18,6 +18,20 @@
         $mapImg  = catalog_image(catalog_setting('map_image'));
         $mapUrl  = catalog_setting('map_url');
         $hasInfo = filled($address) || filled($hotline) || filled($email) || filled($hours);
+
+        // Mục ảnh đứng đầu trang thành ảnh bìa chạy hết chiều ngang, như bản
+        // thiết kế "Về chúng tôi" — nhét nó vào cột trái hẹp thì ảnh bị bóp
+        // thành ô vuông cao nghêu, xấu và lệch bố cục.
+        $sections = collect($sections);
+        $first    = $sections->first();
+        $cover    = null;
+
+        if (($first['type'] ?? null) === 'media'
+            && count($first['items'] ?? []) === 1
+            && blank($first['title'] ?? null)) {
+            $cover    = $first['items'][0];
+            $sections = $sections->slice(1)->values();
+        }
     @endphp
 
     <article>
@@ -31,6 +45,16 @@
         <section class="block" style="padding-top:32px">
             <div class="wrap">
                 <h1 style="max-width:720px">{{ $page->title }}</h1>
+
+                @if ($cover)
+                    <div class="page-cover">
+                        @if ($src = catalog_image($cover['image'] ?? null))
+                            <img src="{{ $src }}" alt="{{ $cover['label'] ?? $page->title }}">
+                        @else
+                            <div class="ph" style="height:100%">[ {{ $cover['label'] ?? 'ảnh' }} ]</div>
+                        @endif
+                    </div>
+                @endif
 
                 @if ($hasInfo)
                     <div class="page-split" style="margin-top:40px">

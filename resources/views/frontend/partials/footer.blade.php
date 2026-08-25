@@ -8,12 +8,28 @@
 
     // Link tới từng hình thức đặt (đặt cọc / lái thử) — lấy tên form thay vì
     // gõ cứng, admin đổi tên form là footer đổi theo.
+    $bookingKeys  = array_values((array) config('catalog.frontend.booking.forms', []));
     $bookingForms = Route::has('booking')
         ? \App\Support\Catalog::query('form')
-            ->whereIn('key', (array) config('catalog.frontend.booking.forms', []))
+            ->whereIn('key', $bookingKeys)
             ->where('is_active', true)
             ->get()
+            ->sortBy(fn ($form) => array_search($form->key, $bookingKeys, true))
+            ->values()
         : collect();
+
+    // Cột "Đại lý" gộp link tin tức với menu footer. Menu đã trỏ sẵn tới
+    // /tin-tuc thì bỏ link cứng đi, không thì cột hiện hai dòng cùng đích.
+    //
+    // So bằng ĐƯỜNG DẪN chứ không so nguyên chuỗi: mục menu trả về đường dẫn
+    // tương đối ('/tin-tuc') còn route() trả về URL tuyệt đối, so thẳng thì
+    // không bao giờ khớp và dòng trùng vẫn lọt.
+    $path = fn (?string $url) => trim(parse_url((string) $url, PHP_URL_PATH) ?: '', '/');
+
+    $postsUrl     = catalog_feature('posts') ? route('posts.index') : null;
+    $menuHasPosts = $postsUrl && $items->contains(
+        fn ($item) => $path($item->resolvedUrl()) === $path($postsUrl)
+    );
 
     // Mạng xã hội khai ở Cài đặt → chỉ hiện cái nào đã điền.
     $socials = collect([
@@ -72,8 +88,8 @@
             <div>
                 <h3>Đại lý</h3>
                 <ul>
-                    @if (catalog_feature('posts'))
-                        <li><a href="{{ route('posts.index') }}">Tin tức &amp; ưu đãi</a></li>
+                    @if ($postsUrl && ! $menuHasPosts)
+                        <li><a href="{{ $postsUrl }}">Tin tức &amp; ưu đãi</a></li>
                     @endif
                     @foreach ($items as $item)
                         @if ($url = $item->resolvedUrl())
