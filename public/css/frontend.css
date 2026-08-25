@@ -970,7 +970,12 @@ html.js .tabs__panel + .tabs__panel { margin-top: 0; }
 .items.layout-gallery figcaption, .items.layout-gallery p { display: none; }
 
 .items.layout-split { grid-template-columns: 40fr 60fr; gap: 80px; align-items: center; }
-.items.layout-split .item__media { aspect-ratio: 3 / 2; border-radius: 16px; min-height: 520px; }
+.items.layout-split .item__media { aspect-ratio: 3 / 2; border-radius: 16px; min-height: 520px; margin-bottom: 0; }
+
+/* Đảo bên: ảnh trước, chữ sau. Khối này dùng .item__media (mục `sections`)
+   chứ không phải .split__media của băng trang chủ, nên cần luật riêng. */
+.items.layout-split.split--media-first > .item__media { order: -1; }
+.items.layout-split .split__body p:last-child { margin-bottom: 0; }
 
 /* ═══════════ THÔNG SỐ KỸ THUẬT ═══════════ */
 .specs { border-top: 1px solid var(--line-3); }
@@ -1532,6 +1537,7 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
     .kpi-strip { padding-bottom: 80px; }
     .items.layout-gallery { min-height: 0; }
     .items.layout-split .item__media { min-height: 0; }
+    .items.layout-split.split--media-first > .item__media { order: 0; }
 
     /* Menu xổ dọc khi bấm ☰. */
     .site-header__inner { flex-wrap: wrap; height: auto; padding-block: 14px; row-gap: 14px; }

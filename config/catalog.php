@@ -71,6 +71,7 @@ return [
         // Bố cục dựng theo bản thiết kế — xem partials/section/media.blade.php.
         'gallery' => 'Thư viện lớn (1 ảnh to + 2 ảnh nhỏ)',
         'split' => 'Chữ một bên, ảnh một bên',
+        'split-alt' => 'Chữ một bên, ảnh một bên (ảnh trước)',
         'carousel' => 'Băng chuyền (mũi tên chuyển ảnh)',
         'tabs' => 'Tab đánh số (01, 02, 03…)',
 

@@ -70,6 +70,24 @@
         @endforeach
     </div>
 
+@elseif (in_array($layout, ['split', 'split-alt'], true))
+    {{-- Chữ một cột, ảnh một cột. `split-alt` đảo bên: ảnh trước, chữ sau. --}}
+    <div class="items layout-split {{ $layout === 'split-alt' ? 'split--media-first' : '' }}">
+        <div class="split__body">
+            @isset($section['title'])<h2>{{ $section['title'] }}</h2>@endisset
+            @isset($section['intro'])<p>{{ $section['intro'] }}</p>@endisset
+        </div>
+
+        @php $item = $items->first() ?? []; @endphp
+        <div class="item__media">
+            @if ($src = catalog_image($item['image'] ?? null))
+                <img src="{{ $src }}" alt="{{ $item['label'] ?? ($section['title'] ?? '') }}" loading="lazy">
+            @else
+                <div class="ph" style="height:100%">[ {{ $item['label'] ?? 'ảnh' }} ]</div>
+            @endif
+        </div>
+    </div>
+
 @else
     <div class="items layout-{{ $layout }}">
         @foreach ($items as $item)
