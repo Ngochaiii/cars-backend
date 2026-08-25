@@ -80,6 +80,18 @@ if (config('catalog.frontend.services_page', false)) {
 
 /*
 |--------------------------------------------------------------------------
+| Bản cắt tĩnh của bản thiết kế — chỉ để đối chiếu
+|--------------------------------------------------------------------------
+| Chép 1:1 từ "website 2", chưa nối backend: không biến, không truy vấn.
+| Dùng để so cạnh trang thật rồi ghép từng khối. Chỉ bật ở môi trường local
+| — production không có lý do gì phục vụ mấy trang này.
+*/
+if (app()->environment('local')) {
+    Route::view('mau/chi-tiet-xe', 'frontend.mau.chi-tiet-xe')->name('mau.chi-tiet-xe');
+}
+
+/*
+|--------------------------------------------------------------------------
 | Lead — form Blade gửi POST thường
 |--------------------------------------------------------------------------
 | Không cần JS: bấm Gửi là request thật, xong thì redirect về đúng trang cũ
