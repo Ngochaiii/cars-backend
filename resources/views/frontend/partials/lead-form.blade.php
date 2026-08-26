@@ -45,18 +45,34 @@
 
             @php
                 $required = in_array('required', (array) $field->rules, true);
+
+                // Rule "max:300" vừa dùng để validate vừa đổ thành maxlength —
+                // chặn ngay lúc gõ tử tế hơn là để người ta viết xong rồi báo lỗi.
+                $maxLength = collect((array) $field->rules)
+                    ->map(fn ($r) => is_string($r) && str_starts_with($r, 'max:') ? (int) substr($r, 4) : null)
+                    ->filter()
+                    ->first();
                 $full     = $field->width !== 'half' || in_array($field->type, ['textarea', 'checkbox', 'radio'], true);
             @endphp
 
+            @php
+                // Checkbox chỉ một lựa chọn (ô đồng ý điều khoản): chính câu lựa
+                // chọn đã là nhãn, in thêm nhãn field bên trên là lặp thừa.
+                $soloCheckbox = $field->type === 'checkbox' && count((array) $field->options) === 1;
+            @endphp
+
             <div class="field {{ $full ? 'field--full' : '' }} {{ in_array($field->type, ['radio', 'checkbox'], true) ? 'field--choice' : '' }}">
-                <label for="f-{{ $form->key }}-{{ $field->key }}">
-                    {{ $field->label }}@if ($required) <span aria-hidden="true">*</span>@endif
-                </label>
+                @unless ($soloCheckbox)
+                    <label for="f-{{ $form->key }}-{{ $field->key }}">
+                        {!! catalog_field_label($field->label) !!}@if ($required) <span aria-hidden="true">*</span>@endif
+                    </label>
+                @endunless
 
                 @switch($field->type)
                     @case('textarea')
                         <textarea id="f-{{ $form->key }}-{{ $field->key }}" name="{{ $field->key }}" rows="4"
                                   placeholder="{{ $field->placeholder }}"
+                                  @if ($maxLength) maxlength="{{ $maxLength }}" @endif
                                   @if ($required) required @endif>{{ $old($field->key) }}</textarea>
                         @break
 
@@ -83,7 +99,10 @@
                                                @checked($isCheckbox
                                                    ? in_array($value, (array) $old($field->key, []), false)
                                                    : $old($field->key) == $value)>
-                                        {{ $label }}
+                                        {{-- Bọc trong span: label là flex, để chữ trần
+                                             thì mỗi thẻ <a> trong nhãn thành một
+                                             phần tử flex riêng và câu bị xé làm đôi. --}}
+                                        <span>{!! catalog_field_label($label) !!}</span>
                                     </label>
                                 </li>
                             @endforeach
@@ -94,6 +113,7 @@
                         <input type="{{ $field->type }}" id="f-{{ $form->key }}-{{ $field->key }}"
                                name="{{ $field->key }}" value="{{ $old($field->key) }}"
                                placeholder="{{ $field->placeholder }}"
+                               @if ($maxLength) maxlength="{{ $maxLength }}" @endif
                                @if ($field->type === 'tel') inputmode="tel" @endif
                                @if ($required) required @endif>
                 @endswitch

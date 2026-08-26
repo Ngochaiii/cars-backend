@@ -90,11 +90,44 @@ class CatalogDemoSeeder extends Seeder
 
         $consult->fields()->delete();
         $consult->fields()->createMany([
-            ['key' => 'name', 'label' => 'Họ và tên', 'type' => 'text', 'rules' => ['required'], 'sort' => 1],
-            ['key' => 'phone', 'label' => 'Số điện thoại', 'type' => 'tel', 'rules' => ['required'], 'sort' => 2],
-            ['key' => 'email', 'label' => 'Email', 'type' => 'email', 'rules' => ['required', 'email'], 'sort' => 3],
-            ['key' => 'agree', 'label' => 'Đồng ý xử lý dữ liệu', 'type' => 'checkbox', 'rules' => ['required'], 'sort' => 4,
-                'options' => ['1' => 'Tôi đồng ý cho đại lý xử lý dữ liệu cá nhân của tôi theo chính sách bảo vệ dữ liệu.']],
+            ['key' => 'name', 'label' => 'Họ và tên', 'type' => 'text', 'rules' => ['required'], 'sort' => 1,
+                'placeholder' => 'Nguyễn Văn A', 'width' => 'half'],
+
+            ['key' => 'phone', 'label' => 'Số điện thoại', 'type' => 'tel', 'rules' => ['required'], 'sort' => 2,
+                'placeholder' => '09xx xxx xxx', 'width' => 'half'],
+
+            ['key' => 'email', 'label' => 'Email', 'type' => 'email', 'rules' => ['required', 'email'], 'sort' => 3,
+                'placeholder' => 'ban@email.com'],
+
+            // Hai ô này là thứ sales cần nhất khi gọi lại: biết khách định mua
+            // khi nào và trả bằng cách nào thì xếp được thứ tự ưu tiên.
+            ['key' => 'buy_time', 'label' => 'Thời gian dự kiến mua xe', 'type' => 'select',
+                'rules' => ['required'], 'sort' => 4, 'width' => 'half',
+                'options' => [
+                    'trong-thang' => 'Trong tháng này',
+                    '1-3-thang' => 'Trong 1–3 tháng',
+                    '3-6-thang' => 'Trong 3–6 tháng',
+                    'chua-ro' => 'Chưa xác định',
+                ]],
+
+            ['key' => 'payment', 'label' => 'Phương thức thanh toán dự kiến', 'type' => 'select',
+                'rules' => ['required'], 'sort' => 5, 'width' => 'half',
+                'options' => [
+                    'tra-thang' => 'Trả thẳng',
+                    'tra-gop' => 'Trả góp',
+                    'chua-ro' => 'Chưa xác định',
+                ]],
+
+            ['key' => 'note', 'label' => 'Quý khách cần hỗ trợ thêm thông tin gì?', 'type' => 'textarea',
+                'rules' => ['nullable', 'max:300'], 'sort' => 6],
+
+            // Nghị định 13/2023: câu đồng ý phải dẫn được tới chính sách bảo vệ
+            // dữ liệu. Cú pháp [chữ](đường-dẫn) do catalog_field_label() dựng
+            // thành link — nhãn gõ trong admin nên không gõ thẻ HTML được.
+            ['key' => 'agree', 'label' => 'Đồng ý xử lý dữ liệu', 'type' => 'checkbox',
+                'rules' => ['required'], 'sort' => 7,
+                'options' => ['1' => 'Tôi đồng ý cho đại lý xử lý dữ liệu cá nhân của tôi theo '
+                    .'[Chính sách bảo vệ dữ liệu cá nhân](/chinh-sach-bao-mat).']],
         ]);
 
         // Băng đăng ký nhận tin trên footer — khai ở

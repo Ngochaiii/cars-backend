@@ -18,7 +18,7 @@
 
 <div class="field {{ $full || $cards ? 'field--full' : '' }} {{ in_array($field->type, ['radio', 'checkbox'], true) ? 'field--choice' : '' }}">
     @if ($cards)
-        <span class="field__label">{{ $field->label }}@if ($required) <span aria-hidden="true">*</span>@endif</span>
+        <span class="field__label">{!! catalog_field_label($field->label) !!}@if ($required) <span aria-hidden="true">*</span>@endif</span>
 
         <ul class="pick-grid pick-grid--wide">
             @foreach ((array) $field->options as $value => $label)
@@ -33,7 +33,7 @@
             @endforeach
         </ul>
     @else
-        <label for="{{ $id }}">{{ $field->label }}@if ($required) <span aria-hidden="true">*</span>@endif</label>
+        <label for="{{ $id }}">{!! catalog_field_label($field->label) !!}@if ($required) <span aria-hidden="true">*</span>@endif</label>
 
         @switch($field->type)
             @case('textarea')
@@ -64,7 +64,7 @@
                                        @checked($isCheckbox
                                            ? in_array($value, (array) $old($field->key, []), false)
                                            : $old($field->key) == $value)>
-                                {{ $label }}
+                                {!! catalog_field_label($label) !!}
                             </label>
                         </li>
                     @endforeach

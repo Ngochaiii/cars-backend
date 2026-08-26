@@ -38,7 +38,68 @@ class CompanySeeder extends Seeder
         $setting::put('hotline', '0889 159 579');
         $setting::put('email', 'ngochoa25.cv@gmail.com');
 
+        // Popup dùng chính form tư vấn đầy đủ, không phải form chỉ-email: khách
+        // đã chịu mở popup thì hỏi luôn thời điểm mua và cách thanh toán, sales
+        // gọi lại mới biết ưu tiên ai trước.
+        $setting::put('popup_form', 'dang-ky-tu-van');
+        $setting::put('popup_title', 'Nhận báo giá & ưu đãi mới nhất');
+        $setting::put('popup_text', 'Đăng ký ngay, tư vấn viên sẽ liên hệ trong thời gian sớm nhất.');
+        $setting::put('popup_delay', '12');
+        $setting::put('popup_days', '7');
+
+        $this->privacyPage();
+
         $setting::put('site_description',
             'Đại lý ủy quyền VinFast tại Bắc Giang — báo giá, lái thử và đặt cọc các dòng xe điện VinFast.');
+    }
+
+    /**
+     * Trang chính sách bảo vệ dữ liệu cá nhân.
+     *
+     * Ô đồng ý trong form tư vấn dẫn tới đây, nên trang này PHẢI tồn tại —
+     * link gãy ở ngay câu xin phép xử lý dữ liệu thì vừa mất uy tín vừa không
+     * chứng minh được là đã thông báo theo Nghị định 13/2023.
+     *
+     * Nội dung dưới đây là khung sườn, đại lý phải rà lại cho khớp thực tế
+     * trước khi chạy thật.
+     */
+    protected function privacyPage(): void
+    {
+        Catalog::query('page')->updateOrCreate(
+            ['slug' => 'chinh-sach-bao-mat'],
+            [
+                'title' => 'Chính sách bảo vệ dữ liệu cá nhân',
+                'status' => 'published',
+                'sections' => [
+                    [
+                        'title' => 'Dữ liệu chúng tôi thu thập',
+                        'type' => 'text',
+                        'body' => 'Khi bạn để lại thông tin qua các biểu mẫu trên website, chúng tôi thu thập: họ tên, '
+                            .'số điện thoại, email, thời gian dự kiến mua xe, phương thức thanh toán dự kiến và nội dung '
+                            ."bạn tự điền thêm.\n"
+                            .'Hệ thống cũng ghi nhận địa chỉ IP, nguồn truy cập và trang bạn gửi biểu mẫu để chống spam.',
+                    ],
+                    [
+                        'title' => 'Mục đích sử dụng',
+                        'type' => 'text',
+                        'body' => "Liên hệ tư vấn sản phẩm, báo giá, xếp lịch lái thử và xử lý yêu cầu đặt cọc.\n"
+                            .'Chúng tôi không bán hoặc trao đổi dữ liệu của bạn cho bên thứ ba vì mục đích quảng cáo.',
+                    ],
+                    [
+                        'title' => 'Thời gian lưu trữ',
+                        'type' => 'text',
+                        'body' => 'Dữ liệu được lưu trong thời gian cần thiết để phục vụ yêu cầu của bạn và theo quy '
+                            .'định pháp luật hiện hành về lưu trữ chứng từ.',
+                    ],
+                    [
+                        'title' => 'Quyền của bạn',
+                        'type' => 'text',
+                        'body' => 'Bạn có quyền yêu cầu xem, sửa, hoặc xoá dữ liệu cá nhân của mình, và rút lại sự '
+                            ."đồng ý đã cấp.\n"
+                            .'Liên hệ hotline hoặc email của đại lý ở chân trang để thực hiện các quyền này.',
+                    ],
+                ],
+            ],
+        );
     }
 }

@@ -89,6 +89,59 @@ class PopupTest extends TestCase
         $this->assertStringContainsString('hidden', $popup);
     }
 
+    /**
+     * Ô đồng ý phải dẫn được tới chính sách bảo vệ dữ liệu (Nghị định 13/2023).
+     * Nhãn gõ trong admin nên dùng cú pháp [chữ](đường-dẫn); nếu Blade escape
+     * mất thì khách thấy dấu ngoặc vuông thay vì link.
+     */
+    public function test_o_dong_y_dung_duoc_link(): void
+    {
+        $form = Form::where('key', 'nhan-tu-van')->sole();
+        $form->fields()->create([
+            'key' => 'agree', 'label' => 'Đồng ý', 'type' => 'checkbox',
+            'rules' => ['required'], 'sort' => 9,
+            'options' => ['1' => 'Tôi đồng ý theo [Chính sách bảo mật](/chinh-sach-bao-mat).'],
+        ]);
+
+        $this->bat();
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('<a href="/chinh-sach-bao-mat">Chính sách bảo mật</a>', false)
+            ->assertDontSee('[Chính sách bảo mật]', false);
+    }
+
+    /** Đường dẫn lạ trong nhãn KHÔNG được dựng thành link. */
+    public function test_nhan_khong_dung_duoc_javascript(): void
+    {
+        $form = Form::where('key', 'nhan-tu-van')->sole();
+        $form->fields()->create([
+            'key' => 'agree', 'label' => 'Đồng ý', 'type' => 'checkbox',
+            'rules' => ['required'], 'sort' => 9,
+            'options' => ['1' => 'Bấm [vào đây](javascript:alert(1))'],
+        ]);
+
+        $this->bat();
+
+        $html = $this->get('/')->assertOk()->getContent();
+
+        $this->assertStringNotContainsString('href="javascript:', $html);
+    }
+
+    /** Rule max:N đổ thành maxlength để chặn ngay lúc gõ. */
+    public function test_gioi_han_ky_tu_thanh_maxlength(): void
+    {
+        $form = Form::where('key', 'nhan-tu-van')->sole();
+        $form->fields()->create([
+            'key' => 'note', 'label' => 'Ghi chú', 'type' => 'textarea',
+            'rules' => ['nullable', 'max:300'], 'sort' => 8,
+        ]);
+
+        $this->bat();
+
+        $this->get('/')->assertOk()->assertSee('maxlength="300"', false);
+    }
+
     public function test_vua_gui_form_xong_thi_khong_chao_lai(): void
     {
         $this->bat();

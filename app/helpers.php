@@ -6,6 +6,7 @@ use App\Support\Media;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\HtmlString;
 
 if (! function_exists('catalog_model')) {
     /**
@@ -127,5 +128,44 @@ if (! function_exists('catalog_money_short')) {
         $text = rtrim(rtrim(number_format($value, 2, ',', '.'), '0'), ',');
 
         return $text.' '.$unit;
+    }
+}
+
+if (! function_exists('catalog_field_label')) {
+    /**
+     * Nhãn ô nhập, cho phép ĐÚNG MỘT thứ đánh dấu: `[chữ](đường-dẫn)` thành link.
+     *
+     * Cần cho ô đồng ý xử lý dữ liệu cá nhân — theo Nghị định 13/2023 câu đồng
+     * ý phải dẫn được tới chính sách bảo vệ dữ liệu, mà nhãn thì người nhập gõ
+     * trong admin nên không thể gõ thẻ HTML.
+     *
+     * Mọi thứ khác escape hết. Đường dẫn chỉ nhận http(s) hoặc đường dẫn nội bộ
+     * bắt đầu bằng "/" — chặn javascript: và data: ngay từ đây thay vì tin vào
+     * người nhập.
+     */
+    function catalog_field_label(?string $label): HtmlString
+    {
+        $safe = e((string) $label);
+
+        $html = preg_replace_callback(
+            '/\[([^\]]{1,120})\]\(([^)\s]{1,300})\)/',
+            function (array $m): string {
+                $text = $m[1];
+                $url = html_entity_decode($m[2], ENT_QUOTES);
+
+                if (! preg_match('#^(https?://|/)#i', $url)) {
+                    return $m[0];   // đường dẫn lạ thì để nguyên chữ, không dựng link
+                }
+
+                $external = str_starts_with(strtolower($url), 'http');
+
+                return '<a href="'.e($url).'"'
+                    .($external ? ' rel="noopener" target="_blank"' : '')
+                    .'>'.$text.'</a>';
+            },
+            $safe,
+        );
+
+        return new HtmlString($html);
     }
 }
