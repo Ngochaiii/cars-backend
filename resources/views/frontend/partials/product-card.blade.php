@@ -53,6 +53,10 @@
             @else
                 <a class="btn btn--sm" href="{{ $url }}">Xem chi tiết</a>
             @endif
+
+            @if (Route::has('compare'))
+                <a class="btn btn--sm btn--outline" href="{{ route('compare', ['xe' => $product->slug]) }}">So sánh</a>
+            @endif
         </div>
     </div>
 </li>

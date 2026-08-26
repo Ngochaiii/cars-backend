@@ -3,6 +3,7 @@
 use App\Http\Controllers\Frontend\AccessoryController;
 use App\Http\Controllers\Frontend\BookingController;
 use App\Http\Controllers\Frontend\CategoryController;
+use App\Http\Controllers\Frontend\CompareController;
 use App\Http\Controllers\Frontend\DealerController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\LeadController;
@@ -77,6 +78,7 @@ if (filled(config('catalog.frontend.accessory_category'))) {
 }
 
 Route::get(trim(Url::prefix('search'), '/'), SearchController::class)->name('search');
+Route::get(trim(Url::prefix('compare'), '/'), CompareController::class)->name('compare');
 
 if (catalog_feature('dealers')) {
     Route::get(trim(Url::prefix('dealer'), '/'), DealerController::class)->name('dealers');

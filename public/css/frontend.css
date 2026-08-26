@@ -1547,6 +1547,32 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
 .header__tel { font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; }
 .header__tel:hover { color: var(--accent); }
 
+/* ═══════════ SO SÁNH XE ═══════════ */
+.compare-pick { margin: 28px 0 40px; }
+.compare-pick__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 12px 0 20px;
+}
+
+/* Bảng cuộn trong khung của nó, không đẩy cả trang trôi ngang. */
+.scroll-x { overflow-x: auto; }
+.compare { border-collapse: collapse; width: 100%; min-width: 640px; }
+.compare th, .compare td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    font-size: 15px;
+    vertical-align: top;
+}
+.compare thead th { border-bottom: 1px solid var(--ink); vertical-align: bottom; }
+.compare thead th a { font-size: 18px; font-weight: 700; color: var(--ink); display: block; }
+.compare thead th a:hover { color: var(--accent); }
+.compare thead th span { display: block; font-size: 13px; color: var(--muted-2); margin-top: 4px; font-weight: 400; }
+.compare tbody th { font-weight: 400; color: var(--muted); width: 30%; }
+.compare tbody td { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
 /* ═══════════ TÌM KIẾM ═══════════ */
 .header__search input {
     width: 150px;

@@ -24,6 +24,7 @@ class CatalogDemoSeeder extends Seeder
         $this->settings();
         $this->accessories();
         $this->banners();
+        $this->dealers();
         $this->menus();
     }
 
@@ -203,6 +204,46 @@ class CatalogDemoSeeder extends Seeder
                 $row + ['sort' => $i + 1, 'is_active' => true],
             );
         }
+    }
+
+    /**
+     * Đại lý mẫu, nhóm theo tỉnh.
+     *
+     * Cố ý để một đại lý KHÔNG có toạ độ: trang đại lý phải chứng minh được
+     * rằng thiếu toạ độ thì không dựng nút Chỉ đường.
+     */
+    protected function dealers(): void
+    {
+        if (! Catalog::feature('dealers')) {
+            return;
+        }
+
+        $province = Catalog::query('province')->updateOrCreate(
+            ['name' => 'Bắc Giang'],
+            ['code' => '24'],
+        );
+
+        Catalog::query('dealer')->updateOrCreate(
+            ['name' => 'Showroom Xương Giang'],
+            [
+                'province_id' => $province->id,
+                'address' => 'Đường Xương Giang, TP. Bắc Giang',
+                'phone' => '0204 123 456',
+                'lat' => 21.2731,
+                'lng' => 106.1946,
+                'opening_hours' => ['T2–T7: 8:00–19:00', 'CN: 8:00–17:00'],
+            ],
+        );
+
+        Catalog::query('dealer')->updateOrCreate(
+            ['name' => 'Xưởng dịch vụ Vân Trung'],
+            [
+                'province_id' => $province->id,
+                'address' => 'KCN Vân Trung, Việt Yên',
+                'phone' => '0204 987 654',
+                'opening_hours' => ['T2–T7: 8:00–17:30'],
+            ],
+        );
     }
 
     /** Cài đặt: những giá trị layout frontend đọc ra ngay. */
