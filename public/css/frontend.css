@@ -1547,6 +1547,23 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
 .header__tel { font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; }
 .header__tel:hover { color: var(--accent); }
 
+/* ═══════════ TRẢ GÓP ═══════════ */
+.loan { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+.loan__panel { background: var(--soft); border: 1px solid var(--line); border-radius: 6px; padding: 32px 30px; }
+.loan__panel .btn { width: 100%; }
+
+.loan__lead { padding-bottom: 24px; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+.loan__lead > span { display: block; font-size: 13px; color: var(--muted-2); }
+.loan__lead b { display: block; font-size: clamp(28px, 4vw, 40px); font-weight: 700; color: var(--accent); margin: 6px 0 8px; }
+.loan__fall { font-size: 13px; color: var(--muted); }
+
+.loan__rows { margin: 0; display: flex; flex-direction: column; gap: 14px; }
+.loan__rows > div { display: flex; justify-content: space-between; gap: 20px; align-items: baseline; }
+.loan__rows dt { font-size: 14.5px; color: var(--muted); }
+.loan__rows dd { margin: 0; font-size: 16px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.loan__note { margin-top: 24px; font-size: 12px; line-height: 1.7; color: var(--muted-2); }
+
 /* ═══════════ POPUP THU LEAD ═══════════ */
 /* Server luôn render kèm `hidden`; chỉ JS mới gỡ ra. Tắt JS là không bao giờ
    thấy popup — không có JS thì cũng không có gì chắn đường người ta đọc. */
@@ -1618,7 +1635,7 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
     .nav__link:hover, .nav__item--on > .nav__link { border-bottom-color: var(--line); }
     .nav__sub { position: static; display: block; border: 0; box-shadow: none; padding: 0 0 0 16px; }
 
-    .split, .tiles, .page-split, .news-lead, .fuel-calc { grid-template-columns: minmax(0, 1fr); }
+    .split, .tiles, .page-split, .news-lead, .fuel-calc, .loan { grid-template-columns: minmax(0, 1fr); }
     .tiles__side { grid-template-rows: auto auto; }
     .split--media-first > .split__media { order: 0; }
     .split__body p, .hero__lede { max-width: none; }
@@ -1714,6 +1731,7 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
     .spec-actions { flex-direction: column; }
     .spec-actions .btn { width: 100%; }
     .fuel-calc__panel { padding: 26px 22px; }
+    .loan__panel { padding: 26px 22px; }
     .lead-form { grid-template-columns: minmax(0, 1fr); }
     .segmented { width: 100%; }
     .segmented__option { flex: 1; }

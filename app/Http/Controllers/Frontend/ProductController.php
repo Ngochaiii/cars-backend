@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Form;
 use App\Models\Product;
 use App\Support\Catalog;
 use App\Support\FuelCalculator;
+use App\Support\Loan;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
@@ -21,10 +23,11 @@ class ProductController extends Controller
         $sections = $product->renderableSections();
 
         return view('frontend.product', [
-            'product'  => $product,
+            'product' => $product,
             'sections' => $sections,
-            'forms'    => $this->forms($sections),
+            'forms' => $this->forms($sections),
             'fuelCalc' => $this->fuelCalc($product, $request),
+            'loan' => $this->loan($product, $request),
         ]);
     }
 
@@ -33,14 +36,14 @@ class ProductController extends Controller
      * tồn tại, đã tắt, hoặc đã nhúng giữa trang rồi thì bỏ qua đúng cái đó.
      *
      * @param  array<int, array<string, mixed>>  $sections
-     * @return Collection<int, \App\Models\Form>
+     * @return Collection<int, Form>
      */
     protected function forms(array $sections): Collection
     {
         $keys = (array) config('catalog.frontend.product_forms', []);
 
         if (empty($keys) || ! Catalog::feature('forms')) {
-            return new Collection();
+            return new Collection;
         }
 
         // Người nhập đã tự chèn form này vào giữa trang bằng mục kiểu `form`
@@ -53,7 +56,7 @@ class ProductController extends Controller
         $keys = array_diff($keys, $embedded->all());
 
         if (empty($keys)) {
-            return new Collection();
+            return new Collection;
         }
 
         return Catalog::query('form')
@@ -63,6 +66,46 @@ class ProductController extends Controller
             ->get()
             ->sortBy(fn ($form) => array_search($form->key, $keys, true))
             ->values();
+    }
+
+    /**
+     * Trả góp cho trang chi tiết. Đọc số liệu từ query string như bộ so sánh
+     * chi phí nhiên liệu — form GET, tính bằng PHP, không cần JS.
+     *
+     * Xe chưa có giá thì trả null, view tự ẩn cả khối.
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function loan(Product $product, Request $request): ?array
+    {
+        if (! Catalog::feature('loan_calc')) {
+            return null;
+        }
+
+        $variant = $product->variants->firstWhere('is_default', true) ?? $product->variants->first();
+        $price = (float) ($product->price_from ?: $variant?->price);
+
+        if ($price <= 0) {
+            return null;
+        }
+
+        $defaults = (array) config('catalog.loan', []);
+
+        // Người dùng gõ "200.000.000" hay "200000000" đều nhận — bỏ hết ký tự
+        // không phải số thay vì bắt họ gõ đúng định dạng.
+        $down = $request->filled('down')
+            ? (float) preg_replace('/\D/', '', (string) $request->query('down'))
+            : $price * ((float) ($defaults['down_payment_percent'] ?? 30)) / 100;
+
+        $months = (int) $request->query('months', $defaults['months'] ?? 60);
+        $rate = (float) str_replace(',', '.', (string) $request->query('rate', $defaults['annual_rate'] ?? 9));
+
+        return Loan::schedule($price, $down, $rate, $months) + [
+            'price' => $price,
+            'down' => round($down, 2),
+            'rate' => $rate,
+            'month_options' => (array) ($defaults['month_options'] ?? [12, 24, 36, 48, 60]),
+        ];
     }
 
     /**

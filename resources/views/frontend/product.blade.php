@@ -128,6 +128,19 @@
             </section>
         @endif
 
+        {{-- ── Trả góp ────────────────────────────────────────────────── --}}
+        @if ($loan)
+            <section class="section" id="tra-gop">
+                <div class="wrap">
+                    <div class="section__head">
+                        <h2>Trả góp {{ $product->name }}</h2>
+                        <p>Ước tính khoản vay và lãi theo dư nợ giảm dần.</p>
+                    </div>
+                    @include('frontend.partials.loan-calculator', ['product' => $product, 'loan' => $loan])
+                </div>
+            </section>
+        @endif
+
         {{-- Form(s) cuối trang: khoá khai ở config('catalog.frontend.product_forms'). --}}
         @foreach ($forms as $f)
             <section class="section">

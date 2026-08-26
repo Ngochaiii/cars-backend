@@ -60,6 +60,10 @@ return [
 
         // Banner hero trang chủ. Tắt thì hero lùi về dùng ảnh của mặt hàng.
         'banners' => true,
+
+        // Bộ tính trả góp ở trang chi tiết xe. Chỉ tính khoản vay và lãi —
+        // lệ phí lăn bánh do bộ phận khác lo, không thuộc phạm vi web này.
+        'loan_calc' => true,
     ],
 
     // Gợi ý tên khi bấm "Thêm mục" trong repeater sections.
@@ -332,6 +336,20 @@ return [
         'electricity_price' => 3900,   // đ/kWh
         'petrol_price' => 24500, // đ/lít xăng
         'diesel_price' => 21500, // đ/lít dầu
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Trả góp (giá trị mặc định của bộ tính)
+    |--------------------------------------------------------------------------
+    |
+    | Lãi suất tham khảo, không phải cam kết của ngân hàng. Đổi theo thời điểm.
+    */
+    'loan' => [
+        'down_payment_percent' => 30,     // % trả trước gợi ý sẵn
+        'annual_rate' => 9.0,             // %/năm
+        'months' => 60,                   // kỳ trả mặc định
+        'month_options' => [12, 24, 36, 48, 60, 72, 84],
     ],
 
     /*
