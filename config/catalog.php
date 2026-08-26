@@ -386,6 +386,8 @@ return [
         'accessory' => '/phu-kien',
         'service' => '/tram-sac-dich-vu',
         'dealer' => '/he-thong-dai-ly',
+        'search' => '/tim-kiem',
+        'compare' => '/so-sanh',
     ],
 
     'seo' => [

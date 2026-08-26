@@ -1547,6 +1547,38 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
 .header__tel { font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; }
 .header__tel:hover { color: var(--accent); }
 
+/* ═══════════ TÌM KIẾM ═══════════ */
+.header__search input {
+    width: 150px;
+    height: 38px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--ink);
+    background: var(--soft);
+    outline: none;
+    transition: width .2s ease, border-color .2s ease;
+}
+.header__search input:focus { width: 210px; border-color: var(--ink); background: #fff; }
+
+.search-box { display: flex; gap: 12px; margin: 28px 0 8px; max-width: 620px; }
+.search-box input {
+    flex: 1;
+    min-width: 0;
+    height: 54px;
+    padding: 0 20px;
+    border: 1px solid var(--line-in);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--ink);
+    outline: none;
+}
+.search-box input:focus { border-color: var(--accent); }
+.search-count { margin-top: 20px; font-size: 14px; color: var(--muted-2); }
+
 /* ═══════════ HỆ THỐNG ĐẠI LÝ ═══════════ */
 .dealer-group { margin-top: 48px; }
 .dealer-group__name {
@@ -1653,6 +1685,8 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
     .site-header__inner { flex-wrap: wrap; height: auto; padding-block: 14px; row-gap: 14px; }
     .nav-toggle__label { display: block; order: 3; margin-left: auto; }
     .header__cta { order: 2; margin-left: auto; }
+    /* Header mobile đã chật; ô tìm kiếm nằm ở trang /tim-kiem. */
+    .header__search { display: none; }
     .nav { order: 4; flex-basis: 100%; display: none; }
     .nav-toggle:checked ~ .nav { display: block; }
     .nav__list { flex-direction: column; align-items: stretch; gap: 0; }

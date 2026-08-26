@@ -72,6 +72,13 @@
         </nav>
 
         <div class="header__cta">
+            @if (Route::has('search'))
+                <form class="header__search" method="GET" action="{{ route('search') }}" role="search">
+                    <label class="sr-only" for="header-q">Tìm kiếm</label>
+                    <input id="header-q" type="search" name="q" placeholder="Tìm xe…">
+                </form>
+            @endif
+
             @if (filled($hotline))
                 <a class="header__tel" href="tel:{{ preg_replace('/\s+/', '', $hotline) }}">{{ $hotline }}</a>
             @endif
