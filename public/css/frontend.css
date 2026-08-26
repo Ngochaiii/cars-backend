@@ -326,6 +326,13 @@ b, strong { font-weight: 700; }
 .hero--overlay .eyebrow { color: rgba(255, 255, 255, .7); }
 .hero--overlay .hero__lede { color: rgba(255, 255, 255, .82); }
 
+/* Banner chỉ có ảnh: bỏ lớp phủ tối (không có chữ nào cần đọc) và cho cả
+   tấm ảnh thành vùng bấm. Ảnh loại này thường đã thiết kế sẵn chữ bên trong,
+   phủ thêm gradient là làm đục thiết kế của người ta. */
+.hero__slide--bare .hero__media::after { display: none; }
+.hero__bare-link { position: absolute; inset: 0; z-index: 2; }
+.hero__bare-link:focus-visible { outline: 3px solid var(--accent); outline-offset: -6px; }
+
 .hero__body { position: relative; z-index: 1; width: 100%; }
 .hero__inner { max-width: 640px; }
 .hero__body h1 {

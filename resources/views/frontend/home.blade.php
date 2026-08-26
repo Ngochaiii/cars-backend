@@ -42,7 +42,12 @@
                         ? catalog_image($slide->image)
                         : catalog_image(data_get($slide->hero, 'src'));
 
-                    $alt = $fromBanner ? $slide->title : $slide->name;
+                    // Banner chỉ ảnh vẫn là một link, nên alt PHẢI mô tả được
+                    // đích đến — link chỉ chứa ảnh mà alt rỗng thì người dùng
+                    // trình đọc màn hình không biết bấm vào đi đâu.
+                    $alt = $fromBanner
+                        ? ($slide->title ?: $slide->cta_label ?: $slide->eyebrow ?: 'Banner khuyến mãi')
+                        : $slide->name;
 
                     $eyebrow = $fromBanner
                         ? $slide->eyebrow
@@ -56,9 +61,14 @@
 
                     $ctaLabel = $fromBanner ? $slide->cta_label : 'Khám phá '.$slide->name;
                     $ctaUrl   = $fromBanner ? $slide->cta_url : route('products.show', $slide->slug);
+
+                    // Banner chỉ có ảnh: hiện đúng tấm ảnh, bấm vào là đi tới
+                    // link. Ảnh loại này thường đã thiết kế sẵn chữ bên trong,
+                    // đè thêm tiêu đề và nút của site lên là hỏng bố cục.
+                    $bare = $fromBanner && $img && $slide->isBare();
                 @endphp
 
-                <div class="hero__slide {{ $i === 0 ? 'is-on' : '' }}"
+                <div class="hero__slide {{ $bare ? 'hero__slide--bare' : '' }} {{ $i === 0 ? 'is-on' : '' }}"
                      data-hero-slide aria-hidden="{{ $i === 0 ? 'false' : 'true' }}">
                     @if ($img)
                         <div class="hero__media">
@@ -67,6 +77,15 @@
                         </div>
                     @endif
 
+                    {{-- Cả tấm ảnh là một link. Ảnh không kèm link thì để yên,
+                         không dựng thẻ <a> rỗng bấm vào chẳng đi đâu. --}}
+                    @if ($bare && filled($ctaUrl))
+                        <a class="hero__bare-link" href="{{ $ctaUrl }}">
+                            <span class="sr-only">{{ $alt }}</span>
+                        </a>
+                    @endif
+
+                    @unless ($bare)
                     <div class="hero__body">
                         <div class="wrap">
                             <div class="hero__inner">
@@ -95,6 +114,7 @@
                             </div>
                         </div>
                     </div>
+                    @endunless
                 </div>
             @endforeach
 

@@ -97,6 +97,105 @@ class BannerTest extends TestCase
         $this->assertStringNotContainsString('btn--outline', $hero);
     }
 
+    /**
+     * Banner chỉ có ảnh: hiện đúng tấm ảnh, không đè tiêu đề hay nút của site
+     * lên — ảnh loại này thường đã thiết kế sẵn chữ bên trong.
+     */
+    public function test_banner_chi_co_anh_thi_chi_hien_anh(): void
+    {
+        Banner::create([
+            'image' => 'catalog/banners/khuyen-mai.jpg',
+            'cta_url' => '/tin-tuc',
+            'cta_label' => 'Ưu đãi tháng 8',
+            'is_active' => true,
+        ]);
+
+        $html = $this->get('/')->assertOk()->getContent();
+        $hero = Str::between($html, 'hero--carousel', '</section>');
+
+        // Cả tấm ảnh là vùng bấm
+        $this->assertStringContainsString('hero__slide--bare', $hero);
+        $this->assertStringContainsString('hero__bare-link', $hero);
+        $this->assertStringContainsString('href="/tin-tuc"', $hero);
+
+        // Không dựng khối chữ, không nút nào
+        $this->assertStringNotContainsString('hero__body', $hero);
+        $this->assertStringNotContainsString('Xem tất cả', $hero);
+
+        // Link chỉ chứa ảnh nên phải có chữ mô tả đích đến
+        $this->assertStringContainsString('Ưu đãi tháng 8', $hero);
+    }
+
+    public function test_banner_chi_co_anh_va_khong_link_thi_khong_dung_the_a(): void
+    {
+        Banner::create([
+            'image' => 'catalog/banners/anh.jpg',
+            'is_active' => true,
+        ]);
+
+        $hero = Str::between(
+            $this->get('/')->assertOk()->getContent(), 'hero--carousel', '</section>'
+        );
+
+        $this->assertStringContainsString('hero__slide--bare', $hero);
+        $this->assertStringNotContainsString('hero__bare-link', $hero);
+    }
+
+    public function test_them_tieu_de_thi_hien_day_du_nhu_cu(): void
+    {
+        Banner::create([
+            'image' => 'catalog/banners/anh.jpg',
+            'title' => 'Trả góp 0%',
+            'subtitle' => 'Đến hết tháng 8',
+            'cta_label' => 'Xem ngay',
+            'cta_url' => '/tin-tuc',
+            'is_active' => true,
+        ]);
+
+        $hero = Str::between(
+            $this->get('/')->assertOk()->getContent(), 'hero--carousel', '</section>'
+        );
+
+        $this->assertStringNotContainsString('hero__slide--bare', $hero);
+        $this->assertStringContainsString('hero__body', $hero);
+        $this->assertStringContainsString('Trả góp 0%', $hero);
+        $this->assertStringContainsString('Xem ngay', $hero);
+        $this->assertStringContainsString('Xem tất cả', $hero);
+    }
+
+    /** Trộn hai loại trong cùng một băng chuyền: mỗi slide theo kiểu của nó. */
+    public function test_tron_banner_chi_anh_va_banner_day_du(): void
+    {
+        Banner::create([
+            'image' => 'catalog/banners/a.jpg',
+            'cta_url' => '/tin-tuc',
+            'cta_label' => 'Ảnh khuyến mãi',
+            'sort' => 1,
+            'is_active' => true,
+        ]);
+        Banner::create([
+            'title' => 'Banner có chữ',
+            'subtitle' => 'Mô tả',
+            'sort' => 2,
+            'is_active' => true,
+        ]);
+
+        $hero = Str::between(
+            $this->get('/')->assertOk()->getContent(), 'hero--carousel', '</section>'
+        );
+
+        $this->assertSame(1, substr_count($hero, 'hero__slide--bare'), 'chỉ slide ảnh mới được ở chế độ trần');
+        $this->assertSame(1, substr_count($hero, 'hero__body'), 'chỉ slide có chữ mới dựng khối chữ');
+        $this->assertStringContainsString('Banner có chữ', $hero);
+    }
+
+    public function test_khong_anh_khong_chu_thi_khong_hien(): void
+    {
+        Banner::create(['is_active' => true]);
+
+        $this->assertSame(0, Banner::active()->count());
+    }
+
     public function test_man_hinh_admin_banner_render_duoc(): void
     {
         $this->actingAs(User::create([

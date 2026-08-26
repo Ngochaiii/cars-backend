@@ -63,8 +63,7 @@ class BannerResource extends Resource
         return $schema->columns(2)->components([
             TextInput::make('title')
                 ->label('Tiêu đề')
-                ->helperText('Dòng chữ to nhất trên banner.')
-                ->required()
+                ->helperText('Bỏ trống thì banner chỉ hiện ẢNH, bấm vào ảnh là đi tới link — dùng cho ảnh đã thiết kế sẵn chữ bên trong. Điền vào thì hiện đầy đủ tiêu đề, mô tả và nút.')
                 ->columnSpanFull(),
 
             TextInput::make('eyebrow')
@@ -81,10 +80,12 @@ class BannerResource extends Resource
                 ->image()
                 ->directory('catalog/banners')
                 ->disk('public')
-                ->helperText('Bỏ trống thì banner dùng nền tối, chữ vẫn đọc được.')
+                ->helperText('Bỏ trống thì banner dùng nền tối, chữ vẫn đọc được. Không ảnh mà cũng không tiêu đề thì banner không hiện.')
                 ->columnSpanFull(),
 
-            TextInput::make('cta_label')->label('Nhãn nút'),
+            TextInput::make('cta_label')
+                ->label('Nhãn nút')
+                ->helperText('Banner chỉ ảnh không dựng nút, nhưng vẫn dùng nhãn này làm chữ mô tả ảnh cho trình đọc màn hình.'),
 
             TextInput::make('cta_url')
                 ->label('Link nút')
@@ -113,7 +114,11 @@ class BannerResource extends Resource
             ->reorderable('sort')
             ->columns([
                 ImageColumn::make('image')->label('Ảnh')->disk('public'),
-                TextColumn::make('title')->label('Tiêu đề')->searchable()->wrap(),
+                TextColumn::make('title')
+                    ->label('Tiêu đề')
+                    ->searchable()
+                    ->wrap()
+                    ->placeholder('(chỉ hiện ảnh)'),
                 IconColumn::make('is_active')->label('Bật')->boolean(),
                 TextColumn::make('starts_at')->label('Từ')->dateTime('d/m/Y H:i')->placeholder('—'),
                 TextColumn::make('ends_at')->label('Đến')->dateTime('d/m/Y H:i')->placeholder('—'),
