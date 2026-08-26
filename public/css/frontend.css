@@ -861,6 +861,10 @@ html.js .hero__gal { display: flex; }
     border-radius: 16px;
     background-size: cover;
     background-position: center;
+    /* Màu chưa có ảnh thì ô này tô thẳng mã hex. Màu sáng (trắng, kem) trên
+       nền sáng của mục sẽ trông như ô trống — viền mảnh giữ cho nó vẫn đọc
+       ra là một khối. */
+    box-shadow: inset 0 0 0 1px rgba(17, 17, 17, .08);
     display: flex;
     align-items: center;
     justify-content: center;
