@@ -16,8 +16,9 @@ use Illuminate\Database\Seeder;
  * Thông tin bên mua (họ tên, số CCCD, địa chỉ nhà, số khung/số máy xe) là dữ
  * liệu cá nhân của khách — không có chỗ nào trên website công khai được.
  *
- * Chưa có số liệu thật thì để trống, KHÔNG bịa: hotline và email sai còn tệ
- * hơn không có, khách gọi vào số không tồn tại là mất khách thật.
+ * Hotline và email do đại lý cung cấp trực tiếp, không lấy từ hoá đơn (hoá đơn
+ * bỏ trống hai ô đó). Chưa có số liệu thật thì để trống chứ KHÔNG bịa: số
+ * hotline sai còn tệ hơn không có, khách gọi vào số không tồn tại là mất khách.
  */
 class CompanySeeder extends Seeder
 {
@@ -34,6 +35,8 @@ class CompanySeeder extends Seeder
         $setting::put('tax_code', '0111166593-007');
 
         $setting::put('address', 'Tổ dân phố Giáp Sau, Phường Bắc Giang, Tỉnh Bắc Ninh');
+        $setting::put('hotline', '0889 159 579');
+        $setting::put('email', 'ngochoa25.cv@gmail.com');
 
         $setting::put('site_description',
             'Đại lý ủy quyền VinFast tại Bắc Giang — báo giá, lái thử và đặt cọc các dòng xe điện VinFast.');
