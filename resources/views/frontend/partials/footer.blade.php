@@ -88,6 +88,9 @@
             <div>
                 <h3>Đại lý</h3>
                 <ul>
+                    @if (Route::has('dealers'))
+                        <li><a href="{{ route('dealers') }}">Hệ thống đại lý</a></li>
+                    @endif
                     @if ($postsUrl && ! $menuHasPosts)
                         <li><a href="{{ $postsUrl }}">Tin tức &amp; ưu đãi</a></li>
                     @endif

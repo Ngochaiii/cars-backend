@@ -1547,6 +1547,31 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
 .header__tel { font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; }
 .header__tel:hover { color: var(--accent); }
 
+/* ═══════════ HỆ THỐNG ĐẠI LÝ ═══════════ */
+.dealer-group { margin-top: 48px; }
+.dealer-group__name {
+    font-size: clamp(19px, 2vw, 24px);
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 24px;
+}
+.dealer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.dealer {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: #fff;
+    padding: 24px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color .2s ease;
+}
+.dealer:hover { border-color: #b5b5b0; }
+.dealer h3 { font-size: 17px; font-weight: 600; }
+.dealer__address { font-size: 14px; color: var(--muted); margin: 0; }
+.dealer__hours { font-size: 13px; color: var(--muted-2); line-height: 1.8; }
+.dealer__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: auto; padding-top: 8px; }
+
 /* ═══════════ TRẢ GÓP ═══════════ */
 .loan { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; }
 .loan__panel { background: var(--soft); border: 1px solid var(--line); border-radius: 6px; padding: 32px 30px; }

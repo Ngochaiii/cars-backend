@@ -385,6 +385,7 @@ return [
         'booking' => '/dat-coc',
         'accessory' => '/phu-kien',
         'service' => '/tram-sac-dich-vu',
+        'dealer' => '/he-thong-dai-ly',
     ],
 
     'seo' => [

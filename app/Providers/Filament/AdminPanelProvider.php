@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\ManageSettings;
 use App\Filament\Resources\Banners\BannerResource;
 use App\Filament\Resources\Categories\CategoryResource;
+use App\Filament\Resources\Dealers\DealerResource;
 use App\Filament\Resources\Forms\FormResource;
 use App\Filament\Resources\Leads\LeadResource;
 use App\Filament\Resources\Menus\MenuResource;
@@ -12,6 +13,7 @@ use App\Filament\Resources\Pages\PageResource;
 use App\Filament\Resources\PostCategories\PostCategoryResource;
 use App\Filament\Resources\Posts\PostResource;
 use App\Filament\Resources\Products\ProductResource;
+use App\Filament\Resources\Provinces\ProvinceResource;
 use App\Filament\Resources\Redirects\RedirectResource;
 use App\Support\Catalog;
 use Filament\Http\Middleware\Authenticate;
@@ -54,6 +56,9 @@ class AdminPanelProvider extends PanelProvider
                 Catalog::feature('posts') ? PostResource::class : null,
                 Catalog::feature('posts') ? PostCategoryResource::class : null,
                 Catalog::feature('pages') ? PageResource::class : null,
+
+                Catalog::feature('dealers') ? DealerResource::class : null,
+                Catalog::feature('dealers') ? ProvinceResource::class : null,
 
                 MenuResource::class,
                 RedirectResource::class,

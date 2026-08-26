@@ -3,6 +3,7 @@
 use App\Http\Controllers\Frontend\AccessoryController;
 use App\Http\Controllers\Frontend\BookingController;
 use App\Http\Controllers\Frontend\CategoryController;
+use App\Http\Controllers\Frontend\DealerController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\LeadController;
 use App\Http\Controllers\Frontend\PageController;
@@ -72,6 +73,10 @@ if (catalog_feature('forms') && filled(config('catalog.frontend.booking.forms'))
 
 if (filled(config('catalog.frontend.accessory_category'))) {
     Route::get(trim(Url::prefix('accessory'), '/'), AccessoryController::class)->name('accessories');
+}
+
+if (catalog_feature('dealers')) {
+    Route::get(trim(Url::prefix('dealer'), '/'), DealerController::class)->name('dealers');
 }
 
 if (config('catalog.frontend.services_page', false)) {
