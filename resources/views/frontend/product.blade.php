@@ -89,7 +89,10 @@
             <section class="section">
                 <div class="wrap">
                     <div class="section__head"><h2>{{ catalog_label('specs') }}</h2></div>
-                    @include('frontend.partials.specs', ['specs' => $product->specs])
+                    @include('frontend.partials.specs', [
+                        'specs' => $product->specs,
+                        'notes' => $product->spec_notes ?? [],
+                    ])
 
                     {{-- Hàng nút dưới bảng, như thiết kế. Brochure chỉ hiện
                          khi có link thật — nhãn không kèm link là nút chết. --}}

@@ -34,6 +34,7 @@ class Product extends Model
             'highlights' => 'array',
             'sections' => 'array',
             'specs' => 'array',
+            'spec_notes' => 'array',
             'seo' => 'array',
             'price_from' => 'decimal:2',
             'published_at' => 'datetime',

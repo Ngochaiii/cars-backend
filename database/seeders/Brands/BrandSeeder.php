@@ -97,6 +97,7 @@ abstract class BrandSeeder extends Seeder
                 'highlights' => $data['highlights'] ?? null,
                 'sections' => $this->sections($data),
                 'specs' => $this->specs($data),
+                'spec_notes' => $this->specNotes($data),
                 'seo' => $data['seo'] ?? ['title' => $data['name']],
             ],
         );
@@ -272,20 +273,28 @@ abstract class BrandSeeder extends Seeder
             ])
             ->values();
 
-        // Hai đoạn ghi chú xếp cạnh nhau ngay dưới bảng thông số (bản thiết
-        // kế: "An toàn & an ninh" và "Hỗ trợ lái nâng cao ADAS"). Đi cùng
-        // `specs` vì luôn hiện chung một mục — xem partials/specs.blade.php.
-        if (filled($data['spec_notes'] ?? null)) {
-            $groups->push([
-                'group' => '__notes',
-                'rows' => collect($data['spec_notes'])
-                    ->map(fn ($body, $title) => ['label' => $title, 'value' => $body])
-                    ->values()
-                    ->all(),
-            ]);
+        return $groups->all();
+    }
+
+    /**
+     * Ghi chú dưới bảng thông số: ['Tiêu đề' => 'Nội dung'] → mảng label/body.
+     *
+     * Nằm ở cột riêng chứ không trộn vào `specs` — trộn vào thì chúng hiện lên
+     * repeater thông số trong admin như một nhóm bình thường, người nhập sửa
+     * nhầm là hỏng.
+     *
+     * @return array<int, array<string, string>>|null
+     */
+    protected function specNotes(array $data): ?array
+    {
+        if (blank($data['spec_notes'] ?? null)) {
+            return null;
         }
 
-        return $groups->all();
+        return collect($data['spec_notes'])
+            ->map(fn ($body, $title) => ['label' => $title, 'body' => $body])
+            ->values()
+            ->all();
     }
 
     // ── Menu ─────────────────────────────────────────────────────────────

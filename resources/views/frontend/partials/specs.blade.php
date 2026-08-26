@@ -2,19 +2,18 @@
     Bảng thông số theo bản thiết kế: lưới 4 cột phẳng, nhãn nhỏ ở trên, giá
     trị đậm ở dưới — không gấp theo nhóm.
 
-    Nhóm đặc biệt `__notes` không phải thông số mà là hai đoạn ghi chú xếp
-    cạnh nhau ("An toàn & an ninh", "Hỗ trợ lái nâng cao ADAS" trong bản
-    thiết kế): nhãn thành tiêu đề, giá trị thành đoạn văn.
+    Hai đoạn ghi chú xếp cạnh nhau bên dưới ("An toàn & an ninh", "Hỗ trợ lái
+    nâng cao ADAS" trong bản thiết kế) đến từ cột `spec_notes` riêng, không
+    trộn vào `specs` — trộn vào thì chúng hiện lên repeater thông số trong
+    admin như một nhóm bình thường, người nhập sửa nhầm là hỏng.
 
-    Biến: $specs
+    Biến: $specs · $notes (tuỳ chọn)
 --}}
 @php
-    $groups = collect($specs);
-    $notes  = $groups->firstWhere('group', '__notes')['rows'] ?? [];
+    $notes = $notes ?? [];
 
-    // Mọi nhóm còn lại đổ chung vào một lưới — thiết kế không chia nhóm.
-    $rows = $groups
-        ->reject(fn ($group) => ($group['group'] ?? null) === '__notes')
+    // Thiết kế xếp mọi thông số vào một lưới phẳng, không chia nhóm gấp mở.
+    $rows = collect($specs)
         ->flatMap(fn ($group) => $group['rows'] ?? [])
         ->filter(fn ($row) => filled($row['label'] ?? null) || filled($row['value'] ?? null));
 @endphp
@@ -35,7 +34,7 @@
         @foreach ($notes as $note)
             <div>
                 <h3>{{ $note['label'] ?? '' }}</h3>
-                <p>{{ $note['value'] ?? '' }}</p>
+                <p>{{ $note['body'] ?? '' }}</p>
             </div>
         @endforeach
     </div>

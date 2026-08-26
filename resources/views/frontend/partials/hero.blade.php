@@ -18,9 +18,10 @@
     $priceNow = $product->price_from ?: $variant?->price;
     $priceWas = $variant?->price_original;
 
-    // Đoạn dẫn dưới tiêu đề. Tagline đã lên làm h1 nên đoạn này lấy từ
-    // hero.lede, không có thì mô tả SEO, vẫn không có thì bỏ hẳn.
-    $lede = $hero['lede'] ?? data_get($product->seo, 'description');
+    // Mỗi câu chữ đầu trang có ĐÚNG MỘT nguồn. Trước đây câu này cũng lùi về
+    // mô tả SEO giống khối mở đầu, nên xe nào chưa điền là in y hệt một câu
+    // hai lần cách nhau vài dòng.
+    $lede = $hero['lede'] ?? null;
 
     // Băng chuyền chỉ dựng cho hero ẢNH — hero video thì để video chạy yên.
     $shots = collect();
