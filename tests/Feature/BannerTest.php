@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\Banners\BannerResource;
 use App\Filament\Resources\Banners\Pages\ManageBanners;
 use App\Models\Banner;
 use App\Models\Product;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -102,5 +104,30 @@ class BannerTest extends TestCase
         ]));
 
         Livewire::test(ManageBanners::class)->assertSuccessful();
+    }
+
+    /**
+     * Livewire::test() gọi thẳng vào class nên component render được KHÔNG có
+     * nghĩa là admin thấy nó: panel này đăng ký resource tường minh, quên thêm
+     * vào danh sách là menu không có mục nào cả. Đúng lỗi đã xảy ra một lần.
+     */
+    public function test_banner_co_mat_trong_menu_admin(): void
+    {
+        $resources = Filament::getPanel('admin')->getResources();
+
+        $this->assertContains(
+            BannerResource::class,
+            $resources,
+            'BannerResource chưa được đăng ký trong AdminPanelProvider'
+        );
+    }
+
+    public function test_tat_feature_thi_admin_khong_lo_muc_banner(): void
+    {
+        $this->assertTrue(BannerResource::shouldRegisterNavigation());
+
+        config(['catalog.features.banners' => false]);
+
+        $this->assertFalse(BannerResource::shouldRegisterNavigation());
     }
 }

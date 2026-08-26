@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\ManageSettings;
+use App\Filament\Resources\Banners\BannerResource;
 use App\Filament\Resources\Categories\CategoryResource;
 use App\Filament\Resources\Forms\FormResource;
 use App\Filament\Resources\Leads\LeadResource;
@@ -47,6 +48,8 @@ class AdminPanelProvider extends PanelProvider
             ->resources(array_values(array_filter([
                 ProductResource::class,
                 CategoryResource::class,
+
+                Catalog::feature('banners') ? BannerResource::class : null,
 
                 Catalog::feature('posts') ? PostResource::class : null,
                 Catalog::feature('posts') ? PostCategoryResource::class : null,

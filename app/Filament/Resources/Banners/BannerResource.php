@@ -48,6 +48,11 @@ class BannerResource extends Resource
         return 'Banner trang chủ';
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return config('catalog.admin.navigation_group');
+    }
+
     public static function shouldRegisterNavigation(): bool
     {
         return Catalog::feature('banners');
