@@ -123,7 +123,9 @@
 
     <div class="site-footer__bottom">
         <div class="wrap">
-            <span>© {{ now()->year }} {{ $siteName }}@if (filled(catalog_setting('tax_code'))). MST {{ catalog_setting('tax_code') }}@endif</span>
+            {{-- Dòng bản quyền dùng TÊN PHÁP NHÂN đầy đủ nếu có: tên thương
+                 mại ("VinFast Bắc Giang") không phải pháp nhân ký hoá đơn. --}}
+            <span>© {{ now()->year }} {{ catalog_setting('company_name', $siteName) }}@if (filled(catalog_setting('tax_code'))). MST {{ catalog_setting('tax_code') }}@endif</span>
             @if (filled($hotline))
                 <span>Hotline {{ $hotline }}</span>
             @endif

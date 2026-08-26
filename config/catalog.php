@@ -122,6 +122,7 @@ return [
                 'email' => ['label' => 'Email liên hệ', 'type' => 'email'],
                 'address' => ['label' => 'Địa chỉ', 'type' => 'textarea'],
                 'opening_hours' => ['label' => 'Giờ mở cửa', 'type' => 'text'],
+                'company_name' => ['label' => 'Tên pháp nhân đầy đủ (hiện ở dòng bản quyền cuối trang)', 'type' => 'text'],
                 'tax_code' => ['label' => 'Mã số thuế', 'type' => 'text'],
                 'logo' => ['label' => 'Logo', 'type' => 'image'],
                 'favicon' => ['label' => 'Favicon', 'type' => 'image'],
