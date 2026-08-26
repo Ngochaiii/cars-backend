@@ -1547,6 +1547,47 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
 .header__tel { font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; }
 .header__tel:hover { color: var(--accent); }
 
+/* ═══════════ POPUP THU LEAD ═══════════ */
+/* Server luôn render kèm `hidden`; chỉ JS mới gỡ ra. Tắt JS là không bao giờ
+   thấy popup — không có JS thì cũng không có gì chắn đường người ta đọc. */
+.popup { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.popup[hidden] { display: none; }
+
+.popup__backdrop { position: absolute; inset: 0; background: rgba(17, 17, 17, .55); }
+
+.popup__panel {
+    position: relative;
+    width: min(520px, 100%);
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 6px;
+    padding: 40px 36px 32px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .28);
+}
+
+.popup__close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: 0;
+    border-radius: 999px;
+    font-size: 26px;
+    line-height: 1;
+    color: var(--muted-2);
+    cursor: pointer;
+}
+.popup__close:hover { background: var(--soft); color: var(--ink); }
+
+.popup__head { margin-bottom: 24px; text-align: center; }
+.popup__head h2 { font-size: clamp(22px, 3vw, 28px); margin-bottom: 10px; }
+.popup__head p { font-size: 14.5px; color: var(--muted); }
+
+.popup .lead-form-wrap { max-width: none; }
+
 /* ═══════════ RESPONSIVE ═══════════ */
 @media (max-width: 1180px) {
     :root { --pad: 40px; }
@@ -1681,6 +1722,7 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
     .order-bar__inner { flex-direction: column; align-items: stretch; gap: 12px; }
     .order-bar__actions .btn { flex: 1; }
 
+    .popup__panel { padding: 32px 22px 24px; }
     .article__foot { flex-direction: column; align-items: stretch; }
     .site-footer__links { flex-direction: column; gap: 24px; }
     .site-footer__bottom > .wrap { flex-direction: column; align-items: flex-start; }

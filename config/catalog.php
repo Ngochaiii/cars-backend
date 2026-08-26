@@ -154,6 +154,19 @@ return [
             ],
         ],
 
+        // Popup thu lead. Bỏ trống `popup_form` là tắt hẳn.
+        'popup' => [
+            'label' => 'Popup thu lead',
+            'fields' => [
+                'popup_form' => ['label' => 'Khoá form dùng cho popup (VD dang-ky-nhan-tin)', 'type' => 'text'],
+                'popup_title' => ['label' => 'Tiêu đề popup', 'type' => 'text'],
+                'popup_text' => ['label' => 'Mô tả ngắn', 'type' => 'textarea'],
+                'popup_delay' => ['label' => 'Hiện sau bao nhiêu giây', 'type' => 'number'],
+                'popup_days' => ['label' => 'Đóng rồi thì im bao nhiêu ngày', 'type' => 'number'],
+                'popup_everywhere' => ['label' => 'Hiện ở mọi trang (mặc định chỉ trang chủ)', 'type' => 'toggle'],
+            ],
+        ],
+
         // Trang Trạm sạc & dịch vụ — xem frontend/services.blade.php.
         'service' => [
             'label' => 'Trạm sạc & dịch vụ',

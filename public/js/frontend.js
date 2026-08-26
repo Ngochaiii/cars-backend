@@ -309,6 +309,76 @@
         showStep(key, set ? +set.dataset.bookingPaneStep : 1);
     }
 
+    /* ── Popup thu lead ───────────────────────────────────────────────── */
+    /* Mọi điều kiện đọc từ data-* (Cài đặt đổ xuống). Đóng rồi thì ghi mốc vào
+       localStorage và im đúng số ngày đã khai — không hỏi lại mỗi lần tải. */
+    function initPopup(root) {
+        var key = 'popup:' + (root.dataset.popupKey || 'mac-dinh');
+        var days = parseInt(root.dataset.popupDays, 10) || 0;
+        var delay = (parseInt(root.dataset.popupDelay, 10) || 10) * 1000;
+
+        try {
+            var until = parseInt(localStorage.getItem(key), 10);
+            if (until && Date.now() < until) return;
+        } catch (e) { /* trình duyệt chặn localStorage thì cứ hiện */ }
+
+        var opener = null;
+        var timer = setTimeout(open, delay);
+
+        function remember() {
+            if (!days) return;
+            try {
+                localStorage.setItem(key, String(Date.now() + days * 86400000));
+            } catch (e) { /* không ghi được thì thôi */ }
+        }
+
+        function focusables() {
+            return root.querySelectorAll(
+                'a[href], button:not([disabled]), input:not([type=hidden]), select, textarea'
+            );
+        }
+
+        function open() {
+            opener = document.activeElement;
+            root.hidden = false;
+            var first = root.querySelector('input:not([type=hidden]), button, select, textarea');
+            if (first) first.focus();
+            document.addEventListener('keydown', onKey);
+        }
+
+        function close() {
+            clearTimeout(timer);
+            root.hidden = true;
+            remember();
+            document.removeEventListener('keydown', onKey);
+            if (opener && opener.focus) opener.focus();
+        }
+
+        /* Esc để đóng, Tab quẩn trong panel — không để tiêu điểm chạy ra sau
+           lớp phủ rồi người dùng bàn phím mắc kẹt. */
+        function onKey(e) {
+            if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+            if (e.key !== 'Tab') return;
+
+            var items = focusables();
+            if (!items.length) return;
+
+            var first = items[0];
+            var last = items[items.length - 1];
+
+            if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+            else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+
+        root.addEventListener('click', function (e) {
+            if (e.target.closest('[data-popup-close]')) { e.preventDefault(); close(); }
+        });
+
+        /* Bấm Gửi thì coi như xong việc: ghi mốc luôn để lần sau khỏi hiện. */
+        var form = root.querySelector('form');
+        if (form) form.addEventListener('submit', remember);
+    }
+
     function boot() {
         document.querySelectorAll('[data-hero]').forEach(initHero);
         document.querySelectorAll('[data-disc]').forEach(initDiscovery);
@@ -316,6 +386,7 @@
         document.querySelectorAll('[data-gallery]').forEach(initGallery);
         document.querySelectorAll('[data-tabs]').forEach(initTabs);
         document.querySelectorAll('.booking').forEach(initBooking);
+        document.querySelectorAll('[data-popup]').forEach(initPopup);
     }
 
     if (document.readyState === 'loading') {

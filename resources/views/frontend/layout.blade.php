@@ -64,6 +64,8 @@
     @include('frontend.partials.newsletter')
     @include('frontend.partials.footer')
 
+    @include('frontend.partials.popup')
+
     <script src="{{ asset('js/frontend.js') }}" defer></script>
 </body>
 </html>
