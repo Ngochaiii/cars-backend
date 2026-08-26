@@ -206,6 +206,26 @@ class BannerTest extends TestCase
     }
 
     /**
+     * Filament 4 không tự thêm nút sửa/xoá vào bảng nữa — không khai
+     * recordActions thì bảng chỉ để ngắm: tạo được bản ghi rồi chịu.
+     */
+    public function test_sua_va_xoa_duoc_banner_tu_bang(): void
+    {
+        $this->actingAs(User::create([
+            'name' => 'Admin', 'email' => 'admin@test.local', 'password' => 'x',
+        ]));
+
+        $banner = Banner::create(['title' => 'Banner sắp xoá', 'is_active' => true]);
+
+        Livewire::test(ManageBanners::class)
+            ->assertTableActionExists('edit')
+            ->assertTableActionExists('delete')
+            ->callTableAction('delete', $banner);
+
+        $this->assertSame(0, Banner::count());
+    }
+
+    /**
      * Livewire::test() gọi thẳng vào class nên component render được KHÔNG có
      * nghĩa là admin thấy nó: panel này đăng ký resource tường minh, quên thêm
      * vào danh sách là menu không có mục nào cả. Đúng lỗi đã xảy ra một lần.

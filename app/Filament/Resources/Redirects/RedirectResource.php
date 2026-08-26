@@ -2,10 +2,14 @@
 
 namespace App\Filament\Resources\Redirects;
 
-use BackedEnum;
 use App\Filament\Concerns\HasCatalogNavigation;
 use App\Filament\Resources\Redirects\Pages\ManageRedirects;
 use App\Support\Catalog;
+use BackedEnum;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
@@ -83,6 +87,17 @@ class RedirectResource extends Resource
                     ->numeric()
                     ->sortable()
                     ->description('Bao nhiêu lượt truy cập đã đi qua luật này.'),
+            ])
+            // Filament 4 không tự thêm nút sửa/xoá nữa — không khai thì bảng
+            // chỉ để ngắm: tạo được bản ghi rồi chịu.
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 

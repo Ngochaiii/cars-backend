@@ -2,14 +2,16 @@
 
 namespace App\Filament\Resources\Leads;
 
-use BackedEnum;
 use App\Filament\Concerns\HasCatalogNavigation;
 use App\Filament\Resources\Leads\Pages\ManageLeads;
 use App\Support\Catalog;
+use BackedEnum;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -62,10 +64,10 @@ class LeadResource extends Resource
             Select::make('status')
                 ->label('Trạng thái')
                 ->options([
-                    'new'       => 'Mới',
+                    'new' => 'Mới',
                     'contacted' => 'Đã liên hệ',
-                    'done'      => 'Xong',
-                    'spam'      => 'Spam',
+                    'done' => 'Xong',
+                    'spam' => 'Spam',
                 ])
                 ->default('new')
                 ->selectablePlaceholder(false),
@@ -94,25 +96,32 @@ class LeadResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'contacted' => 'Đã liên hệ',
-                        'done'      => 'Xong',
-                        'spam'      => 'Spam',
-                        default     => 'Mới',
+                        'done' => 'Xong',
+                        'spam' => 'Spam',
+                        default => 'Mới',
                     })
                     ->color(fn (string $state): string => match ($state) {
-                        'done'  => 'success',
-                        'spam'  => 'danger',
-                        'new'   => 'warning',
+                        'done' => 'success',
+                        'spam' => 'danger',
+                        'new' => 'warning',
                         default => 'gray',
                     }),
+            ])
+            // Sửa và xoá từng bản ghi. CỐ Ý không có xoá hàng loạt: đây là dữ
+            // liệu khách hàng, một cú "chọn tất cả rồi xoá" là mất cả đường
+            // ống bán hàng. Dọn spam thì xoá từng cái.
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->filters([
                 SelectFilter::make('status')
                     ->label('Trạng thái')
                     ->options([
-                        'new'       => 'Mới',
+                        'new' => 'Mới',
                         'contacted' => 'Đã liên hệ',
-                        'done'      => 'Xong',
-                        'spam'      => 'Spam',
+                        'done' => 'Xong',
+                        'spam' => 'Spam',
                     ]),
             ]);
     }

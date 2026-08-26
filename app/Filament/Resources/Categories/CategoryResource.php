@@ -2,13 +2,17 @@
 
 namespace App\Filament\Resources\Categories;
 
-use BackedEnum;
 use App\Filament\Concerns\HasCatalogNavigation;
 use App\Filament\Resources\Categories\Pages\ManageCategories;
 use App\Support\Catalog;
+use BackedEnum;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -88,6 +92,17 @@ class CategoryResource extends Resource
                 TextColumn::make('name')->label('Tên')->searchable(),
                 TextColumn::make('parent.name')->label('Danh mục cha')->badge()->color('gray'),
                 TextColumn::make('products_count')->label('Số bản ghi')->counts('products'),
+            ])
+            // Filament 4 không tự thêm nút sửa/xoá nữa — không khai thì bảng
+            // chỉ để ngắm: tạo được bản ghi rồi chịu.
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 

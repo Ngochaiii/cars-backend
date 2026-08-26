@@ -6,6 +6,10 @@ use App\Filament\Concerns\HasCatalogNavigation;
 use App\Filament\Resources\Banners\Pages\ManageBanners;
 use App\Support\Catalog;
 use BackedEnum;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
@@ -122,6 +126,17 @@ class BannerResource extends Resource
                 IconColumn::make('is_active')->label('Bật')->boolean(),
                 TextColumn::make('starts_at')->label('Từ')->dateTime('d/m/Y H:i')->placeholder('—'),
                 TextColumn::make('ends_at')->label('Đến')->dateTime('d/m/Y H:i')->placeholder('—'),
+            ])
+            // Không khai thì bảng không có nút nào: không sửa được, không xoá
+            // được. Filament 4 bỏ mặc định này, phải khai tường minh.
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 

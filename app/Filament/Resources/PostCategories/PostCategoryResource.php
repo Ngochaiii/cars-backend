@@ -2,10 +2,14 @@
 
 namespace App\Filament\Resources\PostCategories;
 
-use BackedEnum;
 use App\Filament\Concerns\HasCatalogNavigation;
 use App\Filament\Resources\PostCategories\Pages\ManagePostCategories;
 use App\Support\Catalog;
+use BackedEnum;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -66,6 +70,17 @@ class PostCategoryResource extends Resource
             ->columns([
                 TextColumn::make('name')->label('Tên')->searchable(),
                 TextColumn::make('posts_count')->label('Số bài')->counts('posts'),
+            ])
+            // Filament 4 không tự thêm nút sửa/xoá nữa — không khai thì bảng
+            // chỉ để ngắm: tạo được bản ghi rồi chịu.
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 
