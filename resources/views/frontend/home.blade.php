@@ -17,8 +17,10 @@
 
 @section('content')
     @php
-        $slides = $products->take(3);
-        $lead   = $products->first();
+        // Banner tự khai được ưu tiên; chưa có thì lùi về 3 mặt hàng đầu như cũ.
+        $slides     = $banners->isNotEmpty() ? $banners : $products->take(3);
+        $fromBanner = $banners->isNotEmpty();
+        $lead       = $products->first();
 
         // Tab coverflow = danh mục có hàng, kèm số lượng. Mỗi danh mục chỉ có
         // đúng 1 xe thì tab thành vô nghĩa (bấm cái nào cũng ra 1 xe) — bỏ hẳn
@@ -33,13 +35,34 @@
     @if ($slides->isNotEmpty())
         <section class="hero hero--carousel" data-hero>
             @foreach ($slides as $i => $slide)
-                @php $img = catalog_image(data_get($slide->hero, 'src')); @endphp
+                @php
+                    // Hai nguồn slide dùng chung một khuôn: banner tự khai có
+                    // chữ và nút riêng, mặt hàng thì suy ra từ tên và giá.
+                    $img = $fromBanner
+                        ? catalog_image($slide->image)
+                        : catalog_image(data_get($slide->hero, 'src'));
+
+                    $alt = $fromBanner ? $slide->title : $slide->name;
+
+                    $eyebrow = $fromBanner
+                        ? $slide->eyebrow
+                        : trim($slide->name.($slide->category ? ' · '.$slide->category->name : ''));
+
+                    $heading = $fromBanner ? $slide->title : ($slide->tagline ?: $slide->name);
+
+                    $lede = $fromBanner
+                        ? $slide->subtitle
+                        : ($slide->price_from ? 'Giá từ '.catalog_money_short($slide->price_from) : null);
+
+                    $ctaLabel = $fromBanner ? $slide->cta_label : 'Khám phá '.$slide->name;
+                    $ctaUrl   = $fromBanner ? $slide->cta_url : route('products.show', $slide->slug);
+                @endphp
 
                 <div class="hero__slide {{ $i === 0 ? 'is-on' : '' }}"
                      data-hero-slide aria-hidden="{{ $i === 0 ? 'false' : 'true' }}">
                     @if ($img)
                         <div class="hero__media">
-                            <img src="{{ $img }}" alt="{{ $slide->name }}"
+                            <img src="{{ $img }}" alt="{{ $alt }}"
                                  @if ($i === 0) fetchpriority="high" @else loading="lazy" @endif>
                         </div>
                     @endif
@@ -47,21 +70,27 @@
                     <div class="hero__body">
                         <div class="wrap">
                             <div class="hero__inner">
-                                <span class="eyebrow">
-                                    {{ $slide->name }}@if ($slide->category) · {{ $slide->category->name }}@endif
-                                </span>
+                                @if (filled($eyebrow))
+                                    <span class="eyebrow">{{ $eyebrow }}</span>
+                                @endif
 
-                                <h1>{{ $slide->tagline ?: $slide->name }}</h1>
+                                <h1>{{ $heading }}</h1>
 
-                                @if ($slide->price_from)
-                                    <p class="hero__lede">Giá từ {{ catalog_money($slide->price_from) }}</p>
+                                @if (filled($lede))
+                                    <p class="hero__lede">{{ $lede }}</p>
                                 @endif
 
                                 <div class="hero__actions">
-                                    <a class="btn {{ $img ? 'btn--light' : '' }}"
-                                       href="{{ route('products.show', $slide->slug) }}">Khám phá {{ $slide->name }}</a>
-                                    <a class="btn {{ $img ? 'btn--ghost' : 'btn--outline' }}"
-                                       href="{{ route('products.index') }}">Xem tất cả</a>
+                                    {{-- Nhãn không kèm link là nút chết — bỏ hẳn. --}}
+                                    @if (filled($ctaLabel) && filled($ctaUrl))
+                                        <a class="btn btn--light" href="{{ $ctaUrl }}">{{ $ctaLabel }}</a>
+                                    @endif
+
+                                    {{-- Nút luôn dùng biến thể cho nền tối: nền carousel
+                                         tối kể cả khi không có ảnh (xem .hero--carousel
+                                         trong frontend.css). Đổi class theo $img thì banner
+                                         không ảnh ra nút chữ đen trên nền đen. --}}
+                                    <a class="btn btn--ghost" href="{{ route('products.index') }}">Xem tất cả</a>
                                 </div>
                             </div>
                         </div>
@@ -75,7 +104,7 @@
                         @foreach ($slides as $i => $slide)
                             <button type="button" class="hero__dot {{ $i === 0 ? 'is-on' : '' }}"
                                     data-hero-dot="{{ $i }}" aria-current="{{ $i === 0 ? 'true' : 'false' }}">
-                                <span class="sr-only">{{ $slide->name }}</span>
+                                <span class="sr-only">{{ $fromBanner ? $slide->title : $slide->name }}</span>
                             </button>
                         @endforeach
                         <span class="hero__count" data-hero-count>01 / {{ str_pad($slides->count(), 2, '0', STR_PAD_LEFT) }}</span>

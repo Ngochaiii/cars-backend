@@ -23,6 +23,7 @@ class CatalogDemoSeeder extends Seeder
         $this->content();
         $this->settings();
         $this->accessories();
+        $this->banners();
         $this->menus();
     }
 
@@ -165,6 +166,43 @@ class CatalogDemoSeeder extends Seeder
                 ]],
             ],
         );
+    }
+
+    /**
+     * Banner hero trang chủ.
+     *
+     * Chỉ khai khi tính năng đang bật. Xoá sạch bảng này thì trang chủ lùi về
+     * dùng ảnh của ba mặt hàng đầu, không vỡ.
+     */
+    protected function banners(): void
+    {
+        if (! Catalog::feature('banners')) {
+            return;
+        }
+
+        $rows = [
+            [
+                'title' => 'Trả góp 0% lãi suất 24 tháng',
+                'eyebrow' => 'Ưu đãi trong tháng',
+                'subtitle' => 'Kèm gói lắp sạc tại nhà miễn phí công lắp đặt cho khách đặt cọc tại đại lý.',
+                'cta_label' => 'Xem chương trình',
+                'cta_url' => Url::prefix('post') ?: '/',
+            ],
+            [
+                'title' => 'Lái thử cuối tuần tại showroom',
+                'eyebrow' => 'Sự kiện',
+                'subtitle' => 'Đăng ký trước để giữ khung giờ, có xe cho cả gia đình cùng trải nghiệm.',
+                'cta_label' => 'Đăng ký lái thử',
+                'cta_url' => Url::prefix('booking') ?: '/',
+            ],
+        ];
+
+        foreach ($rows as $i => $row) {
+            Catalog::query('banner')->updateOrCreate(
+                ['title' => $row['title']],
+                $row + ['sort' => $i + 1, 'is_active' => true],
+            );
+        }
     }
 
     /** Cài đặt: những giá trị layout frontend đọc ra ngay. */

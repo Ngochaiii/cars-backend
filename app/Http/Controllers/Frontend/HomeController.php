@@ -11,6 +11,12 @@ class HomeController extends Controller
     public function __invoke(): View
     {
         return view('frontend.home', [
+            // Banner hero. Chưa khai banner nào thì view lùi về dùng ảnh mặt
+            // hàng — site mới dựng chưa kịp nhập banner vẫn có hero tử tế.
+            'banners' => Catalog::feature('banners')
+                ? Catalog::query('banner')->active()->orderBy('sort')->get()
+                : collect(),
+
             'products' => Catalog::query('product')
                 ->published()
                 ->notInCategory(config('catalog.frontend.accessory_category'))

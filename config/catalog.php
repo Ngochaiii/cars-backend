@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Banner;
 use App\Models\Category;
 use App\Models\Dealer;
 use App\Models\Form;
@@ -56,6 +57,9 @@ return [
         // xe — khác `fee_calc` (lệ phí lăn bánh). Cần biến thể có battery_kwh
         // + range_km, không thì mục tự ẩn dù bật.
         'fuel_calc' => true,
+
+        // Banner hero trang chủ. Tắt thì hero lùi về dùng ảnh của mặt hàng.
+        'banners' => true,
     ],
 
     // Gợi ý tên khi bấm "Thêm mục" trong repeater sections.
@@ -193,6 +197,7 @@ return [
     */
     'models' => [
         'product' => Product::class,
+        'banner' => Banner::class,
         'variant' => ProductVariant::class,
         'option' => ProductOption::class,
         'category' => Category::class,
