@@ -22,12 +22,31 @@
         catalog_image(catalog_setting('charging_image')),
         $offerImage,
     ])->filter()->values();
+
+    $chargeActions = collect([
+        [
+            'label' => 'Tìm trạm sạc',
+            'desc' => 'Xem hạ tầng sạc và dịch vụ hỗ trợ gần bạn.',
+            'url' => Route::has('services') ? route('services') : null,
+        ],
+        [
+            'label' => 'Tính chi phí sạc',
+            'desc' => 'Dự toán theo quãng đường và nhu cầu di chuyển thực tế.',
+            'url' => $lead ? route('products.show', $lead->slug).'#fuel-calc' : null,
+        ],
+    ])->filter(fn ($action) => filled($action['url']))->values();
 @endphp
 
 {{-- ── Băng ưu đãi ────────────────────────────────────────────────── --}}
 @if (filled($offerTitle))
-    <section class="offer home-section" data-home-section data-watermark="ĐẶC QUYỀN">
+    <section class="offer {{ $offerImage ? '' : 'offer--text-only' }} home-section"
+             data-home-section data-watermark="ĐẶC QUYỀN">
         <div class="wrap offer__inner">
+            <div class="offer__chapter" aria-hidden="true">
+                <span>01</span>
+                <i></i>
+            </div>
+
             <div class="offer__copy" data-home-reveal>
                 @if ($note = catalog_setting('offer_note'))
                     <span class="eyebrow eyebrow--light">{{ $note }}</span>
@@ -58,30 +77,42 @@
 
 {{-- ── Pin & trạm sạc ─────────────────────────────────────────────── --}}
 @if (filled($chargeTitle))
-    <section class="block home-section home-feature home-feature--charge" data-home-section>
-        <div class="wrap split home-feature__grid">
-            <div class="split__body" data-home-reveal>
-                <span class="eyebrow">{{ catalog_setting('charging_note', 'Pin & trạm sạc') }}</span>
-                <h2>{{ $chargeTitle }}</h2>
+    <section class="home-charge home-section" data-home-section aria-labelledby="home-charge-title">
+        <div class="wrap">
+            <header class="home-charge__head" data-home-reveal>
+                <div>
+                    <span class="eyebrow">{{ catalog_setting('charging_note', 'Pin & trạm sạc') }}</span>
+                    <h2 id="home-charge-title">{{ $chargeTitle }}</h2>
+                </div>
                 @if ($text = catalog_setting('charging_text'))
                     <p>{{ $text }}</p>
                 @endif
-                <div class="hero__actions">
-                    @if (Route::has('services'))
-                        <a class="btn btn--light" href="{{ route('services') }}">Xem trạm sạc</a>
-                    @endif
-                    @if ($lead)
-                        <a class="btn {{ Route::has('services') ? 'btn--ghost' : 'btn--light' }}"
-                           href="{{ route('products.show', $lead->slug) }}#fuel-calc">Tính chi phí sạc</a>
+            </header>
+
+            <div class="home-charge__stage {{ $chargeActions->isEmpty() ? 'home-charge__stage--media' : '' }}">
+                <div class="home-charge__media" data-home-reveal data-home-parallax>
+                    @if ($img = catalog_image(catalog_setting('charging_image')))
+                        <x-img :src="$img" :alt="$chargeTitle" sizes="(max-width: 960px) 100vw, 68vw" />
+                    @else
+                        <div class="ph" style="height:100%">[ trạm sạc ]</div>
                     @endif
                 </div>
-            </div>
 
-            <div class="split__media" data-home-reveal data-home-parallax>
-                @if ($img = catalog_image(catalog_setting('charging_image')))
-                    <x-img :src="$img" :alt="$chargeTitle" sizes="(max-width: 960px) 100vw, 50vw" />
-                @else
-                    <div class="ph" style="height:100%">[ trạm sạc ]</div>
+                @if ($chargeActions->isNotEmpty())
+                    <nav class="home-charge__rail" aria-label="Tiện ích sạc" data-home-reveal>
+                        <span class="home-charge__rail-label">Tiện ích sạc</span>
+
+                        @foreach ($chargeActions as $action)
+                            <a class="home-charge__action" href="{{ $action['url'] }}">
+                                <span class="home-charge__number">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
+                                <span class="home-charge__action-copy">
+                                    <b>{{ $action['label'] }}</b>
+                                    <small>{{ $action['desc'] }}</small>
+                                </span>
+                                <span class="home-charge__arrow" aria-hidden="true">↗</span>
+                            </a>
+                        @endforeach
+                    </nav>
                 @endif
             </div>
         </div>

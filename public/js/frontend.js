@@ -445,7 +445,7 @@
 
         revealNodes.forEach(function (el, i) {
             el.style.setProperty('--home-delay', ((i % 5) * 70) + 'ms');
-            if (el.matches('.offer__media, .split__media, .tiles')) {
+            if (el.matches('.offer__media, .home-charge__media, .split__media, .tiles')) {
                 el.classList.add('home-reveal--media');
             }
         });
@@ -674,6 +674,7 @@
             '.home-story .tools__head h2,' +
             '.home-story .disc__head h2,' +
             '.home-story .offer h2,' +
+            '.home-story .home-charge__head h2,' +
             '.home-story .home-editorial__head h2,' +
             '.home-story .home-feature .split__body h2,' +
             '.intro h2,' +
