@@ -4532,12 +4532,17 @@ html.js .hotspot__list { display: none; }
 .vehicle-index-grid .card__actions .btn:first-child { grid-column: 1 / -1; }
 
 /* Reveal tiết chế: nội dung vẫn nhìn thấy nếu công cụ chụp trang hoặc
-   trình duyệt không kích hoạt IntersectionObserver đúng thời điểm. */
-html.js .home-story.home-motion-ready [data-home-reveal] {
+   trình duyệt không kích hoạt IntersectionObserver đúng thời điểm.
+
+   :not(.is-revealed) là bắt buộc — khối này đứng sau quy tắc .is-revealed ở
+   trên nên không loại trừ thì nó đè ngược: khối đã reveal vẫn kẹt lệch 18px
+   và ảnh vĩnh viễn cụt 6% mép dưới (thấy rõ nhất là vệt nền lòi ra dưới ảnh
+   trạm sạc). Đây chỉ là lưới đỡ cho khối CHƯA reveal. */
+html.js .home-story.home-motion-ready [data-home-reveal]:not(.is-revealed) {
     opacity: 1;
     transform: translate3d(0, 18px, 0);
 }
-html.js .home-story.home-motion-ready [data-home-reveal].home-reveal--media {
+html.js .home-story.home-motion-ready [data-home-reveal].home-reveal--media:not(.is-revealed) {
     clip-path: inset(0 0 6% 0);
 }
 
