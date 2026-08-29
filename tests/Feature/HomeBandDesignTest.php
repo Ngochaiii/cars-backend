@@ -21,6 +21,36 @@ class HomeBandDesignTest extends TestCase
         Setting::put('charging_image', 'catalog/settings/charging.jpg');
     }
 
+    public function test_bang_tram_sac_gan_cong_cu_tim_kiem_ben_canh_anh(): void
+    {
+        Setting::put('stations', implode("\n", [
+            'Trạm Vincom|Còn 6/8 cổng|DC 150 kW · Mở 24/7|ok|21.27310,106.19460',
+            'Trạm Bến xe|Còn 1/10 cổng|DC 250 kW|warn',
+        ]));
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('home-charge__stage--finder', false)
+            ->assertSee('home-charge__media', false)
+            ->assertSee('data-finder', false)
+            ->assertSee('Trạm Vincom')
+            // Chỉ đường vẫn chạy khi tắt JS: link Google Maps render sẵn,
+            // có toạ độ thì trỏ thẳng toạ độ.
+            ->assertSee('https://www.google.com/maps/dir/?api=1&amp;destination=21.2731%2C106.1946', false)
+            // Chưa nối API thì để trống endpoint, JS lọc tại chỗ.
+            ->assertSee('data-endpoint=""', false)
+            ->assertDontSee('home-charge__rail', false);
+    }
+
+    public function test_chua_co_tram_nao_thi_quay_ve_dai_loi_tat(): void
+    {
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('home-charge__rail', false)
+            ->assertSee('Tiện ích sạc')
+            ->assertDontSee('data-finder', false);
+    }
+
     public function test_uu_dai_va_tram_sac_dung_hai_bo_cuc_khac_nhau(): void
     {
         Product::create([

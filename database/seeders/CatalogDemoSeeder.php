@@ -308,16 +308,22 @@ class CatalogDemoSeeder extends Seeder
         // Dạng "giá trị|nhãn", mỗi mục một dòng (dấu chấm phẩy cũng được).
         $setting::put('care_stats', '10 năm|Bảo hành xe và pin;24/7|Cứu hộ lưu động toàn tỉnh;45 phút|Thời gian cứu hộ trung bình;4,9/5|Điểm hài lòng dịch vụ');
 
-        // Trang Trạm sạc & dịch vụ. Cột 4 của `stations` là ok | warn, quyết
-        // định màu chữ trạng thái.
+        // Trang Trạm sạc & dịch vụ + công cụ tìm trạm ở trang chủ. Cột 4 là
+        // ok | warn (màu chữ trạng thái), cột 5 là "lat,lng" hoặc địa chỉ chữ:
+        // có toạ độ thì tính được khoảng cách tới khách và chỉ đường đúng
+        // điểm. Toạ độ dưới đây là số ước lượng của bản demo.
         $setting::put('service_note', 'Trạm sạc & dịch vụ');
         $setting::put('service_title', 'Sạc và bảo dưỡng, ngay trong tỉnh');
         $setting::put('stations', implode("\n", [
-            'Trạm Vincom|Còn 6/8 cổng|DC 150 kW · 1,2 km · Mở 24/7|ok',
-            'Trạm Big C|Còn 3/6 cổng|DC 60 kW · 2,8 km · 8:00–22:00|ok',
-            'Trạm Bến xe khách|Còn 1/10 cổng|DC 250 kW · 3,5 km · Mở 24/7|warn',
-            'Trạm KCN|Còn 8/12 cổng|AC 11 kW + DC 60 kW · 9,4 km|ok',
+            'Trạm Vincom|Còn 6/8 cổng|DC 150 kW · Mở 24/7|ok|21.27310,106.19460',
+            'Trạm Big C|Còn 3/6 cổng|DC 60 kW · 8:00–22:00|ok|21.28960,106.18520',
+            'Trạm Bến xe khách|Còn 1/10 cổng|DC 250 kW · Mở 24/7|warn|21.27950,106.18850',
+            'Trạm KCN Vân Trung|Còn 8/12 cổng|AC 11 kW + DC 60 kW|ok|21.23810,106.08050',
         ]));
+        // Để trống `stations_api` là frontend lọc ngay trên danh sách trên.
+        // Điền URL vào khoá này khi có dịch vụ tìm trạm thật — xem hợp đồng
+        // JSON ở đầu partials/station-finder.blade.php.
+        $setting::put('stations_api', '');
         // Nhãn không kèm link thì frontend ẩn nút — điền cả hai hoặc bỏ cả hai.
         $setting::put('stations_more', 'Xem toàn bộ trạm trong tỉnh');
         $setting::put('stations_more_url', 'https://www.google.com/maps/search/tr%E1%BA%A1m+s%E1%BA%A1c');

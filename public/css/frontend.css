@@ -2822,6 +2822,195 @@ html.js .home-story .disc__item.is-peek { animation: homeDiscPeekIn .5s cubic-be
 .home-story .home-charge__action:hover { padding-inline: var(--s-3); background: rgba(255, 255, 255, .1); }
 .home-story .home-charge__action:hover .home-charge__arrow { transform: translate(3px, -3px); }
 
+/* ── Công cụ tìm trạm sạc ────────────────────────────────────────────
+   Panel dùng chung (trang chủ + trang Trạm sạc & dịch vụ): ô nhập vị trí,
+   danh sách trạm cuộn được, mỗi trạm một nút chỉ đường. Vẫn nền xanh như
+   rail cũ để nửa phải của stage là một mảng đặc, không phải hộp trắng vá
+   lên ảnh. Panel tự lo nền và màu chữ nên bê sang trang khác vẫn đúng. */
+.finder {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin: 0;
+    padding: clamp(28px, 3vw, 44px);
+    background: var(--home-blue);
+    color: #fff;
+}
+.finder__label {
+    font-family: var(--mono);
+    font-size: var(--fs-2xs);
+    font-weight: 700;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    opacity: .72;
+}
+.finder__lead {
+    max-width: 34ch;
+    margin: var(--s-4) 0 var(--s-6);
+    color: rgba(255, 255, 255, .78);
+    font-size: var(--fs-md);
+    line-height: 1.7;
+}
+.finder__field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--s-2);
+}
+.finder__box { position: relative; display: block; min-width: 0; }
+.finder__input {
+    width: 100%;
+    height: 52px;
+    padding: 0 48px 0 var(--s-4);
+    border: 1px solid rgba(255, 255, 255, .38);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, .12);
+    color: #fff;
+    font-family: inherit;
+    font-size: var(--fs-md);
+    transition: border-color var(--dur-fast) var(--ease-soft), background var(--dur-fast) var(--ease-soft);
+}
+.finder__input::placeholder { color: rgba(255, 255, 255, .6); }
+.finder__input:focus {
+    border-color: #fff;
+    background: rgba(255, 255, 255, .18);
+    outline: none;
+}
+/* Nút xoá mặc định của type=search chìm nghỉm trên nền xanh. */
+.finder__input::-webkit-search-cancel-button { filter: invert(1); opacity: .7; }
+.finder__locate {
+    position: absolute;
+    top: 50%;
+    right: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    transform: translateY(-50%);
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    opacity: .78;
+    transition: opacity var(--dur-fast) var(--ease-soft), background var(--dur-fast) var(--ease-soft);
+}
+.finder__locate:hover { background: rgba(255, 255, 255, .16); opacity: 1; }
+.finder__locate.is-on { background: #fff; color: var(--home-blue); opacity: 1; }
+.finder__submit {
+    height: 52px;
+    padding: 0 var(--s-6);
+    border: 0;
+    border-radius: 4px;
+    background: #fff;
+    color: var(--home-navy);
+    font-family: inherit;
+    font-size: var(--fs-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease-soft), color var(--dur-fast) var(--ease-soft);
+}
+.finder__submit:hover { background: var(--home-navy); color: #fff; }
+.finder__status {
+    margin: var(--s-4) 0 0;
+    color: rgba(255, 255, 255, .68);
+    font-family: var(--mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+.finder__status.is-warn { color: #ffd166; }
+.finder__results {
+    flex: 1;
+    min-height: 0;
+    margin: var(--s-3) 0 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, .35) transparent;
+}
+.finder__results::-webkit-scrollbar { width: 4px; }
+.finder__results::-webkit-scrollbar-thumb { border-radius: 4px; background: rgba(255, 255, 255, .35); }
+.finder__item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--s-1) var(--s-3);
+    align-items: center;
+    padding: var(--s-4) 0 var(--s-3);
+    border-top: 1px solid rgba(255, 255, 255, .28);
+}
+.finder__name { font-size: var(--fs-lg); font-weight: 600; line-height: 1.35; }
+.finder__badge {
+    justify-self: end;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .18);
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    white-space: nowrap;
+}
+.finder__badge.is-warn { background: #ffd166; color: var(--home-navy); }
+.finder__info {
+    grid-column: 1 / -1;
+    color: rgba(255, 255, 255, .68);
+    font-size: var(--fs-xs);
+    line-height: 1.65;
+}
+.finder__row {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    margin-top: var(--s-1);
+}
+.finder__dist {
+    font-family: var(--mono);
+    font-size: var(--fs-2xs);
+    font-style: normal;
+    letter-spacing: .08em;
+    opacity: .72;
+}
+.finder__go {
+    margin-left: auto;
+    color: #fff;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255, 255, 255, .45);
+    padding-bottom: 2px;
+    transition: border-color var(--dur-fast) var(--ease-soft);
+}
+.finder__go:hover { border-bottom-color: #fff; }
+.finder__empty {
+    padding: var(--s-6) 0;
+    border-top: 1px solid rgba(255, 255, 255, .28);
+    color: rgba(255, 255, 255, .78);
+    font-size: var(--fs-sm);
+    line-height: 1.7;
+}
+.finder__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-6);
+    margin-top: var(--s-4);
+    padding-top: var(--s-4);
+    border-top: 1px solid rgba(255, 255, 255, .28);
+}
+.finder__foot a {
+    color: rgba(255, 255, 255, .82);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-decoration: none;
+}
+.finder__foot a:hover { color: #fff; }
+
+/* Có công cụ thì hai nửa gần cân nhau: ảnh còn là ảnh tượng trưng, panel đủ
+   rộng cho ô nhập và danh sách trạm. */
+.home-story .home-charge__stage--finder { grid-template-columns: minmax(0, 1.05fr) minmax(380px, .95fr); }
+
 /* Chăm sóc chủ xe vẫn dùng panel độc lập và nhịp gutter editorial. */
 .home-story .home-feature { padding-block: var(--sect-sm); background: #fff; }
 .home-story .home-feature--care { background: var(--home-paper); }
@@ -2926,6 +3115,7 @@ html.js .home-story.home-motion-ready [data-home-reveal].is-revealed {
     .home-story .offer__media { grid-column: 1 / -1; min-height: 440px; }
     .home-story .home-charge__head { grid-template-columns: minmax(0, 1fr) minmax(280px, .8fr); gap: var(--s-9); }
     .home-story .home-charge__stage { grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr); }
+    .home-story .home-charge__stage--finder { grid-template-columns: minmax(0, 1fr) minmax(340px, .9fr); }
     .home-story .home-feature__grid { grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
     .home-story .home-feature .split__media { min-height: 480px; }
     .home-story .home-feature--care .split__media { order: 0; }
@@ -2934,6 +3124,8 @@ html.js .home-story.home-motion-ready [data-home-reveal].is-revealed {
 @media (max-width: 820px) {
     .home-story .home-charge__head { grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
     .home-story .home-charge__stage { grid-template-columns: minmax(0, 1fr); }
+    .home-story .home-charge__stage--finder { grid-template-columns: minmax(0, 1fr); }
+    .finder__results { max-height: 320px; }
     .home-story .home-charge__media { min-height: 430px; }
     .home-story .home-charge__rail {
         display: grid;
@@ -3020,6 +3212,9 @@ html.js .home-story.home-motion-ready [data-home-reveal].is-revealed {
         padding: var(--s-7) var(--s-5);
     }
     .home-story .home-charge__rail-label { padding-bottom: var(--s-5); }
+    .finder { padding: var(--s-7) var(--s-5); }
+    .finder__field { grid-template-columns: minmax(0, 1fr); }
+    .finder__results { max-height: 300px; }
     .home-story .home-charge__action { grid-template-columns: 24px minmax(0, 1fr) 24px; gap: var(--s-3); }
     .home-story .home-feature { padding-block: var(--s-6); }
     .home-story .home-feature .wrap { width: min(calc(100% - 32px), var(--wrap)); }

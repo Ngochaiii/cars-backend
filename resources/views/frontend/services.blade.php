@@ -3,7 +3,9 @@
     dưới là dải thẻ dịch vụ tại showroom.
 
     Cả hai danh sách là khoá Cài đặt dạng bảng nhỏ (xem catalog_rows):
-      stations  "Tên|Trạng thái|Thông tin|ok"        — cột 4 là ok | warn
+      stations  "Tên|Trạng thái|Thông tin|ok|lat,lng"  — cột 4 là ok | warn,
+                cột 5 tuỳ chọn (toạ độ hoặc địa chỉ chữ) chỉ dùng cho công
+                cụ tìm trạm ở trang chủ, trang này không in ra
       services  "Tên|Mô tả|Nhãn nút|Link"
 
     Khoá trống thì cả khối biến mất, không để khung rỗng.

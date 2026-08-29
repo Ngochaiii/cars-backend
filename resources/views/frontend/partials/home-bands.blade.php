@@ -35,6 +35,26 @@
             'url' => $lead ? route('products.show', $lead->slug).'#fuel-calc' : null,
         ],
     ])->filter(fn ($action) => filled($action['url']))->values();
+
+    // Panel tìm trạm đã làm luôn việc "tìm trạm sạc", nên chân panel chỉ còn
+    // hai lối đi tiếp: xem cả trang trạm & dịch vụ, và tính chi phí sạc.
+    $chargeFootLinks = collect([
+        [
+            'label' => 'Xem tất cả trạm & dịch vụ',
+            'url' => Route::has('services') ? route('services') : null,
+        ],
+        [
+            'label' => 'Tính chi phí sạc',
+            'url' => $lead ? route('products.show', $lead->slug).'#fuel-calc' : null,
+        ],
+    ])->filter(fn ($link) => filled($link['url']))->values();
+
+    // Chưa có trạm nào và cũng chưa nối API thì không dựng công cụ tìm kiếm —
+    // quay về dải lối tắt cũ thay vì để một ô tìm kiếm không tra được gì.
+    $hasFinder = filled(catalog_setting('stations')) || filled(catalog_setting('stations_api'));
+    $stageVariant = $hasFinder
+        ? 'home-charge__stage--finder'
+        : ($chargeActions->isEmpty() ? 'home-charge__stage--media' : '');
 @endphp
 
 {{-- ── Băng ưu đãi ────────────────────────────────────────────────── --}}
@@ -89,16 +109,20 @@
                 @endif
             </header>
 
-            <div class="home-charge__stage {{ $chargeActions->isEmpty() ? 'home-charge__stage--media' : '' }}">
+            <div class="home-charge__stage {{ $stageVariant }}">
                 <div class="home-charge__media" data-home-reveal data-home-parallax>
                     @if ($img = catalog_image(catalog_setting('charging_image')))
-                        <x-img :src="$img" :alt="$chargeTitle" sizes="(max-width: 960px) 100vw, 68vw" />
+                        <x-img :src="$img" :alt="$chargeTitle" sizes="(max-width: 960px) 100vw, 50vw" />
                     @else
                         <div class="ph" style="height:100%">[ trạm sạc ]</div>
                     @endif
                 </div>
 
-                @if ($chargeActions->isNotEmpty())
+                @if ($hasFinder)
+                    {{-- Nửa phải là công cụ: nhập vị trí → trạm gần nhất → chỉ đường.
+                         Hai lối tắt cũ tụt xuống chân panel, không mất đường vào. --}}
+                    @include('frontend.partials.station-finder', ['footLinks' => $chargeFootLinks])
+                @elseif ($chargeActions->isNotEmpty())
                     <nav class="home-charge__rail" aria-label="Tiện ích sạc" data-home-reveal>
                         <span class="home-charge__rail-label">Tiện ích sạc</span>
 

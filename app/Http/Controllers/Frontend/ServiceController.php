@@ -16,7 +16,7 @@ class ServiceController extends Controller
     public function __invoke(): View
     {
         return view('frontend.services', [
-            'stations' => catalog_rows(catalog_setting('stations'), 4),
+            'stations' => catalog_rows(catalog_setting('stations'), 5),
             'services' => catalog_rows(catalog_setting('services'), 4),
         ]);
     }

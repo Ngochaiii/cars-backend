@@ -855,6 +855,201 @@
         capNhat();
     }
 
+    /* ── Tìm trạm sạc: nhập vị trí → sắp theo khoảng cách → chỉ đường ─
+       Chưa nối API thì lọc ngay trên danh sách server đã render (đọc lại
+       dưới dạng JSON ở [data-finder-seed]); có data-endpoint thì gọi API rồi
+       vẽ lại bằng đúng khung thẻ <template> của Blade. Endpoint hỏng thì
+       quay về danh sách sẵn có chứ không để khung trắng.
+
+       Tắt JS: danh sách tĩnh vẫn đọc được, nút chỉ đường vẫn mở Google Maps,
+       form submit sang trang Trạm sạc & dịch vụ. */
+    function initStationFinder(root) {
+        var input = root.querySelector('[data-finder-input]');
+        var list = root.querySelector('[data-finder-results]');
+        var tpl = root.querySelector('[data-finder-template]');
+        var seedTag = root.querySelector('[data-finder-seed]');
+        var status = root.querySelector('[data-finder-status]');
+        var locate = root.querySelector('[data-finder-locate]');
+        if (!input || !list || !tpl || !seedTag) return;
+
+        var endpoint = root.dataset.endpoint || '';
+        var seed = [];
+        var timer = null;
+        var luot = 0;
+
+        try { seed = JSON.parse(seedTag.textContent) || []; } catch (e) { seed = []; }
+
+        // Bỏ dấu để "vinh yen" vẫn khớp "Vĩnh Yên".
+        function chuanHoa(text) {
+            return (text == null ? '' : String(text)).toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
+        }
+
+        // Khách gõ "21.27,106.19" (hoặc bấm nút định vị) thì coi là toạ độ,
+        // không lọc theo chữ nữa mà sắp theo khoảng cách.
+        function docToaDo(text) {
+            var m = /^\s*(-?\d{1,3}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)\s*$/.exec(text || '');
+            return m ? { lat: parseFloat(m[1]), lng: parseFloat(m[2]) } : null;
+        }
+
+        function khoangCach(a, b) {
+            var R = 6371, rad = Math.PI / 180;
+            var dLat = (b.lat - a.lat) * rad, dLng = (b.lng - a.lng) * rad;
+            var h = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+        }
+
+        function soKm(km) {
+            return (km < 10 ? km.toFixed(1) : String(Math.round(km))).replace('.', ',');
+        }
+
+        function duongDan(tram, diemDi) {
+            var den = (tram.lat != null && tram.lng != null)
+                ? tram.lat + ',' + tram.lng
+                : ((tram.name || '') + ' ' + (tram.address || '')).trim();
+            var url = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(den);
+            return diemDi ? url + '&origin=' + encodeURIComponent(diemDi) : url;
+        }
+
+        function xepHang(ds, tuKhoa, toaDo) {
+            var tu = chuanHoa(tuKhoa).split(/\s+/).filter(Boolean);
+            var loc = (toaDo || !tu.length) ? ds.slice() : ds.filter(function (t) {
+                var kho = chuanHoa([t.name, t.status, t.info, t.address].join(' '));
+                return tu.every(function (x) { return kho.indexOf(x) > -1; });
+            });
+
+            loc.forEach(function (t) {
+                t.km = typeof t.distance === 'number' ? t.distance
+                    : (toaDo && t.lat != null && t.lng != null) ? khoangCach(toaDo, t) : null;
+            });
+
+            // Trạm chưa có toạ độ xuống cuối chứ không biến mất.
+            if (toaDo) loc.sort(function (a, b) {
+                if (a.km == null) return b.km == null ? 0 : 1;
+                if (b.km == null) return -1;
+                return a.km - b.km;
+            });
+
+            return loc;
+        }
+
+        function dat(el, chu) {
+            if (!el) return;
+            el.textContent = chu || '';
+            el.hidden = !chu;
+        }
+
+        function ve(ds, diemDi) {
+            list.textContent = '';
+
+            if (!ds.length) {
+                var trong = document.createElement('li');
+                trong.className = 'finder__empty';
+                trong.textContent = 'Không có trạm nào khớp. Thử tên phường/xã, thành phố hoặc bấm nút định vị.';
+                list.appendChild(trong);
+                return;
+            }
+
+            ds.forEach(function (t) {
+                var the = tpl.content.firstElementChild.cloneNode(true);
+                var o = {};
+                the.querySelectorAll('[data-f]').forEach(function (el) { o[el.dataset.f] = el; });
+
+                dat(o.name, t.name);
+                dat(o.status, t.status);
+                if (o.status) o.status.classList.toggle('is-warn', t.tone === 'warn');
+                dat(o.info, t.info || t.address);
+                dat(o.dist, t.km == null ? '' : 'Cách ' + soKm(t.km) + ' km');
+                if (o.go) o.go.href = duongDan(t, diemDi);
+
+                list.appendChild(the);
+            });
+        }
+
+        function bao(chu, canh) {
+            if (!status) return;
+            status.textContent = chu;
+            status.classList.toggle('is-warn', !!canh);
+        }
+
+        function hienThi(ds, diemDi, tuKhoa) {
+            ve(ds, diemDi);
+            if (!ds.length) bao('Không có trạm nào khớp', true);
+            else bao(ds.length + (tuKhoa ? ' trạm gần vị trí của bạn' : ' trạm trong khu vực'));
+        }
+
+        function chay() {
+            var q = input.value.trim();
+            var toaDo = docToaDo(q);
+            var diemDi = q || null;
+
+            if (!endpoint) {
+                hienThi(xepHang(seed, q, toaDo), diemDi, q);
+                return;
+            }
+
+            var id = ++luot;
+            var thamSo = [];
+            if (q && !toaDo) thamSo.push('q=' + encodeURIComponent(q));
+            if (toaDo) thamSo.push('lat=' + toaDo.lat, 'lng=' + toaDo.lng);
+            bao('Đang tìm trạm…');
+
+            fetch(endpoint + (endpoint.indexOf('?') > -1 ? '&' : '?') + thamSo.join('&'), {
+                headers: { Accept: 'application/json' }
+            })
+                .then(function (r) {
+                    if (!r.ok) throw new Error(r.status);
+                    return r.json();
+                })
+                .then(function (json) {
+                    if (id !== luot) return;   // câu trả lời cũ về muộn thì bỏ
+                    var ds = Array.isArray(json) ? json : (json && json.data) || [];
+                    hienThi(xepHang(ds, q, toaDo), diemDi, q);
+                })
+                .catch(function () {
+                    if (id !== luot) return;
+                    hienThi(xepHang(seed, q, toaDo), diemDi, q);
+                    bao('Chưa gọi được dịch vụ tìm trạm — đang hiện danh sách có sẵn.', true);
+                });
+        }
+
+        root.addEventListener('submit', function (e) {
+            e.preventDefault();
+            clearTimeout(timer);
+            chay();
+        });
+
+        input.addEventListener('input', function () {
+            clearTimeout(timer);
+            timer = setTimeout(chay, 300);
+        });
+
+        if (locate && navigator.geolocation) {
+            locate.addEventListener('click', function () {
+                locate.classList.add('is-on');
+                bao('Đang lấy vị trí của bạn…');
+
+                navigator.geolocation.getCurrentPosition(function (pos) {
+                    locate.classList.remove('is-on');
+                    input.value = pos.coords.latitude.toFixed(5) + ',' + pos.coords.longitude.toFixed(5);
+                    clearTimeout(timer);
+                    chay();
+                }, function () {
+                    locate.classList.remove('is-on');
+                    bao('Chưa lấy được vị trí — nhập địa chỉ giúp nhé.', true);
+                }, { timeout: 8000, maximumAge: 300000 });
+            });
+        } else if (locate) {
+            locate.hidden = true;
+        }
+
+        // Vào trang: vẽ lại từ seed cho khoảng cách/điểm đi đi cùng một đường
+        // vẽ. Chỉ gọi API ngay khi ô đã có sẵn chữ (quay lại từ trang kết quả).
+        if (endpoint && input.value.trim()) chay();
+        else hienThi(xepHang(seed, input.value.trim(), docToaDo(input.value)), input.value.trim() || null, input.value.trim());
+    }
+
     function boot() {
         initNavigation();
         document.querySelectorAll('[data-hero]').forEach(initHero);
@@ -869,6 +1064,7 @@
         document.querySelectorAll('[data-scrolly]').forEach(initScrolly);
         document.querySelectorAll('[data-hotspot]').forEach(initHotspot);
         document.querySelectorAll('[data-hstrip]').forEach(initHStrip);
+        document.querySelectorAll('[data-finder]').forEach(initStationFinder);
         initBleed();
         initLineReveal();
     }
