@@ -2562,22 +2562,32 @@ html.js .hero--carousel.hero--bare-active .hero__slide--bare.is-on {
 .home-story .disc__tabs { position: relative; margin-bottom: var(--s-7); }
 .home-story .disc__stage { width: 100%; margin-inline: auto; }
 .home-story .disc__rail { gap: var(--s-4); }
+/* Thẻ xe cố tình nhỏ hơn khung chứa: ảnh xe là chủ thể, phần trắng quanh
+   nó mới làm khối này thanh. Đổi 560px ở đây thì đổi luôn hệ số .28 của
+   .disc__arrow bên dưới (nửa chiều cao ảnh 16/9). */
 .home-story .disc__item {
-    width: min(700px, 54vw);
-    padding: 0 0 var(--s-7);
+    width: min(560px, 44vw);
+    padding: 0 0 var(--s-6);
     border: 0;
     border-radius: 0;
     background: #f1f4f7;
     box-shadow: none;
 }
-.home-story .disc__media { aspect-ratio: 16 / 9; max-height: 460px; border-radius: 0; }
+.home-story .disc__media { aspect-ratio: 16 / 9; max-height: 360px; border-radius: 0; }
 .home-story .disc__media img { object-position: center 56%; transform: none; transition: transform .7s cubic-bezier(.2, .72, .2, 1), filter .5s ease; }
 .home-story .disc__item.is-on .disc__media:hover img { transform: scale(1.025); }
-.home-story .disc__info { padding: 26px clamp(22px, 4vw, 42px) 0; }
-.home-story .disc__name { font-size: var(--fs-h1); font-weight: 550; letter-spacing: -.04em; }
+.home-story .disc__info { padding: var(--s-5) clamp(18px, 3vw, 32px) 0; }
+.home-story .disc__name { font-size: var(--fs-h2); font-weight: 550; letter-spacing: -.04em; }
+.home-story .disc__stats { margin: var(--s-5) auto; }
+.home-story .disc__stats > div { padding: var(--s-3) var(--s-4); }
+.home-story .disc__stats dd { font-size: var(--fs-md); }
+.home-story .disc__price { margin-bottom: var(--s-5); }
+.home-story .disc__price b { font-size: var(--fs-lg); }
+.home-story .disc__actions { gap: var(--s-3); }
+.home-story .disc__actions .btn { width: 190px; height: 46px; }
 html.js .home-story .disc__item.is-peek {
     display: block;
-    width: 220px;
+    width: 180px;
     opacity: .46;
     filter: grayscale(.18);
     pointer-events: auto;
@@ -2589,7 +2599,7 @@ html.js .home-story .disc__item.is-peek:first-child,
 html.js .home-story .disc__item.is-peek:last-child { transform: none; }
 html.js .home-story .disc__item.is-on { animation: homeDiscActiveIn .55s cubic-bezier(.2, .72, .2, 1); }
 html.js .home-story .disc__item.is-peek { animation: homeDiscPeekIn .5s cubic-bezier(.2, .72, .2, 1); }
-.home-story .disc__arrow { top: 174px; border: 0; background: var(--home-navy); color: #fff; }
+.home-story .disc__arrow { top: calc(min(560px, 44vw) * .28 - 26px); border: 0; background: var(--home-navy); color: #fff; }
 .home-story .disc__arrow--prev { left: 0; }
 .home-story .disc__arrow--next { right: 0; }
 .home-story .disc__arrow:hover { background: var(--home-blue); }
@@ -4298,7 +4308,7 @@ html.js .hotspot__list { display: none; }
     max-width: calc(100% - var(--s-10));
     overflow: hidden;
     color: rgba(255, 255, 255, .72);
-    font-size: clamp(32px, 4.4vw, 68px);
+    font-size: clamp(24px, 3.2vw, 46px);
     font-weight: 800;
     line-height: .9;
     letter-spacing: -.07em;
