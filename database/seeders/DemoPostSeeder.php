@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Tin tức mẫu cho đại lý — ảnh lấy từ kho ảnh thật đã có trong
- * storage/app/public, thông số xe lấy đúng theo `highlights` của bảng
+ * MEDIA_ROOT (mặc định storage/app/public), thông số xe lấy đúng theo `highlights` của bảng
  * products nên không lệch với trang chi tiết xe.
  *
  * Chạy lại được nhiều lần: khớp theo slug rồi cập nhật, không nhân bản.

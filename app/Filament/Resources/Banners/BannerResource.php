@@ -2,16 +2,17 @@
 
 namespace App\Filament\Resources\Banners;
 
+use App\Filament\Forms\Components\NativeMediaUpload;
 use App\Filament\Concerns\HasCatalogNavigation;
 use App\Filament\Resources\Banners\Pages\ManageBanners;
 use App\Support\Catalog;
+use App\Support\Url;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -79,19 +80,17 @@ class BannerResource extends Resource
                 ->rows(2)
                 ->columnSpanFull(),
 
-            FileUpload::make('image')
+            NativeMediaUpload::make('image')
                 ->label('Ảnh desktop')
                 ->image()
                 ->directory('catalog/banners')
-                ->disk('public')
                 ->helperText('Khuyến nghị tỷ lệ 16:9, tối đa 1920 px. Bỏ trống thì banner dùng nền tối.')
                 ->columnSpan(1),
 
-            FileUpload::make('image_mobile')
+            NativeMediaUpload::make('image_mobile')
                 ->label('Ảnh mobile')
                 ->image()
                 ->directory('catalog/banners')
-                ->disk('public')
                 ->helperText('Khuyến nghị tỷ lệ 4:5. Bỏ trống thì dùng ảnh desktop và tự cắt theo khung.')
                 ->columnSpan(1),
 
@@ -125,7 +124,9 @@ class BannerResource extends Resource
             ->defaultSort('sort')
             ->reorderable('sort')
             ->columns([
-                ImageColumn::make('image')->label('Ảnh')->disk('public'),
+                ImageColumn::make('image')
+                    ->label('Ảnh')
+                    ->state(fn ($record): ?string => Url::asset($record->image)),
                 TextColumn::make('title')
                     ->label('Tiêu đề')
                     ->searchable()

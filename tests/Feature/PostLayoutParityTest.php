@@ -4,11 +4,11 @@ namespace Tests\Feature;
 
 use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\EditPost;
+use App\Media\MediaStore;
 use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -24,14 +24,12 @@ class PostLayoutParityTest extends TestCase
     {
         parent::setUp();
 
-        Storage::fake('public');
-
         foreach ([
             'catalog/posts/vf-7-ra-mat.jpg',
             'catalog/sections/vf-7-noi-that.jpg',
             'catalog/seo/vf-7-news-social.jpg',
         ] as $path) {
-            Storage::disk('public')->put(
+            app(MediaStore::class)->write(
                 $path,
                 UploadedFile::fake()->image(basename($path), 1200, 675)->getContent()
             );

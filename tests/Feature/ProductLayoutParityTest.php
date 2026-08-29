@@ -4,12 +4,12 @@ namespace Tests\Feature;
 
 use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\EditProduct;
+use App\Media\MediaStore;
 use App\Models\Category;
 use App\Models\Form;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -30,15 +30,13 @@ class ProductLayoutParityTest extends TestCase
     {
         parent::setUp();
 
-        Storage::fake('public');
-
         foreach ([
             'catalog/hero/vf-7-desktop.jpg',
             'catalog/hero/vf-7-mobile.jpg',
             'catalog/options/vf-7-white.jpg',
             'catalog/seo/vf-7-social.jpg',
         ] as $path) {
-            Storage::disk('public')->put(
+            app(MediaStore::class)->write(
                 $path,
                 UploadedFile::fake()->image(basename($path), 1200, 675)->getContent()
             );

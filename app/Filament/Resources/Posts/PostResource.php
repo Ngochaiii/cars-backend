@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Posts;
 
+use App\Filament\Forms\Components\NativeMediaUpload;
 use BackedEnum;
 use App\Filament\Concerns\HasCatalogNavigation;
 use App\Filament\Resources\Posts\Pages\CreatePost;
@@ -10,12 +11,12 @@ use App\Filament\Resources\Posts\Pages\ListPosts;
 use App\Filament\Schemas\SectionsRepeater;
 use App\Filament\Schemas\SeoSection;
 use App\Support\Catalog;
+use App\Support\Url;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -95,11 +96,10 @@ class PostResource extends Resource
                         ->label('Đăng lúc')
                         ->seconds(false),
 
-                    FileUpload::make('cover')
+                    NativeMediaUpload::make('cover')
                         ->label('Ảnh bìa')
                         ->image()
-                        ->directory('catalog/posts')
-                        ->disk('public'),
+                        ->directory('catalog/posts'),
 
                     Textarea::make('excerpt')
                         ->label('Tóm tắt')
@@ -123,7 +123,10 @@ class PostResource extends Resource
         return $table
             ->defaultSort('published_at', 'desc')
             ->columns([
-                ImageColumn::make('cover')->label('')->disk('public')->imageHeight(40),
+                ImageColumn::make('cover')
+                    ->label('')
+                    ->state(fn ($record): ?string => Url::asset($record->cover))
+                    ->imageHeight(40),
 
                 TextColumn::make('title')
                     ->label('Tiêu đề')

@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Media\MediaStore;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -48,10 +48,10 @@ class BuildImageVariants extends Command
         // Ảnh gốc tới 5760×3240 ngốn ~75 MB khi bung ra bitmap.
         ini_set('memory_limit', '512M');
 
-        $disk  = Storage::disk('public');
+        $media = app(MediaStore::class);
         $force = (bool) $this->option('force');
 
-        $sources = collect($disk->allFiles('catalog'))
+        $sources = collect($media->allFiles('catalog'))
             ->reject(fn (string $p) => Str::startsWith($p, self::DIR.'/'))
             ->filter(fn (string $p) => in_array(Str::lower(pathinfo($p, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'webp'], true))
             ->values();
@@ -62,7 +62,7 @@ class BuildImageVariants extends Command
             return self::SUCCESS;
         }
 
-        $manifest = $this->readManifest($disk);
+        $manifest = $this->readManifest($media);
         $bar      = $this->output->createProgressBar($sources->count());
         $bar->start();
 
@@ -72,7 +72,7 @@ class BuildImageVariants extends Command
 
         foreach ($sources as $path) {
             try {
-                [$n, $entry] = $this->processOne($disk, $path, $force);
+                [$n, $entry] = $this->processOne($media, $path, $force);
                 $made += $n;
                 $kept += $n === 0 ? 1 : 0;
                 if ($entry) {
@@ -87,7 +87,7 @@ class BuildImageVariants extends Command
         $bar->finish();
         $this->newLine(2);
 
-        $disk->put(self::MANIFEST, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $media->write(self::MANIFEST, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
         $this->info("Ảnh gốc: {$sources->count()} · biến thể mới: {$made} · đã có sẵn: {$kept}");
         $this->line('Manifest: '.self::MANIFEST.' ('.count($manifest).' mục)');
@@ -102,9 +102,9 @@ class BuildImageVariants extends Command
     /**
      * @return array{0:int,1:?array} số biến thể vừa sinh, và mục manifest
      */
-    private function processOne($disk, string $path, bool $force): array
+    private function processOne(MediaStore $media, string $path, bool $force): array
     {
-        $full = $disk->path($path);
+        $full = $media->absolutePath($path);
         $info = @getimagesize($full);
 
         if (! $info) {
@@ -119,7 +119,7 @@ class BuildImageVariants extends Command
 
         $needed = $force ? $widths : array_values(array_filter(
             $widths,
-            fn (int $w) => ! $disk->exists($this->variantPath($path, $w)),
+            fn (int $w) => ! $media->exists($this->variantPath($path, $w)),
         ));
 
         if ($needed === []) {
@@ -147,7 +147,7 @@ class BuildImageVariants extends Command
 
             $tmp = tempnam(sys_get_temp_dir(), 'iv');
             imagewebp($dst, $tmp, 82);
-            $disk->put($this->variantPath($path, $w), file_get_contents($tmp));
+            $media->write($this->variantPath($path, $w), (string) file_get_contents($tmp));
 
             @unlink($tmp);
             imagedestroy($dst);
@@ -169,12 +169,12 @@ class BuildImageVariants extends Command
         return self::DIR.'/'.($dir !== '' ? $dir.'/' : '').$base.'-'.$width.'.webp';
     }
 
-    private function readManifest($disk): array
+    private function readManifest(MediaStore $media): array
     {
-        if (! $disk->exists(self::MANIFEST)) {
+        if (! $media->exists(self::MANIFEST)) {
             return [];
         }
 
-        return json_decode($disk->get(self::MANIFEST), true) ?: [];
+        return json_decode((string) $media->read(self::MANIFEST), true) ?: [];
     }
 }

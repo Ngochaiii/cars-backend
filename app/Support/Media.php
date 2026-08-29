@@ -3,12 +3,12 @@
 namespace App\Support;
 
 use App\Console\Commands\BuildImageVariants;
-use Illuminate\Support\Facades\Storage;
+use App\Media\MediaStore;
 use Illuminate\Support\Str;
 
 /**
  * Một chỗ duy nhất đổi giá trị người nhập gõ vào (ảnh, link video) thành
- * thứ nhúng được vào Blade. Frontend không tự gọi Storage::url() rải rác.
+ * thứ nhúng được vào Blade. Frontend không đụng Flysystem/fileinfo.
  */
 class Media
 {
@@ -35,7 +35,7 @@ class Media
             return $path;
         }
 
-        return Storage::disk('public')->url($path);
+        return static::store()->url($path);
     }
 
     /**
@@ -54,7 +54,7 @@ class Media
         $rel = self::normalise($path);
 
         $parts = array_map(
-            fn (int $w) => Storage::disk('public')->url(BuildImageVariants::variantPath($rel, $w)).' '.$w.'w',
+            fn (int $w) => static::store()->url(BuildImageVariants::variantPath($rel, $w)).' '.$w.'w',
             $entry['v'],
         );
 
@@ -62,7 +62,7 @@ class Media
         // mà nằm trong srcset thì màn Retina sẽ chọn đúng nó (1440 logical =
         // 2880 device px), và ta lại tải về đúng tấm 867 KB muốn tránh.
         if ($entry['w'] <= max(BuildImageVariants::WIDTHS)) {
-            $parts[] = Storage::disk('public')->url($rel).' '.$entry['w'].'w';
+            $parts[] = static::store()->url($rel).' '.$entry['w'].'w';
         }
 
         return implode(', ', $parts);
@@ -93,7 +93,7 @@ class Media
 
         // Blade phần lớn đã gọi catalog_image() trước, nên thứ truyền vào đây
         // thường là URL đầy đủ. Gỡ ngược về đường dẫn trên disk để tra manifest.
-        $base = Storage::disk('public')->url('');
+        $base = rtrim((string) config('media.url', '/storage'), '/').'/';
 
         if (Str::startsWith($path, $base)) {
             return Str::after($path, $base);
@@ -101,6 +101,10 @@ class Media
 
         if (Str::startsWith($path, ['http://', 'https://', '//', 'data:'])) {
             return null;
+        }
+
+        if (Str::contains($path, $base)) {
+            return Str::after($path, $base);
         }
 
         if (Str::contains($path, '/storage/')) {
@@ -124,11 +128,16 @@ class Media
             return self::$manifest;
         }
 
-        $disk = Storage::disk('public');
+        $store = static::store();
 
-        return self::$manifest = $disk->exists(BuildImageVariants::MANIFEST)
-            ? (json_decode($disk->get(BuildImageVariants::MANIFEST), true) ?: [])
+        return self::$manifest = $store->exists(BuildImageVariants::MANIFEST)
+            ? (json_decode((string) $store->read(BuildImageVariants::MANIFEST), true) ?: [])
             : [];
+    }
+
+    private static function store(): MediaStore
+    {
+        return app(MediaStore::class);
     }
 
     /**

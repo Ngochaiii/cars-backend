@@ -80,6 +80,43 @@ php artisan storage:link      # để ảnh upload hiện được
 php artisan serve
 ```
 
+### Upload media không cần `ext-fileinfo`
+
+Ảnh và PDF trong admin dùng bộ lưu trữ native của dự án: PHP kiểm tra chữ ký
+file/kích thước ảnh, tự đặt tên an toàn, ghi file vào thư mục media và chỉ lưu
+đường dẫn tương đối (`catalog/...`) trong database. Luồng này không gọi
+`finfo`, `mime_content_type`, Flysystem hay Media Library.
+
+Mặc định local vẫn dùng `storage/app/public` và `php artisan storage:link`.
+Trên VPS nên đặt media ngoài thư mục mỗi release để deploy code không làm mất
+ảnh:
+
+```dotenv
+MEDIA_ROOT=/var/www/cars/shared/media
+MEDIA_URL=/storage
+```
+
+Nginx phục vụ chính thư mục đó (đổi path theo máy chủ):
+
+```nginx
+location ^~ /storage/ {
+    alias /var/www/cars/shared/media/;
+    autoindex off;
+    add_header X-Content-Type-Options nosniff always;
+}
+```
+
+Thư mục `MEDIA_ROOT` phải cho user PHP-FPM quyền ghi. Do Laravel và Filament
+vẫn kéo các package có khai báo platform `ext-fileinfo` dù luồng upload của app
+không dùng chúng, máy build không có extension cần cài dependency bằng:
+
+```bash
+composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-fileinfo
+```
+
+Tốt nhất build `vendor/` trong CI rồi deploy nguyên gói code + vendor; VPS khi
+đó không cần chạy Composer và cũng không cần cài `fileinfo`.
+
 ## Dữ liệu mẫu
 
 | Seeder | Seed gì |

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
+use App\Filament\Forms\Components\NativeMediaUpload;
 use App\Filament\Schemas\MoneyInput;
 use App\Filament\Schemas\SectionsRepeater;
 use App\Filament\Schemas\SeoSection;
@@ -9,7 +10,6 @@ use App\Filament\Schemas\SpecsRepeater;
 use App\Support\Catalog;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -103,19 +103,17 @@ class ProductForm
                     ->live()
                     ->selectablePlaceholder(false),
 
-                FileUpload::make('hero.src')
+                NativeMediaUpload::make('hero.src')
                     ->label('Ảnh desktop')
                     ->image()
                     ->directory('catalog/hero')
-                    ->disk('public')
                     ->visible(fn (Get $get) => $get('hero.type') !== 'video'),
 
-                FileUpload::make('hero.mobile_src')
+                NativeMediaUpload::make('hero.mobile_src')
                     ->label('Ảnh mobile')
                     ->helperText('Khuyến nghị 4:5 hoặc 3:4, chừa vùng an toàn cho tiêu đề và nút.')
                     ->image()
                     ->directory('catalog/hero')
-                    ->disk('public')
                     ->visible(fn (Get $get) => $get('hero.type') !== 'video'),
 
                 TextInput::make('hero.src')
@@ -123,11 +121,10 @@ class ProductForm
                     ->url()
                     ->visible(fn (Get $get) => $get('hero.type') === 'video'),
 
-                FileUpload::make('hero.poster')
+                NativeMediaUpload::make('hero.poster')
                     ->label('Ảnh poster')
                     ->image()
                     ->directory('catalog/hero')
-                    ->disk('public')
                     ->visible(fn (Get $get) => $get('hero.type') === 'video'),
 
                 Textarea::make('hero.lede')
@@ -207,12 +204,11 @@ class ProductForm
                          * bằng ảnh nhanh hơn đọc bảng số. Bỏ trống thì thẻ lùi
                          * về ảnh hero của xe, không để ô trống.
                          */
-                        FileUpload::make('image')
+                        NativeMediaUpload::make('image')
                             ->label('Ảnh phiên bản')
                             ->helperText('Bỏ trống thì thẻ dùng ảnh chính của xe.')
                             ->image()
                             ->directory('catalog/variants')
-                            ->disk('public')
                             ->imagePreviewHeight('120')
                             ->columnSpanFull(),
 
@@ -255,11 +251,10 @@ class ProductForm
                     ->schema([
                         TextInput::make('name')->label('Tên')->required(),
                         ColorPicker::make('hex')->label('Mã màu'),
-                        FileUpload::make('image')
+                        NativeMediaUpload::make('image')
                             ->label('Ảnh')
                             ->image()
-                            ->directory('catalog/options')
-                            ->disk('public'),
+                            ->directory('catalog/options'),
                     ])
                     ->columns(3)
                     ->columnSpanFull(),
@@ -314,24 +309,21 @@ class ProductForm
                  * ảnh hoặc PDF, gõ lại từng dòng vào lưới là việc thừa và dễ sai.
                  * Khai cái nào thì trang hiện cái đó; khai cả ba cũng được.
                  */
-                FileUpload::make('spec_images')
+                NativeMediaUpload::make('spec_images')
                     ->label('Ảnh bảng thông số')
                     ->helperText('Bảng thông số dựng sẵn dạng ảnh. Kéo thả nhiều tấm nếu bảng dài phải cắt trang.')
                     ->image()
                     ->multiple()
                     ->reorderable()
                     ->directory('catalog/specs')
-                    ->disk('public')
                     ->imagePreviewHeight('120')
                     ->columnSpanFull(),
 
-                FileUpload::make('spec_pdf')
+                NativeMediaUpload::make('spec_pdf')
                     ->label('Tài liệu PDF')
                     ->helperText('Catalogue hoặc bảng thông số bản PDF. Trang xe hiện nút tải về kèm dung lượng file.')
-                    ->acceptedFileTypes(['application/pdf'])
+                    ->pdf()
                     ->directory('catalog/tai-lieu')
-                    ->disk('public')
-                    ->downloadable()
                     ->columnSpanFull(),
 
                 TextInput::make('spec_pdf_label')

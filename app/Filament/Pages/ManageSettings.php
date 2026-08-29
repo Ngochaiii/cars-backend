@@ -2,11 +2,11 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Forms\Components\NativeMediaUpload;
 use BackedEnum;
 use App\Models\Setting;
 use Filament\Actions\Action;
 use Filament\Forms\Components\ColorPicker;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
@@ -130,11 +130,10 @@ class ManageSettings extends Page
                 'number'   => TextInput::make($key)->label($label)->numeric(),
                 'toggle'   => Toggle::make($key)->label($label),
                 'color'    => ColorPicker::make($key)->label($label),
-                'image'    => FileUpload::make($key)
+                'image'    => NativeMediaUpload::make($key)
                     ->label($label)
                     ->image()
-                    ->directory('catalog/settings')
-                    ->disk('public'),
+                    ->directory('catalog/settings'),
                 default    => TextInput::make($key)->label($label),
             };
         }

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Schemas;
 
-use Filament\Forms\Components\FileUpload;
+use App\Filament\Forms\Components\NativeMediaUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Section;
@@ -35,11 +35,10 @@ class SeoSection
                     ->rows(2)
                     ->columnSpanFull(),
 
-                FileUpload::make('seo.image')
+                NativeMediaUpload::make('seo.image')
                     ->label('Ảnh chia sẻ (OG)')
                     ->image()
                     ->directory('catalog/seo')
-                    ->disk('public')
                     ->columnSpanFull(),
             ]);
     }

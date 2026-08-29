@@ -68,9 +68,12 @@ dựng lần đầu.
 Seeder sinh ảnh placeholder xám có chữ, đặt tại:
 
 ```
-storage/app/public/catalog/{hãng}/{slug-xe}/hero.jpg
-storage/app/public/catalog/{hãng}/{slug-xe}/{ten-muc}-1.jpg
+{MEDIA_ROOT}/catalog/{hãng}/{slug-xe}/hero.jpg
+{MEDIA_ROOT}/catalog/{hãng}/{slug-xe}/{ten-muc}-1.jpg
 ```
+
+`MEDIA_ROOT` mặc định là `storage/app/public`; production có thể trỏ tới thư
+mục media dùng chung nằm ngoài từng release.
 
 Chỉ tạo khi file **chưa có** — upload ảnh thật trong admin rồi thì chạy lại
 seeder cũng không đè mất.

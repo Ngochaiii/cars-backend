@@ -14,8 +14,8 @@
     // Dung lượng file để khách biết trước khi bấm — nhất là trên 4G.
     $pdfSize = null;
     if ($pdfUrl && filled($specPdf) && ! Str::startsWith($specPdf, ['http://', 'https://'])) {
-        $disk = Storage::disk('public');
-        $pdfSize = $disk->exists($specPdf) ? $disk->size($specPdf) : null;
+        $mediaStore = app(\App\Media\MediaStore::class);
+        $pdfSize = $mediaStore->size($specPdf);
     }
 @endphp
 

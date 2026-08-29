@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Products\Tables;
 
 use App\Filament\Resources\Products\Pages\EditProduct;
 use App\Support\Catalog;
+use App\Support\Url;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -30,7 +31,7 @@ class ProductsTable
             ->columns([
                 ImageColumn::make('hero.src')
                     ->label('')
-                    ->disk('public')
+                    ->state(fn (Model $record): ?string => Url::asset(data_get($record->hero, 'src')))
                     ->imageHeight(40),
 
                 TextColumn::make('name')

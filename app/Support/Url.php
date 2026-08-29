@@ -33,11 +33,9 @@ class Url
     /** URL ảnh tuyệt đối dùng cho canonical metadata và dữ liệu có cấu trúc. */
     public static function asset(mixed $path): ?string
     {
-        if (is_array($path)) {
-            $path = reset($path) ?: null;
-        }
+        $path = Media::url($path);
 
-        if (blank($path) || ! is_string($path)) {
+        if (blank($path)) {
             return null;
         }
 
@@ -51,10 +49,6 @@ class Url
             return $base.$path;
         }
 
-        if (Str::startsWith($path, 'storage/')) {
-            return $base.'/'.ltrim($path, '/');
-        }
-
-        return $base.'/storage/'.ltrim($path, '/');
+        return $base.'/'.ltrim($path, '/');
     }
 }

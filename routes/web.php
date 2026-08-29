@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\MediaUploadController;
 use App\Http\Controllers\Frontend\AccessoryController;
 use App\Http\Controllers\Frontend\BookingController;
 use App\Http\Controllers\Frontend\CategoryController;
@@ -18,6 +19,18 @@ use App\Http\Controllers\Frontend\ServiceController;
 use App\Http\Controllers\SitemapController;
 use App\Support\Url;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Admin media — native PHP, không dùng Storage/Flysystem/fileinfo
+|--------------------------------------------------------------------------
+|
+| File được lưu ngay và endpoint chỉ trả relative path. Filament đưa path đó
+| vào state của form; model tiếp tục lưu chuỗi/JSON giống dữ liệu cũ.
+*/
+Route::post('admin/media', MediaUploadController::class)
+    ->middleware(['auth', 'throttle:30,1'])
+    ->name('admin.media.store');
 
 /*
 |--------------------------------------------------------------------------

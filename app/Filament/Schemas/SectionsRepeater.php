@@ -2,8 +2,8 @@
 
 namespace App\Filament\Schemas;
 
+use App\Filament\Forms\Components\NativeMediaUpload;
 use App\Support\Catalog;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -11,7 +11,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Support\Str;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 /**
  * Repeater cho cột `sections` — trái tim hệ thống.
@@ -101,13 +100,12 @@ class SectionsRepeater
 
                 // Upload hàng loạt: kéo 12 ảnh vào một lần → 12 item.
                 // Thiếu cái này thì mục Thư viện phải bấm 12 lần.
-                FileUpload::make('bulk_upload')
+                NativeMediaUpload::make('bulk_upload')
                     ->label('Upload hàng loạt')
                     ->helperText('Kéo nhiều ảnh vào đây — mỗi ảnh thành một mục ảnh bên dưới.')
                     ->image()
                     ->multiple()
                     ->directory('catalog/sections')
-                    ->disk('public')
                     ->dehydrated(false)
                     ->live()
                     ->afterStateUpdated(function (?array $state, Get $get, Set $set) {
@@ -118,14 +116,13 @@ class SectionsRepeater
                         $items = $get('items') ?? [];
 
                         foreach ($state ?? [] as $file) {
-                            if (! $file instanceof TemporaryUploadedFile) {
+                            if (! is_string($file) || blank($file)) {
                                 continue;
                             }
 
                             $items[(string) Str::uuid()] = [
-                                // State của FileUpload là MẢNG đường dẫn, không phải chuỗi.
-                                // Gán chuỗi ở đây thì đến lúc validate sẽ nổ TypeError.
-                                'image' => [$file->store('catalog/sections', 'public')],
+                                // NativeMediaUpload đã lưu file và trả relative path.
+                                'image' => $file,
                                 'label' => '',
                                 'desc'  => '',
                             ];
@@ -170,11 +167,10 @@ class SectionsRepeater
                     ->itemLabel(fn (array $state): ?string => $state['label'] ?? null)
                     ->grid(2)
                     ->schema([
-                        FileUpload::make('image')
+                        NativeMediaUpload::make('image')
                             ->label('Ảnh')
                             ->image()
                             ->directory('catalog/sections')
-                            ->disk('public')
                             ->imagePreviewHeight('120'),
 
                         /*

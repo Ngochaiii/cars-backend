@@ -18,7 +18,7 @@ namespace Database\Seeders\Brands;
  */
 class MauSeeder extends BrandSeeder
 {
-    /** Tên hãng. Cũng là tên thư mục ảnh: storage/app/public/catalog/{slug-hãng}/ */
+    /** Tên hãng. Cũng là tên thư mục ảnh: {MEDIA_ROOT}/catalog/{slug-hãng}/ */
     protected function brand(): string
     {
         return 'Mẫu';

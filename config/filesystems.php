@@ -41,7 +41,10 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            // URL tương đối để FilePond luôn tải ảnh cùng origin.
+            // Admin có thể được mở bằng localhost, 127.0.0.1 hoặc domain
+            // thật; ghép cứng APP_URL sẽ làm fetch preview bị CORS và quay mãi.
+            'url' => env('PUBLIC_STORAGE_URL', '/storage'),
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

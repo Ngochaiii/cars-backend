@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Media\MediaStore;
 use App\Models\Menu;
 use App\Models\MenuItem;
 use App\Models\Product;
 use Database\Seeders\Brands\MauSeeder;
 use Database\Seeders\Brands\VinFastSeeder;
 use Database\Seeders\DatabaseSeeder;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -19,14 +19,6 @@ use Tests\TestCase;
  */
 class BrandSeederTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        // Ảnh placeholder ghi vào disk giả, không đụng storage thật.
-        Storage::fake('public');
-    }
-
     public function test_mau_seeder_dung_du_muc_theo_dung_thu_tu(): void
     {
         $this->seed(MauSeeder::class);
@@ -81,15 +73,17 @@ class BrandSeederTest extends TestCase
     {
         $this->seed(MauSeeder::class);
 
-        Storage::disk('public')->assertExists('catalog/mau/mau-m1/hero.jpg');
-        Storage::disk('public')->assertExists('catalog/mau/mau-m1/thu-vien-1.jpg');
+        $media = app(MediaStore::class);
+
+        $this->assertTrue($media->exists('catalog/mau/mau-m1/hero.jpg'));
+        $this->assertTrue($media->exists('catalog/mau/mau-m1/thu-vien-1.jpg'));
 
         // Người dùng upload ảnh thật đè lên → chạy lại seeder không được ghi đè
-        Storage::disk('public')->put('catalog/mau/mau-m1/hero.jpg', 'ảnh thật');
+        $media->write('catalog/mau/mau-m1/hero.jpg', 'ảnh thật');
 
         $this->seed(MauSeeder::class);
 
-        $this->assertSame('ảnh thật', Storage::disk('public')->get('catalog/mau/mau-m1/hero.jpg'));
+        $this->assertSame('ảnh thật', $media->read('catalog/mau/mau-m1/hero.jpg'));
     }
 
     public function test_chay_lai_khong_nhan_ban_du_lieu(): void

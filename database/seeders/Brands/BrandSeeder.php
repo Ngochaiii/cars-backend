@@ -2,11 +2,11 @@
 
 namespace Database\Seeders\Brands;
 
+use App\Media\MediaStore;
 use App\Support\Catalog;
 use App\Support\Url;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -355,9 +355,9 @@ abstract class BrandSeeder extends Seeder
      */
     protected function placeholder(string $path, string $label, int $w = 1600, int $h = 900): void
     {
-        $disk = Storage::disk('public');
+        $media = app(MediaStore::class);
 
-        if ($disk->exists($path) || ! function_exists('imagecreatetruecolor')) {
+        if ($media->exists($path) || ! function_exists('imagecreatetruecolor')) {
             return;
         }
 
@@ -376,6 +376,6 @@ abstract class BrandSeeder extends Seeder
 
         ob_start();
         imagejpeg($image, null, 82);
-        $disk->put($path, (string) ob_get_clean());
+        $media->write($path, (string) ob_get_clean());
     }
 }
