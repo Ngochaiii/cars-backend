@@ -4307,6 +4307,15 @@ html.js .hotspot__list { display: none; }
     backdrop-filter: saturate(145%) blur(18px);
     -webkit-backdrop-filter: saturate(145%) blur(18px);
 }
+/* backdrop-filter biến header thành khối chứa cho MỌI con position: fixed,
+   nên drawer menu và lớp phủ (đều nằm trong <header>) bị nhốt trong hộp
+   header: mở menu ra chỉ thấy một mảnh trắng cao bằng header thay vì tấm
+   phủ hết màn hình. Tắt hiệu ứng đúng lúc menu mở là chúng thoát ra và
+   inset: 0 tính lại theo màn hình. Menu đóng thì header vẫn mờ như cũ. */
+body.nav-open .site-header {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
 .brand { gap: var(--s-3); }
 .brand__emblem {
     display: grid;
@@ -4631,6 +4640,9 @@ html.js .home-story.home-motion-ready [data-home-reveal].home-reveal--media:not(
         -webkit-backdrop-filter: blur(18px);
     }
     .product-page .mobile-contact-dock { display: none; }
+    /* Thanh liên hệ z-index 95, cao hơn drawer (80) — mở menu ra nó nổi đè
+       lên tấm menu. Menu là lớp phủ toàn màn hình nên thanh này nhường chỗ. */
+    body.nav-open .mobile-contact-dock { display: none; }
     .mobile-contact-dock__item {
         display: flex;
         align-items: center;
