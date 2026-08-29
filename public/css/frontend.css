@@ -2578,7 +2578,21 @@ html.js .hero--carousel.hero--bare-active .hero__slide--bare.is-on {
 .home-story .disc__item.is-on .disc__media:hover img { transform: scale(1.025); }
 .home-story .disc__info { padding: var(--s-5) clamp(18px, 3vw, 32px) 0; }
 .home-story .disc__name { font-size: var(--fs-h2); font-weight: 550; letter-spacing: -.04em; }
-.home-story .disc__stats { margin: var(--s-5) auto; }
+/* Nhãn dài ngắn khác nhau ("Quãng đường mỗi lần sạc (NEDC)" xuống hai dòng)
+   làm ba con số nằm ba độ cao. subgrid cho nhãn và số dùng chung hai hàng
+   của bảng, nên số luôn thẳng hàng nhau. Trình duyệt không có subgrid thì
+   rơi về đúng cách xếp cũ, không vỡ. */
+.home-story .disc__stats { margin: var(--s-5) auto; grid-template-rows: auto auto; }
+.home-story .disc__stats > div {
+    display: grid;
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+    /* Không khai báo cột thì cột ngầm co theo chữ và dồn về trái — nhãn
+       ngắn lệch hẳn so với ô. 1fr cho cột phủ hết ô để text-align: center
+       của .disc__info có chỗ mà canh. */
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+}
 .home-story .disc__stats > div { padding: var(--s-3) var(--s-4); }
 .home-story .disc__stats dd { font-size: var(--fs-md); }
 .home-story .disc__price { margin-bottom: var(--s-5); }
@@ -3204,6 +3218,10 @@ html.js .home-story.home-motion-ready [data-home-reveal].home-reveal--media.is-r
         overflow-x: auto;
         scrollbar-width: none;
     }
+    /* Dải tab cuộn ngang nên mặc định dồn trái, lệch hẳn so với tiêu đề canh
+       giữa ngay trên. "safe center" canh giữa khi đủ chỗ và tự về trái khi
+       tràn, khỏi cắt mất tab đầu. */
+    .home-story .disc__tabs { justify-content: center; justify-content: safe center; }
     .home-story .disc__tabs::-webkit-scrollbar { display: none; }
     .home-story .disc__tab { flex: 0 0 auto; padding-bottom: var(--s-3); }
     .home-story .disc__item { width: 100%; padding: 0 0 var(--s-6); }
@@ -3212,7 +3230,8 @@ html.js .home-story.home-motion-ready [data-home-reveal].home-reveal--media.is-r
     .home-story .disc__name { font-size: var(--fs-h2); }
     .home-story .disc__stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .home-story .disc__stats > div {
-        display: block;
+        /* Giữ subgrid như bản desktop, khỏi lệch số so với nhãn hai dòng. */
+        display: grid;
         padding: var(--s-3) var(--s-1);
         border-top: 0;
         border-left: 1px solid var(--line-2);
@@ -3221,7 +3240,11 @@ html.js .home-story.home-motion-ready [data-home-reveal].home-reveal--media.is-r
     .home-story .disc__stats > div:first-child { border-left: 0; }
     .home-story .disc__stats dt { margin-bottom: var(--s-1); text-align: center; font-size: var(--fs-2xs); }
     .home-story .disc__stats dd { text-align: center; font-size: var(--fs-xs); }
-    .home-story .disc__actions .btn { flex: 1 1 0; min-width: 0; padding-inline: var(--s-2); }
+    /* .disc__actions xuống cột ở breakpoint này, nên nút phải rộng hết bề
+       ngang — không thì nó đứng lệch trái giữa một thẻ canh giữa. width ở
+       đây là để thắng .home-story .disc__actions .btn { width: 190px }. */
+    .home-story .disc__actions { align-items: stretch; }
+    .home-story .disc__actions .btn { width: 100%; flex: 0 0 auto; min-width: 0; padding-inline: var(--s-2); }
     .home-story .disc__arrow { top: 28%; }
     .home-story .disc__arrow--prev { left: -10px; }
     .home-story .disc__arrow--next { right: -10px; }
