@@ -2604,8 +2604,10 @@ html.js .home-story .disc__item.is-peek:last-child { transform: none; }
 html.js .home-story .disc__item.is-on { animation: homeDiscActiveIn .55s cubic-bezier(.2, .72, .2, 1); }
 html.js .home-story .disc__item.is-peek { animation: homeDiscPeekIn .5s cubic-bezier(.2, .72, .2, 1); }
 .home-story .disc__arrow { top: calc(min(560px, 44vw) * .28 - 26px); border: 0; background: var(--home-navy); color: #fff; }
-.home-story .disc__arrow--prev { left: 0; }
-.home-story .disc__arrow--next { right: 0; }
+/* Nút dán sát mép khung thì trôi ra giữa vùng trắng, rời hẳn khỏi dải xe.
+   Kéo vào ngang mép ngoài của hai xe phụ để cụm điều hướng đi cùng nội dung. */
+.home-story .disc__arrow--prev { left: clamp(0px, 4.5vw, 72px); }
+.home-story .disc__arrow--next { right: clamp(0px, 4.5vw, 72px); }
 .home-story .disc__arrow:hover { background: var(--home-blue); }
 
 /* Ưu đãi là một campaign masthead: nhịp chương ở mép trái,
