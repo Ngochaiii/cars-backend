@@ -2585,16 +2585,20 @@ html.js .hero--carousel.hero--bare-active .hero__slide--bare.is-on {
 .home-story .disc__price b { font-size: var(--fs-lg); }
 .home-story .disc__actions { gap: var(--s-3); }
 .home-story .disc__actions .btn { width: 190px; height: 46px; }
+/* Xe hai bên là gợi ý "còn xe nữa", không phải hình trang trí — để quá mờ
+   thì khách không đọc ra đó là xe. Độ mờ khai báo một chỗ ở --peek-opacity
+   vì keyframe homeDiscPeekIn cũng đọc lại biến này; sửa số ở đây là đủ. */
 html.js .home-story .disc__item.is-peek {
     display: block;
-    width: 180px;
-    opacity: .46;
-    filter: grayscale(.18);
+    width: min(280px, 20vw);
+    --peek-opacity: .82;
+    opacity: var(--peek-opacity);
+    filter: none;
     pointer-events: auto;
     cursor: pointer;
 }
 html.js .home-story .disc__item.is-peek .disc__media { aspect-ratio: 3 / 2; }
-html.js .home-story .disc__item.is-peek:hover { opacity: .72; filter: none; }
+html.js .home-story .disc__item.is-peek:hover { opacity: 1; filter: none; }
 html.js .home-story .disc__item.is-peek:first-child,
 html.js .home-story .disc__item.is-peek:last-child { transform: none; }
 html.js .home-story .disc__item.is-on { animation: homeDiscActiveIn .55s cubic-bezier(.2, .72, .2, 1); }
@@ -3120,7 +3124,7 @@ html.js .home-story.home-motion-ready [data-home-reveal].is-revealed {
 }
 @keyframes homeDiscPeekIn {
     from { opacity: 0; transform: translate3d(0, 12px, 0) scale(.97); }
-    to { opacity: .46; transform: translate3d(0, 0, 0) scale(1); }
+    to { opacity: var(--peek-opacity, .82); transform: translate3d(0, 0, 0) scale(1); }
 }
 
 @media (max-width: 1100px) {
