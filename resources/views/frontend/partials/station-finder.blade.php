@@ -45,6 +45,8 @@
     $finderRows = catalog_rows(catalog_setting('stations'), 5);
     $finderApi = trim((string) ($endpoint ?? catalog_setting('stations_api')));
     $finderAction = Route::has('services') ? route('services') : url()->current();
+    // Include được nhiều lần trên một trang nên id phải riêng, khỏi vỡ <label for>.
+    $finderId = 'finder-q-'.Str::random(6);
     $finderLinks = collect($footLinks ?? [])->filter(fn ($link) => filled(data_get($link, 'url')));
 
     $finderStations = $finderRows->map(function (array $row) {
@@ -86,14 +88,14 @@
 
     <div class="finder__field">
         <span class="finder__box">
-            <label class="sr-only" for="finder-q">Vị trí của bạn</label>
+            <label class="sr-only" for="{{ $finderId }}">Vị trí của bạn</label>
             <input class="finder__input"
-                   id="finder-q"
+                   id="{{ $finderId }}"
                    name="vi-tri"
                    type="search"
                    inputmode="search"
                    autocomplete="street-address"
-                   placeholder="Số nhà, phường/xã, thành phố…"
+                   placeholder="Phường/xã, thành phố…"
                    value="{{ request('vi-tri') }}"
                    data-finder-input>
             <button class="finder__locate" type="button" data-finder-locate

@@ -42,28 +42,14 @@
                         @endif
                     </div>
 
+                    {{-- Cùng công cụ với băng trạm sạc ngoài trang chủ: tìm theo
+                         vị trí rồi chỉ đường, thay cho danh sách chỉ đọc. --}}
                     @if ($stations->isNotEmpty())
-                        <div class="stations__list">
-                            @foreach ($stations as [$name, $status, $info, $tone])
-                                <div class="station">
-                                    <div class="station__head">
-                                        <b>{{ $name }}</b>
-                                        @if (filled($status))
-                                            <span class="station__status {{ $tone === 'warn' ? 'is-warn' : '' }}">{{ $status }}</span>
-                                        @endif
-                                    </div>
-                                    @if (filled($info))
-                                        <div class="station__info">{{ $info }}</div>
-                                    @endif
-                                </div>
-                            @endforeach
-
-                            {{-- Nhãn không kèm link thì thành nút chết — ẩn luôn. --}}
-                            @if (filled($moreLabel) && filled($moreUrl))
-                                <a class="btn btn--sm btn--outline btn--block" style="margin-top:6px"
-                                   href="{{ $moreUrl }}" rel="noopener" target="_blank">{{ $moreLabel }}</a>
-                            @endif
-                        </div>
+                        @include('frontend.partials.station-finder', [
+                            'footLinks' => filled($moreLabel) && filled($moreUrl)
+                                ? [['label' => $moreLabel, 'url' => $moreUrl]]
+                                : [],
+                        ])
                     @endif
                 </div>
             @endif

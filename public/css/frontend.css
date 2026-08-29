@@ -1489,21 +1489,13 @@ html.js .tabs__panel + .tabs__panel { margin-top: 0; }
 .stations { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: var(--s-6); }
 .stations__map { border-radius: 4px; overflow: hidden; aspect-ratio: 4 / 3; background: var(--soft-2); }
 .stations__map img { width: 100%; height: 100%; object-fit: cover; }
-.stations__list { display: flex; flex-direction: column; gap: var(--s-3); }
-
-.station {
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: var(--s-5) var(--s-5);
-    background: #fff;
-    transition: border-color .2s ease;
-}
-.station:hover { border-color: #b5b5b0; }
-.station__head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); }
-.station__head b { font-size: var(--fs-md); font-weight: 600; color: var(--ink); }
-.station__status { flex: none; font-size: var(--fs-xs); font-weight: 600; color: var(--good); }
-.station__status.is-warn { color: #b45309; }
-.station__info { font-size: var(--fs-sm); color: var(--muted-2); margin-top: var(--s-1); }
+/* Cột phải là panel .finder (xem "Công cụ tìm trạm sạc") — danh sách chỉ đọc
+   .stations__list/.station cũ bỏ đi cùng lúc, không còn chỗ nào dùng.
+   Cột chỉ rộng 400px nên nút Tìm xuống dòng, khỏi bóp ô nhập còn nửa dòng. */
+.stations { align-items: stretch; }
+.stations .finder { border-radius: 4px; }
+.stations .finder__field { grid-template-columns: minmax(0, 1fr); }
+.stations__map { height: 100%; }
 
 .service-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--s-6); }
 .service { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: var(--s-6); }
@@ -2824,30 +2816,40 @@ html.js .home-story .disc__item.is-peek { animation: homeDiscPeekIn .5s cubic-be
 
 /* ── Công cụ tìm trạm sạc ────────────────────────────────────────────
    Panel dùng chung (trang chủ + trang Trạm sạc & dịch vụ): ô nhập vị trí,
-   danh sách trạm cuộn được, mỗi trạm một nút chỉ đường. Vẫn nền xanh như
-   rail cũ để nửa phải của stage là một mảng đặc, không phải hộp trắng vá
-   lên ảnh. Panel tự lo nền và màu chữ nên bê sang trang khác vẫn đúng. */
+   danh sách trạm cuộn được, mỗi trạm một nút chỉ đường.
+
+   Nền navy như các thẻ tối khác của site, xanh #1264f6 chỉ còn ở nút bấm —
+   đúng vai điểm nhấn như nút "Đặt cọc & lái thử" trên header, thay vì một
+   mảng xanh đặc chọi với tông trắng–đen của trang. Panel tự lo nền và màu
+   chữ nên bê sang trang khác vẫn đúng. */
 .finder {
+    /* Token riêng: --home-* chỉ khai báo trong .home-story nên panel mang
+       sang trang Trạm sạc & dịch vụ là mất nền. */
+    --finder-bg: #071522;
+    --finder-accent: #1264f6;
+    --finder-accent-2: #86adff;
+    --finder-line: rgba(255, 255, 255, .14);
+
     display: flex;
     flex-direction: column;
     min-width: 0;
     margin: 0;
     padding: clamp(28px, 3vw, 44px);
-    background: var(--home-blue);
+    background: var(--finder-bg);
     color: #fff;
 }
 .finder__label {
     font-family: var(--mono);
     font-size: var(--fs-2xs);
     font-weight: 700;
+    color: var(--finder-accent-2);
     letter-spacing: .2em;
     text-transform: uppercase;
-    opacity: .72;
 }
 .finder__lead {
     max-width: 34ch;
     margin: var(--s-4) 0 var(--s-6);
-    color: rgba(255, 255, 255, .78);
+    color: rgba(255, 255, 255, .72);
     font-size: var(--fs-md);
     line-height: 1.7;
 }
@@ -2861,18 +2863,18 @@ html.js .home-story .disc__item.is-peek { animation: homeDiscPeekIn .5s cubic-be
     width: 100%;
     height: 52px;
     padding: 0 48px 0 var(--s-4);
-    border: 1px solid rgba(255, 255, 255, .38);
+    border: 1px solid rgba(255, 255, 255, .22);
     border-radius: 4px;
-    background: rgba(255, 255, 255, .12);
+    background: rgba(255, 255, 255, .06);
     color: #fff;
     font-family: inherit;
     font-size: var(--fs-md);
     transition: border-color var(--dur-fast) var(--ease-soft), background var(--dur-fast) var(--ease-soft);
 }
-.finder__input::placeholder { color: rgba(255, 255, 255, .6); }
+.finder__input::placeholder { color: rgba(255, 255, 255, .5); }
 .finder__input:focus {
-    border-color: #fff;
-    background: rgba(255, 255, 255, .18);
+    border-color: var(--finder-accent-2);
+    background: rgba(255, 255, 255, .1);
     outline: none;
 }
 /* Nút xoá mặc định của type=search chìm nghỉm trên nền xanh. */
@@ -2896,25 +2898,25 @@ html.js .home-story .disc__item.is-peek { animation: homeDiscPeekIn .5s cubic-be
     opacity: .78;
     transition: opacity var(--dur-fast) var(--ease-soft), background var(--dur-fast) var(--ease-soft);
 }
-.finder__locate:hover { background: rgba(255, 255, 255, .16); opacity: 1; }
-.finder__locate.is-on { background: #fff; color: var(--home-blue); opacity: 1; }
+.finder__locate:hover { background: rgba(255, 255, 255, .12); opacity: 1; }
+.finder__locate.is-on { background: var(--finder-accent); color: #fff; opacity: 1; }
 .finder__submit {
     height: 52px;
     padding: 0 var(--s-6);
     border: 0;
     border-radius: 4px;
-    background: #fff;
-    color: var(--home-navy);
+    background: var(--finder-accent);
+    color: #fff;
     font-family: inherit;
     font-size: var(--fs-md);
     font-weight: 600;
     cursor: pointer;
-    transition: background var(--dur-fast) var(--ease-soft), color var(--dur-fast) var(--ease-soft);
+    transition: background var(--dur-fast) var(--ease-soft);
 }
-.finder__submit:hover { background: var(--home-navy); color: #fff; }
+.finder__submit:hover { background: var(--accent-dark); }
 .finder__status {
     margin: var(--s-4) 0 0;
-    color: rgba(255, 255, 255, .68);
+    color: rgba(255, 255, 255, .5);
     font-family: var(--mono);
     font-size: var(--fs-2xs);
     letter-spacing: .1em;
@@ -2929,32 +2931,33 @@ html.js .home-story .disc__item.is-peek { animation: homeDiscPeekIn .5s cubic-be
     overflow-y: auto;
     list-style: none;
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, .35) transparent;
+    scrollbar-color: rgba(255, 255, 255, .28) transparent;
 }
 .finder__results::-webkit-scrollbar { width: 4px; }
-.finder__results::-webkit-scrollbar-thumb { border-radius: 4px; background: rgba(255, 255, 255, .35); }
+.finder__results::-webkit-scrollbar-thumb { border-radius: 4px; background: rgba(255, 255, 255, .28); }
 .finder__item {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: var(--s-1) var(--s-3);
     align-items: center;
     padding: var(--s-4) 0 var(--s-3);
-    border-top: 1px solid rgba(255, 255, 255, .28);
+    border-top: 1px solid var(--finder-line);
 }
 .finder__name { font-size: var(--fs-lg); font-weight: 600; line-height: 1.35; }
 .finder__badge {
     justify-self: end;
     padding: 3px 9px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, .18);
+    background: rgba(134, 173, 255, .18);
+    color: #b9d0ff;
     font-size: var(--fs-2xs);
     font-weight: 600;
     white-space: nowrap;
 }
-.finder__badge.is-warn { background: #ffd166; color: var(--home-navy); }
+.finder__badge.is-warn { background: #ffd166; color: var(--finder-bg); }
 .finder__info {
     grid-column: 1 / -1;
-    color: rgba(255, 255, 255, .68);
+    color: rgba(255, 255, 255, .6);
     font-size: var(--fs-xs);
     line-height: 1.65;
 }
@@ -2971,23 +2974,23 @@ html.js .home-story .disc__item.is-peek { animation: homeDiscPeekIn .5s cubic-be
     font-size: var(--fs-2xs);
     font-style: normal;
     letter-spacing: .08em;
-    opacity: .72;
+    opacity: .55;
 }
 .finder__go {
     margin-left: auto;
-    color: #fff;
+    color: var(--finder-accent-2);
     font-size: var(--fs-xs);
     font-weight: 600;
     text-decoration: none;
-    border-bottom: 1px solid rgba(255, 255, 255, .45);
+    border-bottom: 1px solid rgba(134, 173, 255, .45);
     padding-bottom: 2px;
-    transition: border-color var(--dur-fast) var(--ease-soft);
+    transition: color var(--dur-fast) var(--ease-soft), border-color var(--dur-fast) var(--ease-soft);
 }
-.finder__go:hover { border-bottom-color: #fff; }
+.finder__go:hover { color: #fff; border-bottom-color: #fff; }
 .finder__empty {
     padding: var(--s-6) 0;
-    border-top: 1px solid rgba(255, 255, 255, .28);
-    color: rgba(255, 255, 255, .78);
+    border-top: 1px solid var(--finder-line);
+    color: rgba(255, 255, 255, .72);
     font-size: var(--fs-sm);
     line-height: 1.7;
 }
@@ -2997,10 +3000,10 @@ html.js .home-story .disc__item.is-peek { animation: homeDiscPeekIn .5s cubic-be
     gap: var(--s-2) var(--s-6);
     margin-top: var(--s-4);
     padding-top: var(--s-4);
-    border-top: 1px solid rgba(255, 255, 255, .28);
+    border-top: 1px solid var(--finder-line);
 }
 .finder__foot a {
-    color: rgba(255, 255, 255, .82);
+    color: rgba(255, 255, 255, .72);
     font-size: var(--fs-xs);
     font-weight: 600;
     text-decoration: none;
@@ -3009,7 +3012,10 @@ html.js .home-story .disc__item.is-peek { animation: homeDiscPeekIn .5s cubic-be
 
 /* Có công cụ thì hai nửa gần cân nhau: ảnh còn là ảnh tượng trưng, panel đủ
    rộng cho ô nhập và danh sách trạm. */
-.home-story .home-charge__stage--finder { grid-template-columns: minmax(0, 1.05fr) minmax(380px, .95fr); }
+.home-story .home-charge__stage--finder {
+    grid-template-columns: minmax(0, 1.05fr) minmax(380px, .95fr);
+    background: var(--home-navy);
+}
 
 /* Chăm sóc chủ xe vẫn dùng panel độc lập và nhịp gutter editorial. */
 .home-story .home-feature { padding-block: var(--sect-sm); background: #fff; }
@@ -3125,7 +3131,7 @@ html.js .home-story.home-motion-ready [data-home-reveal].is-revealed {
     .home-story .home-charge__head { grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
     .home-story .home-charge__stage { grid-template-columns: minmax(0, 1fr); }
     .home-story .home-charge__stage--finder { grid-template-columns: minmax(0, 1fr); }
-    .finder__results { max-height: 320px; }
+    .home-story .finder__results { max-height: 320px; }
     .home-story .home-charge__media { min-height: 430px; }
     .home-story .home-charge__rail {
         display: grid;
@@ -3214,7 +3220,7 @@ html.js .home-story.home-motion-ready [data-home-reveal].is-revealed {
     .home-story .home-charge__rail-label { padding-bottom: var(--s-5); }
     .finder { padding: var(--s-7) var(--s-5); }
     .finder__field { grid-template-columns: minmax(0, 1fr); }
-    .finder__results { max-height: 300px; }
+    .home-story .finder__results { max-height: 300px; }
     .home-story .home-charge__action { grid-template-columns: 24px minmax(0, 1fr) 24px; gap: var(--s-3); }
     .home-story .home-feature { padding-block: var(--s-6); }
     .home-story .home-feature .wrap { width: min(calc(100% - 32px), var(--wrap)); }
