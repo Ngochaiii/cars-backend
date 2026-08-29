@@ -17,24 +17,24 @@ class JsonLd
     public static function forProduct(Model $product): array
     {
         $data = [
-            '@context'    => 'https://schema.org',
-            '@type'       => 'Product',
-            'name'        => $product->name,
+            '@context' => 'https://schema.org',
+            '@type' => 'Product',
+            'name' => $product->name,
             'description' => $product->tagline ?? data_get($product->seo, 'description'),
-            'url'         => Url::absolute('product', $product->slug),
+            'url' => data_get($product->seo, 'canonical') ?: Url::absolute('product', $product->slug),
         ];
 
-        if ($image = data_get($product->hero, 'src')) {
-            $data['image'] = static::asset($image);
+        if ($image = data_get($product->seo, 'image') ?: data_get($product->hero, 'src')) {
+            $data['image'] = Url::asset($image);
         }
 
         // Có giá thì thêm Offer để hiện giá trên kết quả tìm kiếm
         if (filled($product->price_from)) {
             $data['offers'] = [
-                '@type'         => 'Offer',
-                'price'         => (string) $product->price_from,
+                '@type' => 'Offer',
+                'price' => (string) $product->price_from,
                 'priceCurrency' => 'VND',
-                'availability'  => 'https://schema.org/InStock',
+                'availability' => 'https://schema.org/InStock',
             ];
         }
 
@@ -45,14 +45,14 @@ class JsonLd
     public static function forPost(Model $post): array
     {
         return array_filter([
-            '@context'      => 'https://schema.org',
-            '@type'         => 'Article',
-            'headline'      => $post->title,
-            'description'   => $post->excerpt,
-            'url'           => Url::absolute('post', $post->slug),
-            'image'         => $post->cover ? static::asset($post->cover) : null,
+            '@context' => 'https://schema.org',
+            '@type' => 'Article',
+            'headline' => $post->title,
+            'description' => $post->excerpt,
+            'url' => data_get($post->seo, 'canonical') ?: Url::absolute('post', $post->slug),
+            'image' => Url::asset(data_get($post->seo, 'image') ?: $post->cover),
             'datePublished' => $post->published_at?->toAtomString(),
-            'dateModified'  => $post->updated_at?->toAtomString(),
+            'dateModified' => $post->updated_at?->toAtomString(),
         ]);
     }
 
@@ -60,13 +60,13 @@ class JsonLd
     public static function forBreadcrumb(array $items): array
     {
         return [
-            '@context'        => 'https://schema.org',
-            '@type'           => 'BreadcrumbList',
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
             'itemListElement' => array_map(fn (array $item, int $i): array => [
-                '@type'    => 'ListItem',
+                '@type' => 'ListItem',
                 'position' => $i + 1,
-                'name'     => $item['name'],
-                'item'     => $item['url'] ?? null,
+                'name' => $item['name'],
+                'item' => $item['url'] ?? null,
             ], $items, array_keys($items)),
         ];
     }
@@ -79,11 +79,11 @@ class JsonLd
 
         return array_filter([
             '@context' => 'https://schema.org',
-            '@type'    => 'Organization',
-            'name'     => $name,
-            'url'      => rtrim(config('app.url'), '/'),
-            'logo'     => $logo ? static::asset($logo) : null,
-            'sameAs'   => array_values(array_filter(
+            '@type' => 'Organization',
+            'name' => $name,
+            'url' => rtrim(config('app.url'), '/'),
+            'logo' => Url::asset($logo),
+            'sameAs' => array_values(array_filter(
                 config('catalog.seo.organization.sameAs')
                     ?: [Setting::get('facebook'), Setting::get('youtube'), Setting::get('tiktok')]
             )),
@@ -96,14 +96,5 @@ class JsonLd
         return '<script type="application/ld+json">'
             .json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
             .'</script>';
-    }
-
-    protected static function asset(string $path): string
-    {
-        if (str_starts_with($path, 'http')) {
-            return $path;
-        }
-
-        return rtrim(config('app.url'), '/').'/storage/'.ltrim($path, '/');
     }
 }

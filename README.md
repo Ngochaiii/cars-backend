@@ -26,18 +26,20 @@ app/
 
 config/catalog.php        labels · features · section_presets · frontend · routes · seo
 resources/views/frontend/ giao diện public (Blade)
-public/css/frontend.css   CSS của frontend — viết tay, không build
+public/css/frontend.css   CSS giao diện ô tô — viết tay, không build
+public/js/frontend.js     JS thuần cho menu, carousel, màu xe và tabs
 database/migrations/      toàn bộ schema
 tests/                    104 test
 ```
 
 ## Frontend
 
-Blade render thẳng trong app, **không Vite, không Tailwind, không JS**.
+Blade render thẳng trong app. Giao diện public dùng CSS và JavaScript
+thuần, không phụ thuộc framework frontend hay Vite khi chạy production.
 
-`public/css/frontend.css` **cố ý tối thiểu** (~145 dòng): chỉ đủ để trang đọc
-được khi soi thử luồng chạy. Giao diện thật làm ở nơi khác rồi dán đè vào file
-này — tên class trong Blade giữ nguyên nên không phải sửa view.
+Banner trang chủ và hero từng xe có ảnh desktop/mobile riêng. Trang chi
+tiết hỗ trợ phiên bản, bảng màu, brochure riêng, gallery, tabs,
+thông số, so sánh chi phí, trả góp và form tư vấn.
 
 | Trang | URL (tiền tố lấy từ `config('catalog.routes')`) |
 |---|---|
@@ -115,8 +117,9 @@ thể xanh mà production vẫn hỏng.
 - PHP 8.3+
 - MariaDB 10.4+ / MySQL 8 — `DB_CONNECTION=mariadb` trong `.env`
 
-Không cần Node: frontend là CSS tĩnh, admin dùng asset Filament đã publish sẵn
-trong `public/js`, `public/css`.
+Node chỉ cần khi muốn chạy `npm run build` để kiểm tra bộ asset Vite
+mặc định; frontend khách xem vẫn nạp file tĩnh trong `public/js` và
+`public/css`.
 
 ## Làm hãng mới
 

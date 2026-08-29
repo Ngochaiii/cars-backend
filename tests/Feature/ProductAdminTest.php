@@ -7,9 +7,9 @@ use App\Filament\Resources\Products\Pages\EditProduct;
 use App\Filament\Resources\Products\Pages\ListProducts;
 use App\Models\Product;
 use App\Models\Template;
-use Tests\TestCase;
-use Livewire\Livewire;
 use App\Models\User;
+use Livewire\Livewire;
+use Tests\TestCase;
 
 class ProductAdminTest extends TestCase
 {
@@ -32,7 +32,7 @@ class ProductAdminTest extends TestCase
     public function test_cot_so_muc_dem_dung_so_section(): void
     {
         Product::create([
-            'name'     => 'Lexus GX 550',
+            'name' => 'Lexus GX 550',
             'sections' => [
                 ['title' => 'Thư viện', 'items' => []],
                 ['title' => 'Mâm xe', 'items' => []],
@@ -49,15 +49,15 @@ class ProductAdminTest extends TestCase
     {
         Livewire::test(CreateProduct::class)
             ->fillForm([
-                'name'     => 'Lexus LX 600',
-                'slug'     => 'lexus-lx-600',
-                'status'   => 'draft',
+                'name' => 'Lexus LX 600',
+                'slug' => 'lexus-lx-600',
+                'status' => 'draft',
                 'sections' => [[
-                    'title'  => 'Thư viện',
-                    'type'   => 'media',
+                    'title' => 'Thư viện',
+                    'type' => 'media',
                     'layout' => 'slider',
                     // state của FileUpload là mảng đường dẫn, không phải chuỗi
-                    'items'  => [['image' => ['gallery-01.webp'], 'label' => 'Ngoại thất', 'desc' => '']],
+                    'items' => [['image' => ['gallery-01.webp'], 'label' => 'Ngoại thất', 'desc' => '']],
                 ]],
                 'specs' => [['group' => 'Động cơ', 'rows' => [['label' => 'Dung tích', 'value' => '3.4L']]]],
             ])
@@ -86,30 +86,36 @@ class ProductAdminTest extends TestCase
     public function test_form_sua_nap_dung_du_lieu_da_luu(): void
     {
         $product = Product::create([
-            'name'       => 'Lexus GX 550',
-            'tagline'    => 'Bản lĩnh chinh phục',
-            'status'     => 'published',
+            'name' => 'Lexus GX 550',
+            'tagline' => 'Bản lĩnh chinh phục',
+            'status' => 'published',
             'highlights' => [['value' => '349', 'unit' => 'mã lực', 'label' => 'Công suất']],
         ]);
 
         Livewire::test(EditProduct::class, ['record' => $product->getRouteKey()])
             ->assertSuccessful()
             ->assertFormSet([
-                'name'    => 'Lexus GX 550',
+                'name' => 'Lexus GX 550',
                 'tagline' => 'Bản lĩnh chinh phục',
-                'status'  => 'published',
+                'status' => 'published',
             ]);
     }
 
     public function test_nhan_ban_copy_nguyen_sections_specs_va_phien_ban(): void
     {
         $product = Product::create([
-            'name'     => 'Lexus GX 550',
-            'status'   => 'published',
+            'name' => 'Lexus GX 550',
+            'status' => 'published',
             'sections' => [['title' => 'Mâm xe', 'type' => 'media', 'layout' => 'cols-2', 'items' => []]],
-            'specs'    => [['group' => 'Động cơ', 'rows' => []]],
+            'specs' => [['group' => 'Động cơ', 'rows' => []]],
         ]);
-        $product->variants()->create(['name' => 'Luxury', 'price' => 100]);
+        $product->variants()->create([
+            'name' => 'Luxury',
+            'price' => 100,
+            'battery_kwh' => 75.3,
+            'range_km' => 496,
+            'is_default' => true,
+        ]);
         $product->options()->create(['name' => 'Caviar Black']);
 
         $copy = $product->duplicate('Lexus GX 550 (2026)');
@@ -120,21 +126,45 @@ class ProductAdminTest extends TestCase
         $this->assertSame($product->sections, $copy->sections);
         $this->assertSame($product->specs, $copy->specs);
         $this->assertSame(['Luxury'], $copy->variants->pluck('name')->all());
+        $this->assertSame('75.30', $copy->variants->first()->battery_kwh);
+        $this->assertSame(496, $copy->variants->first()->range_km);
+        $this->assertTrue($copy->variants->first()->is_default);
         $this->assertSame(['Caviar Black'], $copy->options->pluck('name')->all());
+    }
+
+    public function test_moi_xe_chi_co_mot_phien_ban_mac_dinh(): void
+    {
+        $product = Product::create([
+            'name' => 'VF 7',
+            'status' => 'draft',
+        ]);
+
+        $base = $product->variants()->create([
+            'name' => 'Base',
+            'is_default' => true,
+        ]);
+        $plus = $product->variants()->create([
+            'name' => 'Plus',
+            'is_default' => true,
+        ]);
+
+        $this->assertFalse($base->refresh()->is_default);
+        $this->assertTrue($plus->refresh()->is_default);
+        $this->assertSame(1, $product->variants()->where('is_default', true)->count());
     }
 
     public function test_mau_bo_cuc_giu_khung_muc_nhung_xoa_noi_dung(): void
     {
         $template = Template::create([
-            'name'        => 'Bố cục Lexus',
+            'name' => 'Bố cục Lexus',
             'entity_type' => 'product',
-            'payload'     => [
+            'payload' => [
                 'sections' => [[
-                    'title'  => 'Ngoại thất',
-                    'intro'  => 'Thiết kế lấy cảm hứng từ du thuyền.',
-                    'type'   => 'media',
+                    'title' => 'Ngoại thất',
+                    'intro' => 'Thiết kế lấy cảm hứng từ du thuyền.',
+                    'type' => 'media',
                     'layout' => 'cols-3',
-                    'items'  => [['image' => 'a.webp', 'label' => 'Zenith Grey']],
+                    'items' => [['image' => 'a.webp', 'label' => 'Zenith Grey']],
                 ]],
             ],
         ]);

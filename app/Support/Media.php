@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Console\Commands\BuildImageVariants;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -11,6 +12,9 @@ use Illuminate\Support\Str;
  */
 class Media
 {
+    /** @var array<string,array>|null */
+    private static ?array $manifest = null;
+
     /**
      * URL của một ảnh. Nhận cả:
      *   - đường dẫn trên disk public: `catalog/sections/a.webp`
@@ -32,6 +36,99 @@ class Media
         }
 
         return Storage::disk('public')->url($path);
+    }
+
+    /**
+     * srcset cho một ảnh, dựng từ các biến thể `php artisan catalog:images`
+     * đã sinh. Trả null khi ảnh chưa có biến thể (link ngoài, ảnh vừa upload
+     * chưa chạy lệnh) — lúc đó Blade chỉ đặt src như cũ, không vỡ gì.
+     */
+    public static function srcset(mixed $path): ?string
+    {
+        $entry = self::manifestEntry($path);
+
+        if (! $entry || empty($entry['v'])) {
+            return null;
+        }
+
+        $rel = self::normalise($path);
+
+        $parts = array_map(
+            fn (int $w) => Storage::disk('public')->url(BuildImageVariants::variantPath($rel, $w)).' '.$w.'w',
+            $entry['v'],
+        );
+
+        // Chỉ đưa bản gốc vào khi nó không lớn hơn bậc lớn nhất. Ảnh gốc 5760px
+        // mà nằm trong srcset thì màn Retina sẽ chọn đúng nó (1440 logical =
+        // 2880 device px), và ta lại tải về đúng tấm 867 KB muốn tránh.
+        if ($entry['w'] <= max(BuildImageVariants::WIDTHS)) {
+            $parts[] = Storage::disk('public')->url($rel).' '.$entry['w'].'w';
+        }
+
+        return implode(', ', $parts);
+    }
+
+    /**
+     * Kích thước thật của ảnh: `['w' => 1920, 'h' => 1080]`, hoặc null.
+     * Đặt được width/height lên <img> thì trình duyệt chừa sẵn chỗ và trang
+     * không bị giật khi ảnh tải xong.
+     */
+    public static function dimensions(mixed $path): ?array
+    {
+        $entry = self::manifestEntry($path);
+
+        return $entry ? ['w' => $entry['w'], 'h' => $entry['h']] : null;
+    }
+
+    /** Đường dẫn tương đối trên disk public, hoặc null nếu là link ngoài. */
+    private static function normalise(mixed $path): ?string
+    {
+        if (is_array($path)) {
+            $path = reset($path) ?: null;
+        }
+
+        if (blank($path) || ! is_string($path)) {
+            return null;
+        }
+
+        // Blade phần lớn đã gọi catalog_image() trước, nên thứ truyền vào đây
+        // thường là URL đầy đủ. Gỡ ngược về đường dẫn trên disk để tra manifest.
+        $base = Storage::disk('public')->url('');
+
+        if (Str::startsWith($path, $base)) {
+            return Str::after($path, $base);
+        }
+
+        if (Str::startsWith($path, ['http://', 'https://', '//', 'data:'])) {
+            return null;
+        }
+
+        if (Str::contains($path, '/storage/')) {
+            return Str::after($path, '/storage/');
+        }
+
+        return Str::startsWith($path, '/') ? null : $path;
+    }
+
+    private static function manifestEntry(mixed $path): ?array
+    {
+        $rel = self::normalise($path);
+
+        return $rel ? (self::manifest()[$rel] ?? null) : null;
+    }
+
+    /** Manifest đọc một lần cho mỗi request. */
+    private static function manifest(): array
+    {
+        if (self::$manifest !== null) {
+            return self::$manifest;
+        }
+
+        $disk = Storage::disk('public');
+
+        return self::$manifest = $disk->exists(BuildImageVariants::MANIFEST)
+            ? (json_decode($disk->get(BuildImageVariants::MANIFEST), true) ?: [])
+            : [];
     }
 
     /**

@@ -9,12 +9,29 @@ class ProductVariant extends Model
 {
     protected $guarded = [];
 
+    protected static function booted(): void
+    {
+        static::saved(function (ProductVariant $variant): void {
+            if (! $variant->is_default || ! $variant->product_id) {
+                return;
+            }
+
+            static::query()
+                ->where('product_id', $variant->product_id)
+                ->whereKeyNot($variant->getKey())
+                ->where('is_default', true)
+                ->update(['is_default' => false]);
+        });
+    }
+
     protected function casts(): array
     {
         return [
-            'price'          => 'decimal:2',
+            'price' => 'decimal:2',
             'price_original' => 'decimal:2',
-            'is_default'     => 'boolean',
+            'battery_kwh' => 'decimal:2',
+            'range_km' => 'integer',
+            'is_default' => 'boolean',
         ];
     }
 

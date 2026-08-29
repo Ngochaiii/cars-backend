@@ -10,10 +10,13 @@ class PostController extends Controller
 {
     public function __invoke(Post $post): View
     {
-        abort_unless($post->status === 'published', 404);
+        abort_unless(
+            $post->newQuery()->published()->whereKey($post->getKey())->exists(),
+            404
+        );
 
         return view('frontend.post', [
-            'post'     => $post->load('category'),
+            'post' => $post->load('category'),
             'sections' => $post->renderableSections(),
         ]);
     }

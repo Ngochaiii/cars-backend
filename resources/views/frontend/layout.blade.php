@@ -9,8 +9,13 @@
     tải xong frontend.css, parse, rồi mới đi lấy font — chậm hơn hẳn.
 --}}
 @php
-    $siteName = catalog_setting('site_name', config('app.name'));
-    $favicon  = catalog_image(catalog_setting('favicon'));
+    $siteName        = catalog_setting('site_name', config('app.name'));
+    $favicon         = catalog_image(catalog_setting('favicon'));
+    $pageTitle       = $title ?? $siteName;
+    $pageDescription = $description ?? null;
+    $pageCanonical   = $canonical ?? request()->url();
+    $pageImage       = $ogImage ?? null;
+    $pageType        = $ogType ?? 'website';
 @endphp
 <!DOCTYPE html>
 <html lang="vi">
@@ -18,23 +23,35 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{{ $title ?? $siteName }}</title>
+    <title>{{ $pageTitle }}</title>
+    <meta name="theme-color" content="#ffffff">
 
-    @isset($description)
-        <meta name="description" content="{{ $description }}">
-    @endisset
-    @isset($canonical)
-        <link rel="canonical" href="{{ $canonical }}">
-    @endisset
+    @if (filled($pageDescription))
+        <meta name="description" content="{{ $pageDescription }}">
+    @endif
+    <link rel="canonical" href="{{ $pageCanonical }}">
 
-    <meta property="og:type" content="website">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:type" content="{{ $pageType }}">
     <meta property="og:site_name" content="{{ $siteName }}">
-    <meta property="og:title" content="{{ $title ?? $siteName }}">
-    @isset($description)
-        <meta property="og:description" content="{{ $description }}">
-    @endisset
-    @if (! empty($ogImage))
-        <meta property="og:image" content="{{ $ogImage }}">
+    <meta property="og:title" content="{{ $pageTitle }}">
+    <meta property="og:url" content="{{ $pageCanonical }}">
+    @if (filled($pageDescription))
+        <meta property="og:description" content="{{ $pageDescription }}">
+    @endif
+    @if (filled($pageImage))
+        <meta property="og:image" content="{{ $pageImage }}">
+        <meta property="og:image:alt" content="{{ $pageTitle }}">
+    @endif
+
+    <meta name="twitter:card" content="{{ filled($pageImage) ? 'summary_large_image' : 'summary' }}">
+    <meta name="twitter:title" content="{{ $pageTitle }}">
+    @if (filled($pageDescription))
+        <meta name="twitter:description" content="{{ $pageDescription }}">
+    @endif
+    @if (filled($pageImage))
+        <meta name="twitter:image" content="{{ $pageImage }}">
+        <meta name="twitter:image:alt" content="{{ $pageTitle }}">
     @endif
 
     @if ($favicon)

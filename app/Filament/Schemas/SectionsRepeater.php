@@ -137,6 +137,30 @@ class SectionsRepeater
                     ->columnSpanFull()
                     ->visible(fn (Get $get) => in_array($get('type'), ['media', null], true)),
 
+                /*
+                 * Nút hành động của mục. Hiện dùng cho bố cục `bleed` (băng ảnh
+                 * tràn màn) — băng ảnh không có nút thì khách đọc xong không
+                 * biết bấm vào đâu. Bỏ trống cả nhãn hoặc link thì nút tự ẩn.
+                 */
+                TextInput::make('cta_label')
+                    ->label('Nút 1 — chữ trên nút')
+                    ->placeholder('VD: Đăng ký lái thử')
+                    ->visible(fn (Get $get) => $get('layout') === 'bleed'),
+
+                TextInput::make('cta_url')
+                    ->label('Nút 1 — link')
+                    ->placeholder('/dat-coc')
+                    ->visible(fn (Get $get) => $get('layout') === 'bleed'),
+
+                TextInput::make('cta2_label')
+                    ->label('Nút 2 — chữ trên nút')
+                    ->helperText('Không bắt buộc.')
+                    ->visible(fn (Get $get) => $get('layout') === 'bleed'),
+
+                TextInput::make('cta2_url')
+                    ->label('Nút 2 — link')
+                    ->visible(fn (Get $get) => $get('layout') === 'bleed'),
+
                 Repeater::make('items')
                     ->label('Ảnh trong mục')
                     ->addActionLabel('+ Thêm ảnh')
@@ -153,13 +177,49 @@ class SectionsRepeater
                             ->disk('public')
                             ->imagePreviewHeight('120'),
 
+                        /*
+                         * Cùng một ô nhưng vai trò đổi theo bố cục, nên đổi cả
+                         * nhãn lẫn lời nhắc — với `tabs` đây là TÊN TAB, bỏ
+                         * trống thì tab chỉ còn số 01/02/03 trơ trọi.
+                         */
                         TextInput::make('label')
-                            ->label('Nhãn')
-                            ->helperText('Bỏ trống thì không render.'),
+                            ->label(fn (Get $get) => match ($get('../../layout')) {
+                                'tabs' => 'Tên tab',
+                                'hotspot' => 'Tên điểm',
+                                default => 'Nhãn',
+                            })
+                            ->helperText(fn (Get $get) => match ($get('../../layout')) {
+                                'tabs' => 'Chữ hiện trên tab, cạnh số thứ tự. Bỏ trống thì tab chỉ có số.',
+                                'hotspot' => 'Tiêu đề hiện khi rê chuột vào chấm.',
+                                'feature-rows' => 'Tiêu đề của hàng này.',
+                                default => 'Bỏ trống thì không render.',
+                            }),
 
                         Textarea::make('desc')
                             ->label('Mô tả')
                             ->rows(2),
+
+                        /*
+                         * Chỉ dùng cho bố cục `hotspot`: ảnh của mục ĐẦU TIÊN
+                         * là ảnh nền, mỗi mục sau là một chấm đặt lên ảnh đó.
+                         * Toạ độ tính theo phần trăm chiều rộng/cao của ảnh,
+                         * gốc ở góc trên trái — 50/50 là chính giữa.
+                         */
+                        TextInput::make('x')
+                            ->label('Chấm — ngang (%)')
+                            ->helperText('0 = mép trái, 100 = mép phải.')
+                            ->numeric()
+                            ->minValue(0)
+                            ->maxValue(100)
+                            ->visible(fn (Get $get) => $get('../../layout') === 'hotspot'),
+
+                        TextInput::make('y')
+                            ->label('Chấm — dọc (%)')
+                            ->helperText('0 = mép trên, 100 = mép dưới. Bỏ trống thì không vẽ chấm.')
+                            ->numeric()
+                            ->minValue(0)
+                            ->maxValue(100)
+                            ->visible(fn (Get $get) => $get('../../layout') === 'hotspot'),
                     ])
                     ->columnSpanFull()
                     ->visible(fn (Get $get) => in_array($get('type'), ['media', 'video', null], true)),

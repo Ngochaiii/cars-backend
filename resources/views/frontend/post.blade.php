@@ -1,8 +1,9 @@
 @extends('frontend.layout', [
     'title'       => data_get($post->seo, 'title', $post->title),
     'description' => data_get($post->seo, 'description', $post->excerpt),
-    'canonical'   => \App\Support\Url::absolute('post', $post->slug),
-    'ogImage'     => catalog_image($post->cover),
+    'canonical'   => data_get($post->seo, 'canonical') ?: \App\Support\Url::absolute('post', $post->slug),
+    'ogImage'     => \App\Support\Url::asset(data_get($post->seo, 'image') ?: $post->cover),
+    'ogType'      => 'article',
     'jsonld'      => \App\Support\JsonLd::forPost($post),
 ])
 
@@ -28,7 +29,7 @@
 
         <div class="article__cover">
             @if ($cover = catalog_image($post->cover))
-                <img src="{{ $cover }}" alt="{{ $post->title }}">
+                <x-img :src="$cover" :alt="$post->title" sizes="(max-width: 960px) 100vw, 900px" eager />
             @else
                 <div class="ph" style="height:100%">[ ảnh bài viết ]</div>
             @endif

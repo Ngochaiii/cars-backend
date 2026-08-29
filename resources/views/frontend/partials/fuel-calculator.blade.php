@@ -48,7 +48,7 @@
     <div class="fuel-calc__panel fuel-calc__result" id="fuel-calc">
         @if ($heroImage)
             <div class="fuel-calc__media">
-                <img src="{{ $heroImage }}" alt="{{ $product->name }}" loading="lazy">
+                <x-img :src="$heroImage" :alt="$product->name" sizes="(max-width: 960px) 100vw, 50vw" />
             </div>
         @endif
 

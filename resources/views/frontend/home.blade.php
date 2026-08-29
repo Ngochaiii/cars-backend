@@ -22,18 +22,83 @@
         $fromBanner = $banners->isNotEmpty();
         $lead       = $products->first();
 
+        // Coverflow ưu tiên xe có ảnh để hai thẻ xem trước không biến thành
+        // ô placeholder. Nếu dữ liệu chưa có ảnh nào thì vẫn lùi về danh sách
+        // đầy đủ để trang không mất nội dung.
+        $discoveryProducts = $products
+            ->filter(fn ($product) => filled(catalog_image(data_get($product->hero, 'src'))))
+            ->values();
+        if ($discoveryProducts->isEmpty()) {
+            $discoveryProducts = $products;
+        }
+
+        // Coverflow chỉ giới thiệu vài xe nổi bật — phần "xem hết dải" do lưới
+        // .model-grid bên dưới lo. Thứ tự lấy theo cột `sort`, nên muốn đổi xe
+        // nào lên đầu thì kéo lại thứ tự mặt hàng trong admin.
+        $featured = $discoveryProducts->take(3);
+
         // Tab coverflow = danh mục có hàng, kèm số lượng. Mỗi danh mục chỉ có
         // đúng 1 xe thì tab thành vô nghĩa (bấm cái nào cũng ra 1 xe) — bỏ hẳn
         // dải tab, để coverflow chạy thẳng trên toàn bộ danh sách.
-        $byCategory = $products->groupBy('category_id');
+        $byCategory = $featured->groupBy('category_id');
         $tabs = $byCategory->contains(fn ($group) => $group->count() > 1)
-            ? $products->pluck('category')->filter()->unique('id')->values()
+            ? $featured->pluck('category')->filter()->unique('id')->values()
             : collect();
+
+        $depositUrl = Route::has('booking')
+            ? route('booking', ['hinh-thuc' => 'dat-coc'])
+            : ($lead ? route('products.show', $lead->slug).'#form-dat-coc' : null);
+        $testDriveUrl = Route::has('booking')
+            ? route('booking', ['hinh-thuc' => 'dat-lich-lai-thu'])
+            : ($lead ? route('products.show', $lead->slug).'#form-dat-lich-lai-thu' : null);
+        $runningCostUrl = $lead ? route('products.show', $lead->slug).'#fuel-calc' : null;
+        $serviceUrl = Route::has('services')
+            ? route('services')
+            : (catalog_feature('posts') ? route('posts.index') : null);
+        $leadImage = $lead ? catalog_image(data_get($lead->hero, 'src')) : null;
+
+        $customerTools = collect([
+            [
+                'number' => '01',
+                'name' => 'Khám phá dòng xe',
+                'sub' => 'So sánh thiết kế, quãng đường và trang bị để tìm chiếc xe dành cho bạn.',
+                'url' => route('products.index'),
+                'feature' => true,
+            ],
+            [
+                'number' => '02',
+                'name' => 'Đặt cọc trực tuyến',
+                'sub' => 'Giữ suất xe nhanh, quy trình minh bạch và được hỗ trợ xuyên suốt.',
+                'url' => $depositUrl,
+            ],
+            [
+                'number' => '03',
+                'name' => 'Trải nghiệm lái thử',
+                'sub' => 'Chọn khung giờ phù hợp tại nhà hoặc trực tiếp ở showroom.',
+                'url' => $testDriveUrl,
+            ],
+            [
+                'number' => '04',
+                'name' => 'Tính chi phí sở hữu',
+                'sub' => 'Đối chiếu chi phí điện với xe xăng, dầu theo hành trình thực tế.',
+                'url' => $runningCostUrl,
+            ],
+            [
+                'number' => '05',
+                'name' => Route::has('services') ? 'Sạc & chăm sóc xe' : 'Tin tức & ưu đãi',
+                'sub' => Route::has('services')
+                    ? 'Tìm điểm sạc, lịch bảo dưỡng và dịch vụ đồng hành gần bạn.'
+                    : 'Theo dõi chương trình mới và tin tức tại đại lý.',
+                'url' => $serviceUrl,
+            ],
+        ])->filter(fn ($tool) => filled($tool['url']))->values();
     @endphp
+
+    <div class="home-story" data-home-story>
 
     {{-- ── Hero carousel ──────────────────────────────────────────────── --}}
     @if ($slides->isNotEmpty())
-        <section class="hero hero--carousel" data-hero>
+        <section class="hero hero--carousel home-hero" data-hero data-home-hero aria-label="Chương trình nổi bật">
             @foreach ($slides as $i => $slide)
                 @php
                     // Hai nguồn slide dùng chung một khuôn: banner tự khai có
@@ -41,6 +106,10 @@
                     $img = $fromBanner
                         ? catalog_image($slide->image)
                         : catalog_image(data_get($slide->hero, 'src'));
+
+                    $mobileImg = $fromBanner
+                        ? catalog_image($slide->image_mobile)
+                        : catalog_image(data_get($slide->hero, 'mobile_src'));
 
                     // Banner chỉ ảnh vẫn là một link, nên alt PHẢI mô tả được
                     // đích đến — link chỉ chứa ảnh mà alt rỗng thì người dùng
@@ -72,8 +141,12 @@
                      data-hero-slide aria-hidden="{{ $i === 0 ? 'false' : 'true' }}">
                     @if ($img)
                         <div class="hero__media">
-                            <img src="{{ $img }}" alt="{{ $alt }}"
-                                 @if ($i === 0) fetchpriority="high" @else loading="lazy" @endif>
+                            <picture>
+                                @if ($mobileImg)
+                                    <source media="(max-width: 680px)" srcset="{{ $mobileImg }}">
+                                @endif
+                                <x-img :src="$img" :alt="$alt" sizes="100vw" :eager="$i === 0" />
+                            </picture>
                         </div>
                     @endif
 
@@ -124,7 +197,11 @@
                         @foreach ($slides as $i => $slide)
                             <button type="button" class="hero__dot {{ $i === 0 ? 'is-on' : '' }}"
                                     data-hero-dot="{{ $i }}" aria-current="{{ $i === 0 ? 'true' : 'false' }}">
-                                <span class="sr-only">{{ $fromBanner ? $slide->title : $slide->name }}</span>
+                                <span class="sr-only">
+                                    {{ $fromBanner
+                                        ? ($slide->title ?: $slide->cta_label ?: $slide->eyebrow ?: 'Banner '.($i + 1))
+                                        : $slide->name }}
+                                </span>
                             </button>
                         @endforeach
                         <span class="hero__count" data-hero-count>01 / {{ str_pad($slides->count(), 2, '0', STR_PAD_LEFT) }}</span>
@@ -140,73 +217,53 @@
     @endif
 
     {{-- ── Công cụ mua xe ─────────────────────────────────────────────── --}}
-    <section class="tools">
+    <section class="tools home-section" data-home-section aria-labelledby="customer-tools-title">
         <div class="wrap tools__inner">
-            <span class="eyebrow">Công cụ mua xe</span>
+            <div class="tools__head" data-home-reveal>
+                <div>
+                    <span class="eyebrow">Hành trình sở hữu</span>
+                    <h2 id="customer-tools-title">Từ lựa chọn đầu tiên đến mỗi chuyến đi.</h2>
+                </div>
+                <p>Khám phá xe, dự toán chi phí và nhận hỗ trợ tại đại lý trong một hành trình liền mạch.</p>
+            </div>
+
             <div class="tools__grid">
-                <a class="tools__item" href="{{ route('products.index') }}">
-                    <div class="tools__name">Toàn bộ {{ Str::lower(catalog_label('product.plural')) }}</div>
-                    <div class="tools__sub">So sánh giá và thông số từng {{ Str::lower(catalog_label('variant.single')) }}.</div>
-                </a>
-
-                {{-- Có trang đặt cọc riêng thì trỏ thẳng vào đó; không thì
-                     về form nằm cuối trang chi tiết như trước. --}}
-                @if (Route::has('booking'))
-                    <a class="tools__item" href="{{ route('booking', ['hinh-thuc' => 'dat-coc']) }}">
-                        <div class="tools__name">Đặt cọc online</div>
-                        <div class="tools__sub">Giữ suất xe, hoàn cọc trong 7 ngày.</div>
+                @foreach ($customerTools as $tool)
+                    <a class="tools__item {{ ($tool['feature'] ?? false) ? 'tools__item--feature' : '' }}"
+                       href="{{ $tool['url'] }}" data-home-reveal>
+                        @if (($tool['feature'] ?? false) && $leadImage)
+                            <span class="tools__media" data-home-parallax aria-hidden="true">
+                                <x-img :src="$leadImage" alt="" sizes="(max-width: 960px) 100vw, 50vw" />
+                            </span>
+                        @endif
+                        <span class="tools__number" aria-hidden="true">{{ $tool['number'] }}</span>
+                        <span class="tools__copy">
+                            <span class="tools__name">{{ $tool['name'] }}</span>
+                            <span class="tools__sub">{{ $tool['sub'] }}</span>
+                        </span>
+                        <span class="tools__arrow" aria-hidden="true">↗</span>
                     </a>
-                    <a class="tools__item" href="{{ route('booking', ['hinh-thuc' => 'dat-lich-lai-thu']) }}">
-                        <div class="tools__name">Đăng ký lái thử</div>
-                        <div class="tools__sub">Chọn khung giờ, lái thử tại nhà hoặc showroom.</div>
-                    </a>
-                @elseif ($lead)
-                    <a class="tools__item" href="{{ route('products.show', $lead->slug) }}#form-dat-coc">
-                        <div class="tools__name">Đặt cọc online</div>
-                        <div class="tools__sub">Giữ suất xe, hoàn cọc trong 7 ngày.</div>
-                    </a>
-                    <a class="tools__item" href="{{ route('products.show', $lead->slug) }}#form-dat-lich-lai-thu">
-                        <div class="tools__name">Đăng ký lái thử</div>
-                        <div class="tools__sub">Chọn khung giờ, lái thử tại nhà hoặc showroom.</div>
-                    </a>
-                @endif
-
-                @if ($lead)
-                    <a class="tools__item" href="{{ route('products.show', $lead->slug) }}#fuel-calc">
-                        <div class="tools__name">Tính chi phí sử dụng</div>
-                        <div class="tools__sub">So sánh tiền điện với xe xăng, dầu tương đương.</div>
-                    </a>
-                @endif
-
-                @if (Route::has('services'))
-                    <a class="tools__item" href="{{ route('services') }}">
-                        <div class="tools__name">Trạm sạc &amp; dịch vụ</div>
-                        <div class="tools__sub">Điểm sạc trong tỉnh và lịch bảo dưỡng.</div>
-                    </a>
-                @elseif (catalog_feature('posts'))
-                    <a class="tools__item" href="{{ route('posts.index') }}">
-                        <div class="tools__name">Tin tức &amp; ưu đãi</div>
-                        <div class="tools__sub">Chương trình đang chạy tại đại lý.</div>
-                    </a>
-                @endif
+                @endforeach
             </div>
         </div>
     </section>
 
     {{-- ── Coverflow dải sản phẩm ─────────────────────────────────────── --}}
-    <section class="block disc" data-disc>
+    <section class="block disc home-section" data-disc data-home-section>
         <div class="wrap">
             <div class="section__head disc__head">
-                <h2>Khám phá dải sản phẩm</h2>
+                <span class="eyebrow">Ô tô điện VinFast</span>
+                <h2>Xe đang được quan tâm</h2>
+                <p>Ba mẫu bán chạy tại đại lý. Xem cả dải ở ngay bên dưới.</p>
             </div>
 
-            @if ($products->isEmpty())
+            @if ($featured->isEmpty())
                 <p class="empty">Chưa có {{ Str::lower(catalog_label('product.plural')) }} nào được đăng.</p>
             @else
                 @if ($tabs->isNotEmpty())
                     <div class="disc__tabs">
                         <button type="button" class="disc__tab is-on" data-disc-tab="all">
-                            Tất cả <span class="disc__count">{{ $products->count() }}</span>
+                            Tất cả <span class="disc__count">{{ $featured->count() }}</span>
                         </button>
                         @foreach ($tabs as $tab)
                             <button type="button" class="disc__tab" data-disc-tab="{{ $tab->slug }}">
@@ -217,44 +274,63 @@
                     </div>
                 @endif
 
-                <div class="disc__stage" data-disc-stage>
+                <div class="disc__stage" data-disc-stage data-home-reveal>
                     <button type="button" class="arrow arrow--round disc__arrow disc__arrow--prev"
                             data-disc-prev aria-label="Xe trước">‹</button>
 
                     <div class="disc__rail">
-                        @foreach ($products as $car)
+                        @foreach ($featured as $car)
+                            @php
+                                $variant = $car->variants->firstWhere('is_default', true) ?? $car->variants->first();
+                                $priceNow = $car->price_from ?: $variant?->price;
+                                $priceWas = $variant?->price_original;
+                                $stats = collect($car->highlights ?? [])->take(3);
+                            @endphp
                             <article class="disc__item" data-disc-item
                                      data-disc-cat="{{ $car->category->slug ?? 'all' }}">
+                                <span class="disc__watermark" aria-hidden="true">{{ Str::upper($car->name) }}</span>
                                 <a class="disc__media" href="{{ route('products.show', $car->slug) }}">
                                     @if ($img = catalog_image(data_get($car->hero, 'src')))
-                                        <img src="{{ $img }}" alt="{{ $car->name }}" loading="lazy">
+                                        <x-img :src="$img" :alt="$car->name" sizes="(max-width: 960px) 100vw, 640px" />
                                     @else
                                         <span class="ph" style="position:absolute;inset:0">[ {{ $car->name }} ]</span>
                                     @endif
                                 </a>
 
                                 <div class="disc__info">
+                                    @if ($car->category)
+                                        <span class="disc__class">{{ $car->category->name }}</span>
+                                    @endif
                                     <h3 class="disc__name">{{ $car->name }}</h3>
-                                    <p class="disc__meta">
-                                        {{ collect([
-                                            $car->category?->name,
-                                            collect($car->highlights ?? [])->take(2)
-                                                ->map(fn ($h) => trim(($h['value'] ?? '').' '.($h['unit'] ?? '')))
-                                                ->filter()->implode(' · '),
-                                        ])->filter()->implode(' · ') }}
-                                    </p>
+
+                                    @if ($stats->isNotEmpty())
+                                        <dl class="disc__stats">
+                                            @foreach ($stats as $stat)
+                                                <div>
+                                                    <dt>{{ $stat['label'] ?? '' }}</dt>
+                                                    <dd>{{ trim(($stat['value'] ?? '').' '.($stat['unit'] ?? '')) }}</dd>
+                                                </div>
+                                            @endforeach
+                                        </dl>
+                                    @endif
+
+                                    @if ($priceNow)
+                                        <p class="disc__price">
+                                            <span>Giá từ</span>
+                                            <b>{{ catalog_money($priceNow) }}</b>
+                                            @if ($priceWas && $priceWas > $priceNow)
+                                                <s>{{ catalog_money($priceWas) }}</s>
+                                            @endif
+                                        </p>
+                                    @endif
 
                                     <div class="disc__actions">
-                                        <a class="btn" href="{{ route('products.show', $car->slug) }}">Khám phá</a>
-                                        <a class="btn btn--outline"
+                                        <a class="btn btn--outline" href="{{ route('products.show', $car->slug) }}">Xem chi tiết</a>
+                                        <a class="btn btn--accent"
                                            href="{{ Route::has('booking')
                                                ? route('booking', ['xe' => $car->slug])
                                                : route('products.show', $car->slug).'#form-dat-coc' }}">Đặt cọc</a>
                                     </div>
-
-                                    @if ($car->price_from)
-                                        <p class="disc__price">Giá từ {{ catalog_money($car->price_from) }}</p>
-                                    @endif
                                 </div>
                             </article>
                         @endforeach
@@ -264,10 +340,72 @@
                             data-disc-next aria-label="Xe sau">›</button>
                 </div>
 
-                <p class="disc__pager"><span data-disc-count>01 / {{ str_pad($products->count(), 2, '0', STR_PAD_LEFT) }}</span></p>
+                <p class="disc__pager"><span data-disc-count>01 / {{ str_pad($featured->count(), 2, '0', STR_PAD_LEFT) }}</span></p>
             @endif
         </div>
     </section>
 
+    {{-- Lưới toàn dải sản phẩm.
+
+         Coverflow bên trên cho xem từng xe một với ảnh lớn; lưới này cho thấy
+         cả dải cùng lúc để khách so sánh nhanh mà không phải bấm mũi tên năm
+         lần. Cùng nguồn dữ liệu với coverflow nên hai khối không lệch nhau. --}}
+    @if ($discoveryProducts->count() > 1)
+        <section class="block block--soft model-band home-section" data-home-section>
+            <div class="wrap">
+                <div class="section__head" data-home-reveal>
+                    <span class="eyebrow">Toàn bộ dải sản phẩm</span>
+                    <h2>{{ $discoveryProducts->count() }} mẫu xe đang bán</h2>
+                    <p>Xem cả dải cùng lúc để so nhanh, hoặc bấm vào từng xe để đọc chi tiết.</p>
+                </div>
+
+                <ul class="model-grid" data-home-reveal>
+                    @foreach ($discoveryProducts as $car)
+                        @php
+                            $carImg = catalog_image(data_get($car->hero, 'src'));
+                            $carSpecs = collect($car->highlights ?? [])->take(2);
+                        @endphp
+                        <li class="model-tile">
+                            <a class="model-tile__link" href="{{ route('products.show', $car->slug) }}">
+                                <span class="model-tile__media">
+                                    @if ($carImg)
+                                        <x-img :src="$carImg" :alt="$car->name"
+                                               sizes="(max-width: 680px) 100vw, (max-width: 1180px) 45vw, 400px" />
+                                    @else
+                                        <span class="ph" style="position:absolute;inset:0">[ {{ $car->name }} ]</span>
+                                    @endif
+                                </span>
+
+                                <span class="model-tile__body">
+                                    @if ($car->category)
+                                        <span class="model-tile__cat">{{ $car->category->name }}</span>
+                                    @endif
+                                    <span class="model-tile__name">{{ $car->name }}</span>
+                                    @if ($car->price_from)
+                                        <span class="model-tile__price">Từ {{ catalog_money($car->price_from) }}</span>
+                                    @endif
+
+                                    <span class="model-tile__view" aria-hidden="true">Khám phá <b>↗</b></span>
+
+                                    @if ($carSpecs->isNotEmpty())
+                                        <span class="model-tile__specs">
+                                            @foreach ($carSpecs as $spec)
+                                                <span class="model-tile__spec">
+                                                    <b>{{ trim(($spec['value'] ?? '').' '.($spec['unit'] ?? '')) }}</b>
+                                                    <span>{{ $spec['label'] ?? '' }}</span>
+                                                </span>
+                                            @endforeach
+                                        </span>
+                                    @endif
+                                </span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </section>
+    @endif
+
     @include('frontend.partials.home-bands', ['lead' => $lead, 'posts' => $posts])
+    </div>
 @endsection

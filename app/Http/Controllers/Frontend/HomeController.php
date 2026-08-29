@@ -20,7 +20,7 @@ class HomeController extends Controller
             'products' => Catalog::query('product')
                 ->published()
                 ->notInCategory(config('catalog.frontend.accessory_category'))
-                ->with('category')
+                ->with(['category', 'variants'])
                 ->orderBy('sort')
                 ->take((int) config('catalog.frontend.home.products', 8))
                 ->get(),

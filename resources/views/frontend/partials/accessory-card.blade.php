@@ -12,7 +12,7 @@
 <li class="card card--tight">
     <a class="card__media card__media--wide" href="{{ $url }}">
         @if ($image)
-            <img src="{{ $image }}" alt="{{ $product->name }}" loading="lazy">
+            <x-img :src="$image" :alt="$product->name" sizes="(max-width: 680px) 50vw, 280px" />
         @else
             <span class="ph" style="position:absolute;inset:0">[ {{ $product->name }} ]</span>
         @endif

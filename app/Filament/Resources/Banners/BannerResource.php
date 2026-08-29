@@ -80,12 +80,20 @@ class BannerResource extends Resource
                 ->columnSpanFull(),
 
             FileUpload::make('image')
-                ->label('Ảnh nền')
+                ->label('Ảnh desktop')
                 ->image()
                 ->directory('catalog/banners')
                 ->disk('public')
-                ->helperText('Bỏ trống thì banner dùng nền tối, chữ vẫn đọc được. Không ảnh mà cũng không tiêu đề thì banner không hiện.')
-                ->columnSpanFull(),
+                ->helperText('Khuyến nghị tỷ lệ 16:9, tối đa 1920 px. Bỏ trống thì banner dùng nền tối.')
+                ->columnSpan(1),
+
+            FileUpload::make('image_mobile')
+                ->label('Ảnh mobile')
+                ->image()
+                ->directory('catalog/banners')
+                ->disk('public')
+                ->helperText('Khuyến nghị tỷ lệ 4:5. Bỏ trống thì dùng ảnh desktop và tự cắt theo khung.')
+                ->columnSpan(1),
 
             TextInput::make('cta_label')
                 ->label('Nhãn nút')

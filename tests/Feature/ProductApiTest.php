@@ -11,8 +11,8 @@ class ProductApiTest extends TestCase
     protected function product(array $attributes = []): Product
     {
         return Product::create([
-            'name'         => 'Lexus GX 550',
-            'status'       => 'published',
+            'name' => 'Lexus GX 550',
+            'status' => 'published',
             'published_at' => now(),
             ...$attributes,
         ]);
@@ -42,7 +42,7 @@ class ProductApiTest extends TestCase
     public function test_chi_tiet_tra_sections_da_bo_field_trong(): void
     {
         $this->product([
-            'slug'     => 'gx-550',
+            'slug' => 'gx-550',
             'sections' => [[
                 'title' => 'Thư viện', 'intro' => '', 'type' => 'media', 'layout' => 'slider',
                 'items' => [['image' => 'a.webp', 'label' => '', 'desc' => '']],
@@ -58,14 +58,46 @@ class ProductApiTest extends TestCase
     public function test_chi_tiet_kem_phien_ban_va_tuy_chon(): void
     {
         $product = $this->product(['slug' => 'gx-550']);
-        $product->variants()->create(['name' => 'Luxury', 'price' => 100, 'is_default' => true]);
+        $product->variants()->create([
+            'name' => 'Luxury',
+            'price' => 100,
+            'battery_kwh' => 75.3,
+            'range_km' => 496,
+            'is_default' => true,
+        ]);
         $product->options()->create(['name' => 'Caviar Black', 'hex' => '#111111']);
 
         $data = $this->getJson('/api/v1/products/gx-550')->assertOk()->json('data');
 
         $this->assertSame('Luxury', $data['variants'][0]['name']);
+        $this->assertSame('75.30', $data['variants'][0]['battery_kwh']);
+        $this->assertSame(496, $data['variants'][0]['range_km']);
         $this->assertTrue($data['variants'][0]['is_default']);
         $this->assertSame('#111111', $data['options'][0]['hex']);
+    }
+
+    public function test_chi_tiet_tra_ghi_chu_thong_so_brochure_va_canonical_da_nhap(): void
+    {
+        $this->product([
+            'slug' => 'vf-7',
+            'brochure_url' => 'https://example.com/brochures/vf-7.pdf',
+            'spec_notes' => [[
+                'label' => 'An toàn & an ninh',
+                'body' => 'Camera 360 độ và 8 túi khí.',
+            ]],
+            'seo' => [
+                'canonical' => 'https://cars.example/xe-dien-vf-7',
+                'image' => 'catalog/seo/vf-7.webp',
+            ],
+        ]);
+
+        $data = $this->getJson('/api/v1/products/vf-7')->assertOk()->json('data');
+
+        $this->assertSame('https://example.com/brochures/vf-7.pdf', $data['brochure_url']);
+        $this->assertSame('An toàn & an ninh', $data['spec_notes'][0]['label']);
+        $this->assertSame('https://cars.example/xe-dien-vf-7', $data['canonical']);
+        $this->assertSame('https://cars.example/xe-dien-vf-7', $data['jsonld']['url']);
+        $this->assertStringEndsWith('/storage/catalog/seo/vf-7.webp', $data['jsonld']['image']);
     }
 
     public function test_ban_nhap_tra_404(): void

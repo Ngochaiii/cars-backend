@@ -14,6 +14,7 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -103,7 +104,15 @@ class ProductForm
                     ->selectablePlaceholder(false),
 
                 FileUpload::make('hero.src')
-                    ->label('Ảnh nền')
+                    ->label('Ảnh desktop')
+                    ->image()
+                    ->directory('catalog/hero')
+                    ->disk('public')
+                    ->visible(fn (Get $get) => $get('hero.type') !== 'video'),
+
+                FileUpload::make('hero.mobile_src')
+                    ->label('Ảnh mobile')
+                    ->helperText('Khuyến nghị 4:5 hoặc 3:4, chừa vùng an toàn cho tiêu đề và nút.')
                     ->image()
                     ->directory('catalog/hero')
                     ->disk('public')
@@ -175,7 +184,7 @@ class ProductForm
     protected static function variants(): Section
     {
         return Section::make(Catalog::label('variant.plural'))
-            ->description('Không dựng thành mục riêng trên trang. Dùng để lấy giá, giá gạch ở hero và số liệu cho bộ so sánh chi phí.')
+            ->description('Dùng để dựng thẻ phiên bản, lấy giá ở hero và số liệu cho các bộ tính chi phí.')
             ->visible(Catalog::feature('variants'))
             ->collapsible()
             ->schema([
@@ -192,6 +201,24 @@ class ProductForm
                         MoneyInput::make('price', 'Giá'),
                         MoneyInput::make('price_original', 'Giá gạch'),
                         TextInput::make('note')->label('Ghi chú'),
+
+                        /*
+                         * Ảnh riêng của phiên bản. Khách phân biệt Eco với Plus
+                         * bằng ảnh nhanh hơn đọc bảng số. Bỏ trống thì thẻ lùi
+                         * về ảnh hero của xe, không để ô trống.
+                         */
+                        FileUpload::make('image')
+                            ->label('Ảnh phiên bản')
+                            ->helperText('Bỏ trống thì thẻ dùng ảnh chính của xe.')
+                            ->image()
+                            ->directory('catalog/variants')
+                            ->disk('public')
+                            ->imagePreviewHeight('120')
+                            ->columnSpanFull(),
+
+                        Toggle::make('is_default')
+                            ->label('Phiên bản mặc định')
+                            ->helperText('Phiên bản này được dùng trước cho giá, trả góp và so sánh chi phí.'),
 
                         TextInput::make('battery_kwh')
                             ->label('Dung lượng pin (kWh)')
@@ -273,6 +300,44 @@ class ProductForm
                         TextInput::make('label')->label('Tiêu đề')->required(),
                         Textarea::make('body')->label('Nội dung')->rows(3)->required(),
                     ])
+                    ->columnSpanFull(),
+
+                TextInput::make('brochure_url')
+                    ->label('Link brochure riêng của xe')
+                    ->helperText('Mỗi dòng xe dùng một brochure riêng. Bỏ trống thì lùi về link brochure chung trong Cài đặt.')
+                    ->url()
+                    ->columnSpanFull(),
+
+                /*
+                 * Hai cách khai thông số nữa, đặt CẠNH lưới ở trên chứ không
+                 * thay thế: hãng thường phát hành bảng thông số dựng sẵn dạng
+                 * ảnh hoặc PDF, gõ lại từng dòng vào lưới là việc thừa và dễ sai.
+                 * Khai cái nào thì trang hiện cái đó; khai cả ba cũng được.
+                 */
+                FileUpload::make('spec_images')
+                    ->label('Ảnh bảng thông số')
+                    ->helperText('Bảng thông số dựng sẵn dạng ảnh. Kéo thả nhiều tấm nếu bảng dài phải cắt trang.')
+                    ->image()
+                    ->multiple()
+                    ->reorderable()
+                    ->directory('catalog/specs')
+                    ->disk('public')
+                    ->imagePreviewHeight('120')
+                    ->columnSpanFull(),
+
+                FileUpload::make('spec_pdf')
+                    ->label('Tài liệu PDF')
+                    ->helperText('Catalogue hoặc bảng thông số bản PDF. Trang xe hiện nút tải về kèm dung lượng file.')
+                    ->acceptedFileTypes(['application/pdf'])
+                    ->directory('catalog/tai-lieu')
+                    ->disk('public')
+                    ->downloadable()
+                    ->columnSpanFull(),
+
+                TextInput::make('spec_pdf_label')
+                    ->label('Chữ trên nút tải PDF')
+                    ->placeholder('Tải thông số kỹ thuật (PDF)')
+                    ->helperText('Bỏ trống thì dùng chữ mặc định.')
                     ->columnSpanFull(),
             ]);
     }

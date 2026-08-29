@@ -16,7 +16,10 @@ class ProductController extends Controller
 {
     public function __invoke(Product $product, Request $request): View
     {
-        abort_unless($product->status === 'published', 404);
+        abort_unless(
+            $product->newQuery()->published()->whereKey($product->getKey())->exists(),
+            404
+        );
 
         $product->load(['category', 'variants', 'options']);
 

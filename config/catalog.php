@@ -83,6 +83,12 @@ return [
         'carousel' => 'Băng chuyền (mũi tên chuyển ảnh)',
         'tabs' => 'Tab đánh số (01, 02, 03…)',
 
+        // Ba bố cục "điện ảnh", dựng theo cách các hãng xe cao cấp trình bày.
+        'bleed' => 'Băng ảnh tràn hết màn hình',
+        'sticky' => 'Ảnh đứng yên, chữ cuộn qua',
+        'hotspot' => 'Ảnh có chấm tương tác (ảnh đầu là nền, các ảnh sau là điểm)',
+        'feature-rows' => 'Nhiều điểm nhấn xếp hàng (mỗi ảnh một hàng, tự đảo bên)',
+
         // Cho mục kiểu `table`: mỗi dòng thành một ô chỉ số lớn thay vì
         // hàng bảng — dùng ở trang "Về chúng tôi".
         'stats' => 'Dải chỉ số (số to, nhãn nhỏ)',

@@ -11,8 +11,10 @@
 @extends('frontend.layout', [
     'title'       => data_get($product->seo, 'title', $product->name),
     'description' => data_get($product->seo, 'description', $product->tagline),
-    'canonical'   => \App\Support\Url::absolute('product', $product->slug),
-    'ogImage'     => catalog_image(data_get($product->hero, 'src')),
+    'canonical'   => data_get($product->seo, 'canonical') ?: \App\Support\Url::absolute('product', $product->slug),
+    'ogImage'     => \App\Support\Url::asset(data_get($product->seo, 'image') ?: data_get($product->hero, 'src')),
+    'ogType'      => 'product',
+    'bodyClass'   => 'product-page',
     'jsonld'      => \App\Support\JsonLd::forProduct($product),
 ])
 
@@ -26,12 +28,31 @@
         $intro          = data_get($product->hero, 'intro_body') ?: data_get($product->seo, 'description');
         $orderForm      = $forms->first();
 
-        // Link brochure khai ở Cài đặt (chung cho cả hãng) — trống thì nút
-        // brochure không dựng.
-        $brochure       = catalog_setting('brochure_url');
+        // Ưu tiên brochure riêng của xe, sau đó mới lùi về link chung.
+        $brochure       = $product->brochure_url ?: catalog_setting('brochure_url');
+        $hotline        = catalog_setting('hotline');
+        $bookingUrl     = Route::has('booking')
+            ? route('booking', ['xe' => $product->slug])
+            : ($orderForm ? '#form-'.$orderForm->key : '#dang-ky-tu-van');
+        $testDriveUrl   = Route::has('booking')
+            ? route('booking', ['xe' => $product->slug, 'hinh-thuc' => 'dat-lich-lai-thu'])
+            : $bookingUrl;
     @endphp
 
-    <article>
+    <article class="product-story" data-product-story>
+        <nav class="product-nav" aria-label="Điều hướng trang xe" data-product-nav>
+            <div class="wrap product-nav__inner">
+                <a class="product-nav__name" href="#tong-quan">{{ $product->name }}</a>
+                <div class="product-nav__links">
+                    <a href="#tong-quan">Tổng quan</a>
+                    @if ($product->options->isNotEmpty())<a href="#mau-xe">Màu xe</a>@endif
+                    @if ($product->variants->isNotEmpty())<a href="#phien-ban">Phiên bản</a>@endif
+                    @if (filled($product->specs))<a href="#thong-so">Thông số</a>@endif
+                    @if ($loan)<a href="#tra-gop">Trả góp</a>@endif
+                </div>
+                <a class="btn btn--accent btn--sm" href="{{ $bookingUrl }}">Đặt cọc</a>
+            </div>
+        </nav>
         {{-- ── Hero ───────────────────────────────────────────────────── --}}
         @include('frontend.partials.hero', ['product' => $product, 'heroForms' => $forms])
 
@@ -48,7 +69,7 @@
 
         {{-- ── Đoạn mở đầu (lấy từ mô tả SEO, không có thì bỏ) ────────── --}}
         @if (filled($intro) || filled($introTitle))
-            <section class="intro">
+            <section class="intro" id="cau-chuyen">
                 @if (filled($introTitle))
                     <h2>{{ $introTitle }}</h2>
                 @endif
@@ -65,18 +86,32 @@
             </div>
         @endif
 
-        {{-- Bản thiết kế KHÔNG có khối liệt kê phiên bản ở trang chi tiết:
-             phiên bản xuất hiện ở bảng thông số và ở bước chọn xe khi đặt
-             cọc. Dữ liệu phiên bản vẫn dùng để lấy giá, giá gạch và số liệu
-             cho bảng so sánh chi phí — chỉ không dựng thành một mục riêng.
-             Muốn hiện lại thì include partials/variants ở đây. --}}
-
         {{-- ── Bảng màu ───────────────────────────────────────────────── --}}
         @if (catalog_feature('options') && $product->options->isNotEmpty())
-            <section class="section block--tint">
-                {{-- Không tiêu đề: thiết kế để ảnh xe và dãy màu tự nói. --}}
+            <section class="section product-colors block--tint story-section" id="mau-xe" data-story-section>
                 <div class="wrap" style="text-align:center">
+                    <div class="section__head section__head--center">
+                        <span class="eyebrow">Cá nhân hóa chiếc xe của bạn</span>
+                        <h2>Chọn màu {{ $product->name }}</h2>
+                    </div>
                     @include('frontend.partials.options', ['options' => $product->options, 'product' => $product])
+                </div>
+            </section>
+        @endif
+
+        @if (catalog_feature('variants') && $product->variants->isNotEmpty())
+            <section class="section product-trims story-section" id="phien-ban" data-story-section>
+                <div class="wrap">
+                    <div class="section__head section__head--center">
+                        <span class="eyebrow">Giá bán và lựa chọn</span>
+                        <h2>Phiên bản {{ $product->name }}</h2>
+                        <p>Chọn phiên bản phù hợp với nhu cầu di chuyển và ngân sách của bạn.</p>
+                    </div>
+                    @include('frontend.partials.variants', [
+                        'variants' => $product->variants,
+                        'product' => $product,
+                        'bookingUrl' => $bookingUrl,
+                    ])
                 </div>
             </section>
         @endif
@@ -85,13 +120,26 @@
         @include('frontend.partials.sections', ['sections' => $sections])
 
         {{-- ── Thông số kỹ thuật ──────────────────────────────────────── --}}
-        @if (catalog_feature('specs') && filled($product->specs))
-            <section class="section">
+        @php
+            // Ba cách khai thông số độc lập nhau — chỉ cần một cái có dữ liệu
+            // là khối phải hiện, nếu không ảnh/PDF vừa tải lên sẽ biến mất.
+            $coSpecMedia = filled($product->spec_images) || filled($product->spec_pdf);
+        @endphp
+        @if (catalog_feature('specs') && (filled($product->specs) || $coSpecMedia))
+            <section class="section product-specs story-section" id="thong-so" data-story-section>
                 <div class="wrap">
                     <div class="section__head"><h2>{{ catalog_label('specs') }}</h2></div>
-                    @include('frontend.partials.specs', [
-                        'specs' => $product->specs,
-                        'notes' => $product->spec_notes ?? [],
+                    @if (filled($product->specs))
+                        @include('frontend.partials.specs', [
+                            'specs' => $product->specs,
+                            'notes' => $product->spec_notes ?? [],
+                        ])
+                    @endif
+
+                    @include('frontend.partials.spec-media', [
+                        'specImages' => $product->spec_images ?? [],
+                        'specPdf' => $product->spec_pdf,
+                        'specPdfLabel' => $product->spec_pdf_label,
                     ])
 
                     {{-- Hàng nút dưới bảng, như thiết kế. Brochure chỉ hiện
@@ -117,7 +165,7 @@
 
         {{-- ── So sánh chi phí nhiên liệu ─────────────────────────────── --}}
         @if (catalog_feature('fuel_calc') && $fuelCalc)
-            <section class="section block--tint">
+            <section class="section block--tint story-section" data-story-section>
                 <div class="wrap">
                     <div class="section__head">
                         <h2>So sánh giữa {{ $product->name }} và xe động cơ đốt trong</h2>
@@ -130,7 +178,7 @@
 
         {{-- ── Trả góp ────────────────────────────────────────────────── --}}
         @if ($loan)
-            <section class="section" id="tra-gop">
+            <section class="section story-section" id="tra-gop" data-story-section>
                 <div class="wrap">
                     <div class="section__head">
                         <h2>Trả góp {{ $product->name }}</h2>
@@ -143,7 +191,7 @@
 
         {{-- Form(s) cuối trang: khoá khai ở config('catalog.frontend.product_forms'). --}}
         @foreach ($forms as $f)
-            <section class="section">
+            <section class="section product-lead story-section" data-story-section>
                 <div class="wrap">
                     <div class="section__head" style="text-align:center">
                         <h2>{{ $f->name }}</h2>
@@ -155,13 +203,13 @@
         @endforeach
 
         {{-- ── Thanh đặt cọc dính đáy ─────────────────────────────────── --}}
-        @if ($orderForm)
-            <div class="order-bar">
+        @if ($orderForm || Route::has('booking'))
+            <div class="order-bar" aria-label="Liên hệ nhanh" data-story-cta>
                 <div class="wrap order-bar__inner">
                     <div class="order-bar__info">
                         <div class="order-bar__thumb">
                             @if ($heroImage)
-                                <img src="{{ $heroImage }}" alt="" aria-hidden="true">
+                                <x-img :src="$heroImage" alt="" aria-hidden="true" sizes="120px" />
                             @endif
                         </div>
                         <div>
@@ -175,7 +223,12 @@
                     </div>
 
                     <div class="order-bar__actions">
-                        <a class="btn btn--accent" href="#form-{{ $orderForm->key }}">{{ $orderForm->name }}</a>
+                        @if (filled($hotline))
+                            <a class="btn btn--outline order-bar__call"
+                               href="tel:{{ preg_replace('/\s+/', '', $hotline) }}">Gọi tư vấn</a>
+                        @endif
+                        <a class="btn btn--accent" href="{{ $bookingUrl }}">Đặt cọc</a>
+                        <a class="order-bar__test" href="{{ $testDriveUrl }}">Đăng ký lái thử</a>
                     </div>
                 </div>
             </div>

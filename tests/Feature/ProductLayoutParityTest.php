@@ -4,9 +4,12 @@ namespace Tests\Feature;
 
 use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\EditProduct;
+use App\Models\Category;
 use App\Models\Form;
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -21,9 +24,25 @@ use Tests\TestCase;
  */
 class ProductLayoutParityTest extends TestCase
 {
+    protected Category $category;
+
     protected function setUp(): void
     {
         parent::setUp();
+
+        Storage::fake('public');
+
+        foreach ([
+            'catalog/hero/vf-7-desktop.jpg',
+            'catalog/hero/vf-7-mobile.jpg',
+            'catalog/options/vf-7-white.jpg',
+            'catalog/seo/vf-7-social.jpg',
+        ] as $path) {
+            Storage::disk('public')->put(
+                $path,
+                UploadedFile::fake()->image(basename($path), 1200, 675)->getContent()
+            );
+        }
 
         $this->actingAs(User::create([
             'name' => 'Admin', 'email' => 'admin@test.local', 'password' => 'x',
@@ -33,6 +52,11 @@ class ProductLayoutParityTest extends TestCase
         $form->fields()->create([
             'key' => 'phone', 'label' => 'Số điện thoại', 'type' => 'tel',
             'rules' => ['required'], 'sort' => 1,
+        ]);
+
+        $this->category = Category::create([
+            'name' => 'SUV điện',
+            'slug' => 'suv-dien',
         ]);
 
         config(['catalog.frontend.product_forms' => ['dang-ky-tu-van']]);
@@ -47,10 +71,14 @@ class ProductLayoutParityTest extends TestCase
             'tagline' => 'Khi phong cách trở thành dấu ấn',
             'status' => 'published',
             'published_at' => now(),
+            'category_id' => $this->category->id,
             'price_from' => 799_000_000,
+            'brochure_url' => 'https://example.com/brochures/vf-7.pdf',
 
             'hero' => [
                 'type' => 'image',
+                'src' => ['catalog/hero/vf-7-desktop.jpg'],
+                'mobile_src' => ['catalog/hero/vf-7-mobile.jpg'],
                 'lede' => 'Thiết kế hoàn toàn mới, công nghệ dẫn đầu.',
                 'intro_title' => 'Thiết kế phong cách cho thế hệ khách hàng hiện đại',
                 'intro_body' => 'Ngoại hình liền mạch, tỷ lệ cân đối, chi tiết tinh giản.',
@@ -62,6 +90,22 @@ class ProductLayoutParityTest extends TestCase
                 ['value' => '496', 'unit' => 'km', 'label' => 'Quãng đường'],
                 ['value' => '75,3', 'unit' => 'kWh', 'label' => 'Dung lượng pin'],
             ],
+
+            'variants' => [[
+                'name' => 'Plus',
+                'price' => 999_000_000,
+                'price_original' => 1_049_000_000,
+                'note' => 'Pin mua kèm xe',
+                'battery_kwh' => 75.3,
+                'range_km' => 496,
+                'is_default' => true,
+            ]],
+
+            'options' => [[
+                'name' => 'Brahminy White',
+                'hex' => '#f4f1e8',
+                'image' => ['catalog/options/vf-7-white.jpg'],
+            ]],
 
             'sections' => [
                 ['title' => 'Tech Fluid — dòng chảy công nghệ', 'intro' => 'Đoạn mở đầu.',
@@ -96,7 +140,12 @@ class ProductLayoutParityTest extends TestCase
                 ['label' => 'Hỗ trợ lái nâng cao ADAS', 'body' => 'Ga tự động thích ứng · Giữ làn.'],
             ],
 
-            'seo' => ['description' => 'Mô tả SEO cho công cụ tìm kiếm.'],
+            'seo' => [
+                'title' => 'VF 7 — SUV điện phong cách',
+                'description' => 'Mô tả SEO cho công cụ tìm kiếm.',
+                'canonical' => 'https://cars.example/vf-7',
+                'image' => ['catalog/seo/vf-7-social.jpg'],
+            ],
         ];
     }
 
@@ -126,6 +175,21 @@ class ProductLayoutParityTest extends TestCase
         $this->assertStringContainsString('Thiết kế hoàn toàn mới, công nghệ dẫn đầu.', $html);
         $this->assertStringContainsString('Thiết kế phong cách cho thế hệ khách hàng hiện đại', $html);
         $this->assertStringContainsString('Ngoại hình liền mạch, tỷ lệ cân đối, chi tiết tinh giản.', $html);
+
+        // Dữ liệu bán hàng/SEO nhập cùng form phải đi hết ra trang khách.
+        $this->assertStringContainsString('Plus', $html);
+        $this->assertStringContainsString('Brahminy White', $html);
+        $this->assertStringContainsString('https://example.com/brochures/vf-7.pdf', $html);
+        $this->assertStringContainsString('<link rel="canonical" href="https://cars.example/vf-7">', $html);
+        $this->assertStringContainsString('/storage/catalog/seo/vf-7-social.jpg', $html);
+
+        $product = Product::where('slug', 'xe-mau-vf-7')->sole();
+
+        $this->assertSame($this->category->id, $product->category_id);
+        $this->assertSame('75.30', $product->variants->sole()->battery_kwh);
+        $this->assertSame(496, $product->variants->sole()->range_km);
+        $this->assertTrue($product->variants->sole()->is_default);
+        $this->assertSame('vf-7-mobile.jpg', basename($product->hero['mobile_src']));
     }
 
     public function test_khong_in_lap_mot_cau_hai_lan(): void

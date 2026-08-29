@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Redirect;
 use App\Models\Setting;
 use App\Support\JsonLd;
+use Illuminate\Http\Request;
 use Tests\TestCase;
 
 class SeoTest extends TestCase
@@ -70,7 +71,7 @@ class SeoTest extends TestCase
     {
         $redirect = Redirect::create(['from_path' => '/cu', 'to_path' => '/moi', 'status_code' => 301]);
 
-        $request = \Illuminate\Http\Request::create('/cu', 'GET');
+        $request = Request::create('/cu', 'GET');
         $response = (new HandleRedirects)->handle($request, fn () => response('không nên tới đây'));
 
         $this->assertSame(301, $response->getStatusCode());
@@ -83,7 +84,7 @@ class SeoTest extends TestCase
     {
         Redirect::create(['from_path' => '/cu', 'to_path' => '/moi', 'status_code' => 301]);
 
-        $request = \Illuminate\Http\Request::create('/cu', 'GET', ['utm_source' => 'fb']);
+        $request = Request::create('/cu', 'GET', ['utm_source' => 'fb']);
         $response = (new HandleRedirects)->handle($request, fn () => response('x'));
 
         $this->assertStringEndsWith('/moi?utm_source=fb', $response->headers->get('Location'));
@@ -93,7 +94,7 @@ class SeoTest extends TestCase
     {
         Redirect::create(['from_path' => '/da-go', 'to_path' => '/', 'status_code' => 410]);
 
-        $request = \Illuminate\Http\Request::create('/da-go', 'GET');
+        $request = Request::create('/da-go', 'GET');
         $response = (new HandleRedirects)->handle($request, fn () => response('x'));
 
         $this->assertSame(410, $response->getStatusCode());
@@ -101,7 +102,7 @@ class SeoTest extends TestCase
 
     public function test_middleware_bo_qua_duong_dan_khong_co_luat(): void
     {
-        $request = \Illuminate\Http\Request::create('/binh-thuong', 'GET');
+        $request = Request::create('/binh-thuong', 'GET');
         $response = (new HandleRedirects)->handle($request, fn () => response('đi tiếp', 200));
 
         $this->assertSame(200, $response->getStatusCode());
@@ -162,6 +163,33 @@ class SeoTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.jsonld.@type', 'Product')
             ->assertJsonPath('data.canonical', 'https://lexus.vn/san-pham/gx-550');
+    }
+
+    public function test_metadata_chia_se_trang_xe_lay_dung_noi_dung_san_pham(): void
+    {
+        Product::create([
+            'name' => 'Lexus RZ 450e',
+            'slug' => 'rz-450e',
+            'status' => 'published',
+            'tagline' => 'Thuần điện, thuần cảm xúc',
+            'hero' => ['type' => 'image', 'src' => 'catalog/rz-450e.webp'],
+            'seo' => [
+                'title' => 'Lexus RZ 450e thuần điện',
+                'description' => 'Khám phá mẫu SUV điện Lexus RZ 450e.',
+            ],
+        ]);
+
+        $this->get('/san-pham/rz-450e')
+            ->assertOk()
+            ->assertSee('<meta property="og:type" content="product">', false)
+            ->assertSee('<meta property="og:title" content="Lexus RZ 450e thuần điện">', false)
+            ->assertSee('<meta property="og:description" content="Khám phá mẫu SUV điện Lexus RZ 450e.">', false)
+            ->assertSee('<meta property="og:url" content="https://lexus.vn/san-pham/rz-450e">', false)
+            ->assertSee('<meta property="og:image" content="https://lexus.vn/storage/catalog/rz-450e.webp">', false)
+            ->assertSee('<meta name="twitter:card" content="summary_large_image">', false)
+            ->assertSee('<meta name="twitter:title" content="Lexus RZ 450e thuần điện">', false)
+            ->assertSee('<meta name="twitter:description" content="Khám phá mẫu SUV điện Lexus RZ 450e.">', false)
+            ->assertSee('<meta name="twitter:image" content="https://lexus.vn/storage/catalog/rz-450e.webp">', false);
     }
 
     public function test_jsonld_organization_lay_tu_settings(): void

@@ -58,7 +58,7 @@
                         <a class="card" href="{{ route('posts.show', $lead->slug) }}">
                             <span class="card__media">
                                 @if ($cover = catalog_image($lead->cover))
-                                    <img src="{{ $cover }}" alt="{{ $lead->title }}">
+                                    <x-img :src="$cover" :alt="$lead->title" sizes="(max-width: 960px) 100vw, 55vw" />
                                 @else
                                     <span class="ph" style="position:absolute;inset:0">[ ảnh bài nổi bật ]</span>
                                 @endif

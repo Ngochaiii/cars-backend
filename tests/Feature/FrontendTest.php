@@ -10,6 +10,7 @@ use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\Product;
 use App\Models\Setting;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 /**
@@ -40,6 +41,12 @@ class FrontendTest extends TestCase
             ->assertOk()
             ->assertSee('Lexus GX 550')
             ->assertDontSee('Lexus LX 700h')
+            ->assertSee('data-home-story', false)
+            ->assertSee('data-home-hero', false)
+            ->assertSee('Hành trình sở hữu')
+            ->assertSee('Từ lựa chọn đầu tiên')
+            ->assertSee('tools__item--feature', false)
+            ->assertSee('data-home-reveal', false)
             ->assertSee('Lexus Việt Nam')      // tên site trong header
             ->assertSee('1800 6088');          // hotline
     }
@@ -77,10 +84,8 @@ class FrontendTest extends TestCase
     // --- Trang chi tiết mặt hàng ---
 
     /**
-     * Trang chi tiết bám bản thiết kế: hero lấy TAGLINE làm tiêu đề và hiện
-     * giá rút gọn ("5,99 tỷ"), không dựng mục liệt kê phiên bản riêng. Phiên
-     * bản vẫn nằm trong DB và vẫn cấp giá cho hero, bảng so sánh chi phí và
-     * bước chọn xe khi đặt cọc — chỉ không render thành một khối trên trang.
+     * Trang chi tiết bám bản thiết kế: hero lấy TAGLINE làm tiêu đề,
+     * hiện giá rút gọn và dựng các phiên bản thành thẻ chọn rõ ràng.
      */
     public function test_trang_chi_tiet_hien_du_hero_chi_so_mau_va_thong_so(): void
     {
@@ -90,7 +95,12 @@ class FrontendTest extends TestCase
             'status' => 'published',
             'published_at' => now(),
             'price_from' => 5_990_000_000,
-            'hero' => ['type' => 'image', 'src' => 'catalog/hero/gx550.webp'],
+            'hero' => [
+                'type' => 'image',
+                'src' => 'catalog/hero/gx550.webp',
+                'mobile_src' => 'catalog/hero/gx550-mobile.webp',
+            ],
+            'brochure_url' => 'https://example.com/gx550-brochure.pdf',
             'highlights' => [['value' => '349', 'unit' => 'mã lực', 'label' => 'Công suất']],
             'specs' => [['group' => 'Động cơ', 'rows' => [['label' => 'Dung tích', 'value' => '3.445 cm³']]]],
         ]);
@@ -100,16 +110,25 @@ class FrontendTest extends TestCase
 
         $this->get('/san-pham/lexus-gx-550')
             ->assertOk()
+            ->assertSee('data-product-story', false)
+            ->assertSee('data-product-nav', false)
+            ->assertSee('data-story-hero', false)
+            ->assertSee('data-story-cta', false)
             ->assertSee('Lexus GX 550')
             ->assertSee('Bản lĩnh chinh phục')  // tagline là tiêu đề lớn của hero
             ->assertSee('5,99 tỷ')              // hero dùng giá rút gọn
             ->assertSee('349')
             ->assertSee('Công suất')
-            ->assertDontSee('GX 550 Luxury')    // thiết kế không có mục phiên bản
+            ->assertSee('GX 550 Luxury')        // khách chọn phiên bản ngay trên trang
             ->assertSee('Caviar Black')
             ->assertSee('Dung tích')
             ->assertSee('3.445 cm³')
             ->assertSee('catalog/hero/gx550.webp')
+            ->assertSee('catalog/hero/gx550-mobile.webp')
+            ->assertSee('data-swatch-fallback', false) // chưa có ảnh màu thì dùng hero, không để sân khấu trống
+            ->assertSee('Màu tham khảo')
+            ->assertSee('Cuộn để khám phá')
+            ->assertSee('https://example.com/gx550-brochure.pdf')
             ->assertSee('<link rel="canonical"', false);
     }
 
@@ -118,6 +137,23 @@ class FrontendTest extends TestCase
         Product::create(['name' => 'Lexus LX 700h', 'status' => 'draft']);
 
         $this->get('/san-pham/lexus-lx-700h')->assertNotFound();
+    }
+
+    public function test_thanh_hanh_dong_van_hien_khi_co_trang_dat_coc_nhung_chua_cau_hinh_form(): void
+    {
+        $this->assertTrue(Route::has('booking'));
+
+        Product::create([
+            'name' => 'Lexus RZ 450e',
+            'status' => 'published',
+            'price_from' => 3_210_000_000,
+        ]);
+
+        $this->get('/san-pham/lexus-rz-450e')
+            ->assertOk()
+            ->assertSee('class="order-bar"', false)
+            ->assertSee('Đăng ký lái thử')
+            ->assertSee(route('booking', ['xe' => 'lexus-rz-450e']), false);
     }
 
     public function test_tat_feature_thi_khoi_do_khong_render(): void
@@ -158,7 +194,8 @@ class FrontendTest extends TestCase
 
         $html = $this->get('/san-pham/lexus-gx-550')->assertOk()->getContent();
 
-        $this->assertStringContainsString('layout-slider', $html);
+        // `slider` là dải cuộn ngang (.hstrip), không phải lưới `layout-*`.
+        $this->assertStringContainsString('hstrip', $html);
         $this->assertStringContainsString('layout-cols-2', $html);
         $this->assertStringContainsString('Mâm Luxury', $html);
         $this->assertStringContainsString('Tối ưu đô thị.', $html);

@@ -13,6 +13,7 @@
     $src     = $hero['src'] ?? null;
     $isVideo = ($hero['type'] ?? 'image') === 'video';
     $media   = $isVideo ? \App\Support\Media::embed($src) : catalog_image($src);
+    $mobileMedia = $isVideo ? null : catalog_image($hero['mobile_src'] ?? null);
 
     $variant  = $product->variants->firstWhere('is_default', true) ?? $product->variants->first();
     $priceNow = $product->price_from ?: $variant?->price;
@@ -44,7 +45,8 @@
     }
 @endphp
 
-<section class="hero {{ $media ? 'hero--overlay' : 'hero--plain' }}" @if ($shots->count() > 1) data-gallery @endif>
+<section class="hero hero--product {{ $media ? 'hero--overlay' : 'hero--plain' }}" id="tong-quan"
+         data-story-hero @if ($shots->count() > 1) data-gallery @endif>
     @if ($media)
         <div class="hero__media">
             @if ($isVideo)
@@ -56,14 +58,27 @@
                 @endif
             @elseif ($shots->count() > 1)
                 @foreach ($shots as $i => $shot)
-                    <img class="hero__shot {{ $i === 0 ? 'is-on' : '' }}"
-                         data-gal-slide data-gal-label="{{ $shot['label'] }}"
-                         src="{{ $shot['src'] }}" alt="{{ $shot['label'] }}"
-                         aria-hidden="{{ $i === 0 ? 'false' : 'true' }}"
-                         @if ($i === 0) fetchpriority="high" @else loading="lazy" @endif>
+                    @if ($i === 0 && $mobileMedia)
+                        <picture class="hero__shot is-on" data-gal-slide
+                                 data-gal-label="{{ $shot['label'] }}" aria-hidden="false">
+                            <source media="(max-width: 680px)" srcset="{{ $mobileMedia }}">
+                            <x-img :src="$shot['src']" :alt="$shot['label']" sizes="100vw" eager />
+                        </picture>
+                    @else
+                        <x-img class="hero__shot {{ $i === 0 ? 'is-on' : '' }}"
+                               data-gal-slide data-gal-label="{{ $shot['label'] }}"
+                               :src="$shot['src']" :alt="$shot['label']"
+                               aria-hidden="{{ $i === 0 ? 'false' : 'true' }}"
+                               sizes="100vw" :eager="$i === 0" />
+                    @endif
                 @endforeach
             @else
-                <img src="{{ $media }}" alt="{{ $product->name }}" fetchpriority="high">
+                <picture>
+                    @if ($mobileMedia)
+                        <source media="(max-width: 680px)" srcset="{{ $mobileMedia }}">
+                    @endif
+                    <x-img :src="$media" :alt="$product->name" sizes="100vw" eager />
+                </picture>
             @endif
         </div>
     @endif
@@ -88,7 +103,7 @@
                     {{-- Giá rút gọn ("799 triệu") như thiết kế — hero để đọc
                          lướt, con số đầy đủ nằm ở phiên bản và form. --}}
                     <div class="hero__price">
-                        <span class="hero__price-label">{{ catalog_label('product.single') }} từ</span>
+                        <span class="hero__price-label">Giá từ</span>
                         <span class="hero__price-now">{{ catalog_money_short($priceNow) }}</span>
                         @if ($priceWas && $priceWas > $priceNow)
                             <span class="hero__price-was">{{ catalog_money_short($priceWas) }}</span>
@@ -127,6 +142,13 @@
                 @endforeach
             </div>
             <span class="hero__gal-label" data-gal-label>{{ $shots->first()['label'] }}</span>
+        </div>
+    @endif
+
+    @if ($media)
+        <div class="hero__scroll-cue" aria-hidden="true">
+            <span>Cuộn để khám phá</span>
+            <i></i>
         </div>
     @endif
 </section>

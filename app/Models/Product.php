@@ -35,6 +35,7 @@ class Product extends Model
             'sections' => 'array',
             'specs' => 'array',
             'spec_notes' => 'array',
+            'spec_images' => 'array',
             'seo' => 'array',
             'price_from' => 'decimal:2',
             'published_at' => 'datetime',
@@ -100,7 +101,16 @@ class Product extends Model
         $copy->save();
 
         foreach ($this->variants as $variant) {
-            $copy->variants()->create($variant->only(['name', 'price', 'price_original', 'note', 'sort', 'is_default']));
+            $copy->variants()->create($variant->only([
+                'name',
+                'price',
+                'price_original',
+                'note',
+                'battery_kwh',
+                'range_km',
+                'sort',
+                'is_default',
+            ]));
         }
 
         foreach ($this->options as $option) {

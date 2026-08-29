@@ -35,7 +35,11 @@
             @includeIf('frontend.partials.section.'.$type, ['section' => $section])
         </div>
     @else
-        <section class="section" @isset($section['title']) id="{{ Str::slug($section['title']) }}" @endisset>
+        <section class="section story-section story-section--{{ $type }}
+                        @if ($type === 'media') story-section--{{ $section['layout'] ?? 'cols-3' }} @endif
+                        {{ $loop->even ? 'story-section--alt' : '' }}"
+                 data-story-section
+                 @isset($section['title']) id="{{ Str::slug($section['title']) }}" @endisset>
             <div class="wrap">
                 @if (! $headInside && (isset($section['title']) || isset($section['intro'])))
                     <div class="section__head">

@@ -19,19 +19,41 @@ class MoneyInput
     {
         return TextInput::make($name)
             ->label($label)
-            ->numeric()
-            ->minValue(0)
+            // KHÔNG dùng ->numeric(): input type=number coi dấu chấm là dấu
+            // thập phân, nên "853.100.000" bị đọc thành 853,1 và lưu vào cột
+            // decimal thành 853.10 — sai một tỷ lần mà không báo lỗi gì.
+            ->inputMode('numeric')
             ->suffix('đ')
             ->live(onBlur: true)
+            ->dehydrateStateUsing(fn (mixed $state) => static::toNumber($state))
             ->helperText(fn (mixed $state): ?string => static::hint($state));
+    }
+
+    /**
+     * "853.100.000" · "853,100,000" · "853 100 000" · "853100000" → 853100000
+     *
+     * Giá xe tính bằng đồng, không có phần lẻ, nên mọi ký tự không phải chữ số
+     * đều là dấu phân cách người nhập gõ cho dễ đọc.
+     */
+    public static function toNumber(mixed $state): ?string
+    {
+        if (blank($state)) {
+            return null;
+        }
+
+        $digits = preg_replace('/\D+/', '', (string) $state);
+
+        return $digits === '' ? null : $digits;
     }
 
     protected static function hint(mixed $state): ?string
     {
-        if (blank($state) || ! is_numeric($state)) {
+        $number = static::toNumber($state);
+
+        if ($number === null) {
             return null;
         }
 
-        return Money::format($state).'  ·  '.Money::readable($state);
+        return Money::format($number).'  ·  '.Money::readable($number);
     }
 }

@@ -10,12 +10,14 @@ class ProductVariantResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'             => $this->id,
-            'name'           => $this->name,
-            'price'          => $this->price,
+            'id' => $this->id,
+            'name' => $this->name,
+            'price' => $this->price,
             'price_original' => $this->price_original,
-            'note'           => $this->note,
-            'is_default'     => (bool) $this->is_default,
+            'note' => $this->note,
+            'battery_kwh' => $this->battery_kwh,
+            'range_km' => $this->range_km,
+            'is_default' => (bool) $this->is_default,
         ];
     }
 }

@@ -53,6 +53,12 @@ class SectionCollection extends Collection
             'body'      => $section['body'] ?? null,
             'video_url' => $section['video_url'] ?? null,
             'form_key'  => $section['form_key'] ?? null,
+            // Nút hành động của băng ảnh tràn màn (`bleed`). Danh sách này là
+            // whitelist: khoá nào không kê ở đây sẽ bị loại trước khi tới Blade.
+            'cta_label'  => $section['cta_label'] ?? null,
+            'cta_url'    => $section['cta_url'] ?? null,
+            'cta2_label' => $section['cta2_label'] ?? null,
+            'cta2_url'   => $section['cta2_url'] ?? null,
         ], fn ($v) => filled($v));
 
         $rows = collect($section['rows'] ?? [])

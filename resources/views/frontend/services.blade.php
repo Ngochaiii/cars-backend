@@ -34,7 +34,7 @@
                 <div class="stations" style="margin-top:36px">
                     <div class="stations__map">
                         @if ($map)
-                            <img src="{{ $map }}" alt="Bản đồ trạm sạc" loading="lazy">
+                            <x-img :src="$map" alt="Bản đồ trạm sạc" sizes="(max-width: 960px) 100vw, 400px" />
                         @else
                             <div class="ph" style="height:100%">[ bản đồ trạm sạc ]</div>
                         @endif

@@ -124,6 +124,10 @@ class BannerTest extends TestCase
 
         // Link chỉ chứa ảnh nên phải có chữ mô tả đích đến
         $this->assertStringContainsString('Ưu đãi tháng 8', $hero);
+
+        // Nút chuyển slide cũng phải có tên, kể cả banner không có title.
+        $this->assertStringContainsString('<span class="sr-only">', $hero);
+        $this->assertSame(2, substr_count($hero, 'Ưu đãi tháng 8'));
     }
 
     public function test_banner_chi_co_anh_va_khong_link_thi_khong_dung_the_a(): void
@@ -139,6 +143,24 @@ class BannerTest extends TestCase
 
         $this->assertStringContainsString('hero__slide--bare', $hero);
         $this->assertStringNotContainsString('hero__bare-link', $hero);
+    }
+
+    public function test_banner_co_anh_mobile_thi_dung_picture_source(): void
+    {
+        Banner::create([
+            'image' => 'catalog/banners/desktop.jpg',
+            'image_mobile' => 'catalog/banners/mobile.jpg',
+            'is_active' => true,
+        ]);
+
+        $hero = Str::between(
+            $this->get('/')->assertOk()->getContent(), 'hero--carousel', '</section>'
+        );
+
+        $this->assertStringContainsString('<picture>', $hero);
+        $this->assertStringContainsString('media="(max-width: 680px)"', $hero);
+        $this->assertStringContainsString('catalog/banners/mobile.jpg', $hero);
+        $this->assertStringContainsString('catalog/banners/desktop.jpg', $hero);
     }
 
     public function test_them_tieu_de_thi_hien_day_du_nhu_cu(): void

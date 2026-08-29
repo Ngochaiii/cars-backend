@@ -48,22 +48,25 @@ class Sitemap
     {
         $modelKey = match ($type) {
             'category' => 'category',
-            'post'     => 'post',
-            'page'     => 'page',
-            default    => 'product',
+            'post' => 'post',
+            'page' => 'page',
+            default => 'product',
         };
 
         $query = Catalog::query($modelKey);
 
-        // Category không có cột status — lấy hết. Còn lại chỉ lấy bản published.
-        if (in_array($type, ['product', 'post', 'page'], true)) {
+        // Product/Post có lịch đăng nên phải dùng đúng scope published,
+        // tránh làm lộ URL hẹn giờ trong sitemap. Page không có published_at.
+        if (in_array($type, ['product', 'post'], true)) {
+            $query->published();
+        } elseif ($type === 'page') {
             $query->where('status', 'published');
         }
 
         return $query
             ->get()
             ->map(fn ($model): array => [
-                'loc'     => Url::absolute($type, $model->slug),
+                'loc' => Url::absolute($type, $model->slug),
                 'lastmod' => $model->updated_at?->toAtomString(),
             ])
             ->all();

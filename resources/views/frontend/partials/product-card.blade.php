@@ -13,7 +13,7 @@
 <li class="card">
     <a class="card__media" href="{{ $url }}">
         @if ($image)
-            <img src="{{ $image }}" alt="{{ $product->name }}" loading="lazy">
+            <x-img :src="$image" :alt="$product->name" sizes="(max-width: 680px) 100vw, (max-width: 1180px) 45vw, 420px" />
         @else
             <span class="ph" style="position:absolute;inset:0">[ ảnh {{ $product->name }} ]</span>
         @endif
@@ -21,6 +21,8 @@
         @if ($product->category)
             <span class="card__tag">{{ $product->category->name }}</span>
         @endif
+
+        <span class="card__view" aria-hidden="true">↗</span>
     </a>
 
     <div class="card__body">

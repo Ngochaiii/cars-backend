@@ -49,7 +49,7 @@
                 @if ($cover)
                     <div class="page-cover">
                         @if ($src = catalog_image($cover['image'] ?? null))
-                            <img src="{{ $src }}" alt="{{ $cover['label'] ?? $page->title }}">
+                            <x-img :src="$src" :alt="$cover['label'] ?? $page->title" sizes="(max-width: 960px) 100vw, 1232px" eager />
                         @else
                             <div class="ph" style="height:100%">[ {{ $cover['label'] ?? 'ảnh' }} ]</div>
                         @endif
@@ -73,7 +73,7 @@
 
                             @if ($mapImg)
                                 <div class="info-card__map">
-                                    <img src="{{ $mapImg }}" alt="Bản đồ chỉ đường" loading="lazy">
+                                    <x-img :src="$mapImg" alt="Bản đồ chỉ đường" sizes="(max-width: 960px) 100vw, 400px" />
                                 </div>
                             @endif
 

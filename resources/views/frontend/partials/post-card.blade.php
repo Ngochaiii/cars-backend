@@ -7,7 +7,7 @@
 <li class="card">
     <a class="card__media" href="{{ $url }}">
         @if ($image)
-            <img src="{{ $image }}" alt="{{ $post->title }}" loading="lazy">
+            <x-img :src="$image" :alt="$post->title" sizes="(max-width: 680px) 100vw, (max-width: 1180px) 45vw, 30vw" />
         @else
             <span class="ph" style="position:absolute;inset:0">[ ảnh ]</span>
         @endif
