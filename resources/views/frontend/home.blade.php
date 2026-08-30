@@ -32,10 +32,12 @@
             $discoveryProducts = $products;
         }
 
-        // Coverflow chỉ giới thiệu vài xe nổi bật — phần "xem hết dải" do lưới
-        // .model-grid bên dưới lo. Thứ tự lấy theo cột `sort`, nên muốn đổi xe
-        // nào lên đầu thì kéo lại thứ tự mặt hàng trong admin.
-        $featured = $discoveryProducts->take(3);
+        // Coverflow chạy trên CẢ dải xe, không cắt còn vài chiếc: mỗi lúc chỉ
+        // thấy 3 thẻ (xe đang chọn + hai xe hai bên) nhưng mũi tên đi hết được
+        // danh sách. Thứ tự theo cột `sort`, muốn đổi xe nào lên đầu thì kéo
+        // lại thứ tự mặt hàng trong admin. Trần số xe nằm ở
+        // config('catalog.frontend.home.products').
+        $featured = $discoveryProducts;
 
         // Tab coverflow = danh mục có hàng, kèm số lượng. Mỗi danh mục chỉ có
         // đúng 1 xe thì tab thành vô nghĩa (bấm cái nào cũng ra 1 xe) — bỏ hẳn
@@ -254,7 +256,7 @@
             <div class="section__head disc__head">
                 <span class="eyebrow">Ô tô điện VinFast</span>
                 <h2>Xe đang được quan tâm</h2>
-                <p>Ba mẫu bán chạy tại đại lý. Xem cả dải ở ngay bên dưới.</p>
+                <p>Bấm mũi tên hai bên để xem lần lượt cả dải xe đang bán tại đại lý.</p>
             </div>
 
             @if ($featured->isEmpty())
@@ -288,7 +290,6 @@
                             @endphp
                             <article class="disc__item" data-disc-item
                                      data-disc-cat="{{ $car->category->slug ?? 'all' }}">
-                                <span class="disc__watermark" aria-hidden="true">{{ Str::upper($car->name) }}</span>
                                 <a class="disc__media" href="{{ route('products.show', $car->slug) }}">
                                     @if ($img = catalog_image(data_get($car->hero, 'src')))
                                         <x-img :src="$img" :alt="$car->name" sizes="(max-width: 960px) 100vw, 640px" />

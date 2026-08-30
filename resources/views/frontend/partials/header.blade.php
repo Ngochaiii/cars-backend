@@ -28,18 +28,20 @@
 
 <header class="site-header">
     <div class="wrap site-header__inner">
-        <a class="brand" href="{{ route('home') }}">
+        {{-- Logo và tên đại lý đứng cạnh nhau; tên đọc được từ alt của ảnh nên
+             phần chữ chỉ là lớp nhìn (aria-hidden) — mobile ẩn nó đi, chỉ còn logo. --}}
+        <a class="brand @if ($logo) brand--logo @endif" href="{{ route('home') }}">
             @if ($logo)
                 <x-img :src="$logo" :alt="$siteName" sizes="220px" eager />
             @else
                 <span class="brand__emblem" aria-hidden="true">V</span>
-                <span class="brand__wordmark">
-                    <span class="brand__name">{{ $siteName }}</span>
-                    @if (filled($brandSub))
-                        <span class="brand__sub">{{ $brandSub }}</span>
-                    @endif
-                </span>
             @endif
+            <span class="brand__wordmark" @if ($logo) aria-hidden="true" @endif>
+                <span class="brand__name">{{ $siteName }}</span>
+                @if (filled($brandSub))
+                    <span class="brand__sub">{{ $brandSub }}</span>
+                @endif
+            </span>
         </a>
 
         <button class="nav-toggle__button" type="button" aria-label="Mở menu"

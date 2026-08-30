@@ -152,6 +152,7 @@ return [
                 'offer_note' => ['label' => 'Ưu đãi — dòng nhỏ', 'type' => 'text'],
                 'offer_title' => ['label' => 'Ưu đãi — tiêu đề', 'type' => 'text'],
                 'offer_text' => ['label' => 'Ưu đãi — mô tả', 'type' => 'textarea'],
+                'offer_image' => ['label' => 'Ưu đãi — ảnh (tràn mép phải, nên chọn ảnh xe nền sáng)', 'type' => 'image'],
 
                 'charging_note' => ['label' => 'Pin & trạm sạc — dòng nhỏ', 'type' => 'text'],
                 'charging_title' => ['label' => 'Pin & trạm sạc — tiêu đề', 'type' => 'text'],
@@ -280,7 +281,7 @@ return [
         'per_page' => 12,       // danh sách sản phẩm / tin tức
 
         'home' => [
-            'products' => 8,    // số thẻ sản phẩm trên trang chủ
+            'products' => 24,   // trần số xe đưa vào coverflow trang chủ
             'posts' => 3,    // số tin mới nhất
         ],
 

@@ -60,6 +60,7 @@ class HomeBandDesignTest extends TestCase
             'published_at' => now(),
             'hero' => ['type' => 'image', 'src' => 'catalog/hero/vf-7.jpg'],
         ]);
+        Setting::put('offer_image', 'catalog/settings/uu-dai.jpg');
 
         $this->get('/')
             ->assertOk()
@@ -77,5 +78,29 @@ class HomeBandDesignTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSee('offer--text-only', false);
+    }
+
+    /* Ảnh băng ưu đãi là khoá Cài đặt riêng. Trước đây nó mượn ảnh hero của mặt
+       hàng đầu danh sách, nên đại lý đổi ảnh xe là băng ưu đãi đổi theo. */
+    public function test_uu_dai_dung_anh_rieng_chu_khong_muon_anh_cua_xe(): void
+    {
+        Product::create([
+            'name' => 'VF 7',
+            'slug' => 'vf-7',
+            'status' => 'published',
+            'published_at' => now(),
+            'hero' => ['type' => 'image', 'src' => 'catalog/hero/vf-7.jpg'],
+        ]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('offer--text-only', false);
+
+        Setting::put('offer_image', 'catalog/settings/uu-dai.jpg');
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('catalog/settings/uu-dai.jpg', false)
+            ->assertDontSee('offer--text-only', false);
     }
 }

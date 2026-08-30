@@ -16,11 +16,15 @@
     $careStats = collect(explode(';', (string) catalog_setting('care_stats')))
         ->map(fn ($pair) => array_pad(explode('|', trim($pair), 2), 2, ''))
         ->filter(fn ($pair) => filled($pair[0]));
-    $offerImage = $lead ? catalog_image(data_get($lead->hero, 'src')) : null;
+    // Băng ưu đãi có ảnh riêng trong Cài đặt. Trước đây nó mượn ảnh hero của
+    // mặt hàng đầu danh sách, nên đại lý không chọn được ảnh cho băng này —
+    // đổi ảnh hero của xe là băng ưu đãi đổi theo.
+    $offerImage = catalog_image(catalog_setting('offer_image'));
+    $leadImage = $lead ? catalog_image(data_get($lead->hero, 'src')) : null;
     $editorialFallbacks = collect([
         catalog_image(catalog_setting('care_image')),
         catalog_image(catalog_setting('charging_image')),
-        $offerImage,
+        $leadImage,
     ])->filter()->values();
 
     $chargeActions = collect([
@@ -86,9 +90,11 @@
             </div>
 
             @if ($offerImage)
+                {{-- Ảnh không đóng khung: nó tràn khỏi lưới ra sát mép phải màn
+                     hình và tan vào nền, nên không có nhãn tên xe đè lên nữa.
+                     Ảnh chỉ là nền của chiến dịch, phần chữ đã nói đủ → alt rỗng. --}}
                 <div class="offer__media" data-home-reveal data-home-parallax>
-                    <x-img :src="$offerImage" :alt="$lead->name" sizes="(max-width: 960px) 100vw, 50vw" />
-                    <span>{{ $lead->name }}</span>
+                    <x-img :src="$offerImage" alt="" sizes="(max-width: 1100px) 100vw, 56vw" />
                 </div>
             @endif
         </div>
