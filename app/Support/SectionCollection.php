@@ -29,7 +29,8 @@ class SectionCollection extends Collection
 
     /**
      * Mục rỗng thì không render, nhưng "có nội dung" tuỳ kiểu: `media` cần ảnh,
-     * `text` cần body, `video` cần link, `form` cần khoá form, `table` cần dòng.
+     * `text` và `notice` cần body, `video` cần link, `form` cần khoá form,
+     * `table` cần dòng.
      */
     protected function hasContent(array $section): bool
     {
@@ -50,6 +51,9 @@ class SectionCollection extends Collection
             'intro'     => $section['intro'] ?? null,
             'type'      => $section['type'] ?? 'media',
             'layout'    => $section['layout'] ?? 'cols-3',
+            // Bề rộng mục: narrow / wide / full. Trống thì Blade lấy mặc định
+            // của trang (bài viết: cột chữ, sản phẩm & trang tĩnh: rộng).
+            'width'     => $section['width'] ?? null,
             'body'      => $section['body'] ?? null,
             'video_url' => $section['video_url'] ?? null,
             'form_key'  => $section['form_key'] ?? null,

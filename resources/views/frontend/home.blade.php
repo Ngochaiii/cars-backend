@@ -59,7 +59,26 @@
             : (catalog_feature('posts') ? route('posts.index') : null);
         $leadImage = $lead ? catalog_image(data_get($lead->hero, 'src')) : null;
 
-        $customerTools = collect([
+        // Ảnh ô lớn: khoá riêng trong Cài đặt, bỏ trống thì lùi về ảnh xe đầu
+        // danh sách như trước — site mới dựng chưa kịp chọn ảnh vẫn có hình.
+        $toolsImage = catalog_image(catalog_setting('tools_image')) ?: $leadImage;
+
+        // Đại lý tự khai được các ô: mỗi dòng "Tên|Mô tả|Link". Bỏ trống cả
+        // khoá thì dùng bộ 5 ô mặc định bên dưới, link tự suy theo route đang
+        // bật (chưa có trang đặt cọc riêng thì trỏ về form ở trang chi tiết xe).
+        $toolsCustom = collect(preg_split('/\R/', (string) catalog_setting('tools_items')))
+            ->map(fn ($line) => array_pad(array_map('trim', explode('|', $line, 3)), 3, ''))
+            ->filter(fn ($parts) => filled($parts[0]) && filled($parts[2]))
+            ->values()
+            ->map(fn ($parts, $i) => [
+                'number' => str_pad($i + 1, 2, '0', STR_PAD_LEFT),
+                'name' => $parts[0],
+                'sub' => $parts[1],
+                'url' => $parts[2],
+                'feature' => $i === 0,
+            ]);
+
+        $customerTools = $toolsCustom->isNotEmpty() ? $toolsCustom : collect([
             [
                 'number' => '01',
                 'name' => 'Khám phá dòng xe',
@@ -69,7 +88,7 @@
             ],
             [
                 'number' => '02',
-                'name' => 'Đặt cọc trực tuyến',
+                'name' => catalog_label('cta.deposit').' trực tuyến',
                 'sub' => 'Giữ suất xe nhanh, quy trình minh bạch và được hỗ trợ xuyên suốt.',
                 'url' => $depositUrl,
             ],
@@ -223,19 +242,19 @@
         <div class="wrap tools__inner">
             <div class="tools__head" data-home-reveal>
                 <div>
-                    <span class="eyebrow">Hành trình sở hữu</span>
-                    <h2 id="customer-tools-title">Từ lựa chọn đầu tiên đến mỗi chuyến đi.</h2>
+                    <span class="eyebrow">{{ catalog_setting('tools_note', 'Hành trình sở hữu') }}</span>
+                    <h2 id="customer-tools-title">{{ catalog_setting('tools_title', 'Từ lựa chọn đầu tiên đến mỗi chuyến đi.') }}</h2>
                 </div>
-                <p>Khám phá xe, dự toán chi phí và nhận hỗ trợ tại đại lý trong một hành trình liền mạch.</p>
+                <p>{{ catalog_setting('tools_text', 'Khám phá xe, dự toán chi phí và nhận hỗ trợ tại đại lý trong một hành trình liền mạch.') }}</p>
             </div>
 
             <div class="tools__grid">
                 @foreach ($customerTools as $tool)
                     <a class="tools__item {{ ($tool['feature'] ?? false) ? 'tools__item--feature' : '' }}"
                        href="{{ $tool['url'] }}" data-home-reveal>
-                        @if (($tool['feature'] ?? false) && $leadImage)
+                        @if (($tool['feature'] ?? false) && $toolsImage)
                             <span class="tools__media" data-home-parallax aria-hidden="true">
-                                <x-img :src="$leadImage" alt="" sizes="(max-width: 960px) 100vw, 50vw" />
+                                <x-img :src="$toolsImage" alt="" sizes="(max-width: 960px) 100vw, 50vw" />
                             </span>
                         @endif
                         <span class="tools__number" aria-hidden="true">{{ $tool['number'] }}</span>
@@ -330,7 +349,7 @@
                                         <a class="btn btn--accent"
                                            href="{{ Route::has('booking')
                                                ? route('booking', ['xe' => $car->slug])
-                                               : route('products.show', $car->slug).'#form-dat-coc' }}">Đặt cọc</a>
+                                               : route('products.show', $car->slug).'#form-dat-coc' }}">{{ catalog_label('cta.deposit') }}</a>
                                     </div>
                                 </div>
                             </article>

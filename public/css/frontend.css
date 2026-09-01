@@ -84,10 +84,11 @@
     --dur-slow: .9s;
     --dur-cine: 1.15s;
 
-    /* Nhịp dọc giữa các section. Thay cho 110px/104px/96px/158px trước đây. */
-    --sect-sm: clamp(36px, 4vw, 56px);
-    --sect: clamp(56px, 6vw, 80px);
-    --sect-lg: clamp(64px, 6.5vw, 88px);
+    /* Nhịp dọc giữa các section. Thay cho 110px/104px/96px/158px trước đây.
+       Đã nới +10% cùng lúc với thang ngang (--wrap 1440 → 1584). */
+    --sect-sm: clamp(40px, 4.4vw, 62px);
+    --sect: clamp(62px, 6.6vw, 88px);
+    --sect-lg: clamp(70px, 7.2vw, 97px);
 
     --mono: ui-monospace, Menlo, Consolas, monospace;
 
@@ -1325,8 +1326,81 @@ html.js .tabs__panel + .tabs__panel { margin-top: 0; }
 }
 .article__head h1 { font-size: var(--fs-h1); line-height: 1.2; margin-bottom: var(--s-5); }
 .article__lede { font-size: var(--fs-lg); line-height: 1.7; color: #6b6b68; margin-bottom: var(--s-7); }
+/* Trong cột bài, mục nội dung dùng .section-bare — loại này không có
+   padding-block riêng, nên khoảng cách dưới ảnh bìa phải khai ở đây. */
 .article__cover { aspect-ratio: 16 / 7; border-radius: 4px; overflow: hidden; margin-bottom: var(--s-8); }
 .article__cover img { width: 100%; height: 100%; object-fit: cover; }
+/* Ảnh tràn màn hình thì bo góc thành thừa — nó không còn mép nào để bo. */
+.article__cover--full { border-radius: 0; }
+
+/* Cột bài rộng hơn 1000px mà .prose vẫn chốt 760px thì đoạn chữ trông hụt hẳn
+   so với ảnh bìa phủ kín cột. Trong cột bài cho chữ chiếm hết bề ngang và
+   nhích cỡ chữ lên một bậc. */
+.article-main .prose { max-width: none; font-size: var(--fs-lg); }
+
+/* ── Khối thông báo ─────────────────────────────────────────────────────
+   Kiểu mục "Thông báo": vạch màu bên trái, nền kem, nhãn nhỏ ở trên. Dùng cho
+   thông báo dịch vụ, đính chính, lưu ý — thứ cần tách khỏi mạch bài. */
+.notice {
+    padding: var(--s-6) var(--s-7);
+    border-left: 4px solid #e0a92e;
+    background: #fdf7ea;
+}
+.notice__label {
+    display: block;
+    margin-bottom: var(--s-3);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+}
+.notice__intro { margin: 0 0 var(--s-3); color: var(--muted); }
+.notice__body { max-width: none; font-size: var(--fs-lg); font-weight: 500; color: var(--ink-2); }
+.notice__body p { margin-bottom: var(--s-5); }
+
+/* ── Trang tin hai cột ──────────────────────────────────────────────────
+   Bài chạy một cột giữa trang thì ở khổ desktop hai bên trống hơn nửa màn
+   hình. Cột phải kéo tin liên quan vào lấp chỗ đó, đúng nhịp báo điện tử. */
+.article-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: var(--s-10);
+    align-items: start;
+    padding-block: var(--s-9) var(--s-11);
+}
+.article-main { min-width: 0; }
+.article__head { padding-top: 0; }
+/* Cột phải dính lại khi cuộn — bài dài mà cột phải trôi mất là phí chỗ. */
+.article-aside { position: sticky; top: var(--s-11); }
+.article-aside__title {
+    margin-bottom: var(--s-4);
+    font-size: var(--fs-md);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.article-aside__all {
+    display: inline-block;
+    margin-top: var(--s-4);
+    font-size: var(--fs-sm);
+    color: var(--accent);
+}
+.article-aside__all:hover { text-decoration: underline; }
+
+/* Mục chọn "tràn hết màn hình" phải thoát khỏi cột bài. 50% là nửa bề ngang
+   cột, 50vw là nửa màn hình — hiệu hai số đó chính là quãng từ mép cột ra mép
+   màn, nên lề âm bằng đúng nó là khối chiếm trọn màn hình. */
+.section-bare--full {
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+}
+.article__cover--full {
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+}
+/* Mục chọn "tràn hết màn hình": thay chỗ của .wrap nên phải tự chiếm hết bề
+   ngang và không có padding hai bên. */
+.section__full { width: 100%; }
+/* Chân bài đứng ngay dưới mục cuối, không cần thêm khối đệm rỗng như trước. */
+.article { padding-bottom: var(--s-11); }
 .article__foot {
     display: flex;
     flex-wrap: wrap;
@@ -1396,6 +1470,44 @@ html.js .tabs__panel + .tabs__panel { margin-top: 0; }
     border: 1px solid var(--line);
     border-radius: 4px;
 }
+/* Bài viết soạn bằng ô có định dạng đẻ ra thêm mấy thẻ này — không khai thì
+   chúng rơi về mặc định của trình duyệt, lạc hẳn khỏi thang chữ của trang. */
+.prose p { margin: 0 0 var(--s-4); }
+.prose > :last-child { margin-bottom: 0; }
+.prose h4 { margin: var(--s-6) 0 var(--s-3); font-size: var(--fs-lg); }
+.prose strong, .prose b { color: var(--ink); font-weight: 700; }
+.prose hr { margin: var(--s-7) 0; border: 0; border-top: 1px solid var(--line); }
+.prose code {
+    padding: 2px 6px;
+    background: var(--soft-2);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: var(--fs-sm);
+}
+.prose pre {
+    margin: var(--s-5) 0;
+    padding: var(--s-4) var(--s-5);
+    overflow-x: auto;
+    background: var(--soft-2);
+    border-radius: 4px;
+}
+.prose pre code { padding: 0; background: none; }
+/* Bảng dán từ Word thường rộng hơn cột chữ — cho nó tự cuộn ngang thay vì đẩy
+   cả trang lệch. */
+.prose table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: var(--s-6) 0;
+    overflow-x: auto;
+    border-collapse: collapse;
+}
+.prose th, .prose td {
+    padding: var(--s-3) var(--s-4);
+    text-align: left;
+    border: 1px solid var(--line-3);
+}
+.prose th { color: var(--ink); font-weight: 700; background: var(--soft); }
 
 .media-block img, .media-block video, .media-block iframe { width: 100%; border-radius: 4px; }
 .video-block { position: relative; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; }
@@ -1816,6 +1928,9 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
     .nav__sub { position: static; display: block; border: 0; box-shadow: none; padding: 0 0 0 var(--s-4); }
 
     .split, .tiles, .page-split, .news-lead, .fuel-calc, .loan { grid-template-columns: minmax(0, 1fr); }
+    /* Cột tin liên quan xuống dưới bài, và thôi dính khi cuộn. */
+    .article-split { grid-template-columns: minmax(0, 1fr); gap: var(--s-9); }
+    .article-aside { position: static; }
     .tiles__side { grid-template-rows: auto auto; }
     .split--media-first > .split__media { order: 0; }
     .split__body p, .hero__lede { max-width: none; }
@@ -1941,7 +2056,7 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
     --automotive-dark: #071525;
     --automotive-ink: #101820;
     --automotive-soft: #f3f6fa;
-    --wrap: 1440px;
+    --wrap: 1584px;   /* +10% so với 1440 */
 }
 
 html { scroll-behavior: smooth; scroll-padding-top: var(--s-12); }
@@ -2598,8 +2713,8 @@ html.js .home-story .disc__rail { gap: var(--disc-gap); }
    ra là xe gì, vẫn đủ nhỏ để mắt biết đâu là xe đang chọn. Thẻ chính vì thế
    hạ từ 560px xuống 480px, đổi lại cả ba xe đều thấy rõ. */
 .home-story .disc__stage {
-    --disc-card: min(435px, 38vw);
-    --disc-gap: clamp(38px, calc(4.5vw + 10px), 82px);
+    --disc-card: min(480px, 38vw);
+    --disc-gap: clamp(42px, calc(4.5vw + 11px), 90px);
     /* Chỗ phải chừa cho nút chuyển xe. Nút nằm cách mép màn 24px và rộng 52px
        nên nó kết thúc ở 76px; khung nội dung lại bắt đầu ở (100vw - 100%) / 2.
        Màn rộng thì khung tụt vào trong, nút nằm hẳn ngoài khung và không phải
@@ -4225,9 +4340,9 @@ html.js .hotspot__list { display: none; }
    Ba cột trên desktop, hai trên tablet, một trên điện thoại. */
 .model-grid {
     display: grid;
-    /* 340px chốt đúng 3 cột trên desktop. minmax(300px) nhét vừa 4 cột, mà
-       dải xe thường 6 mẫu nên hàng cuối sẽ hụt 2 ô. */
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    /* Ngưỡng này chốt đúng 3 cột trên desktop. Khung nội dung 1584px thì mốc
+       340px cũ lọt xuống 4 cột (mỗi cột 346px) làm thẻ bé lại. */
+    grid-template-columns: repeat(auto-fill, minmax(374px, 1fr));
     gap: var(--s-6);
 }
 .model-tile { min-width: 0; }

@@ -238,4 +238,55 @@ class ProductLayoutParityTest extends TestCase
         $this->assertSame('Ngoại hình liền mạch, tỷ lệ cân đối, chi tiết tinh giản.', $product->hero['intro_body']);
         $this->assertSame('An toàn & an ninh', $product->spec_notes[0]['label']);
     }
+
+    /* Băng chuyền hero trước đây tự quét ảnh của mọi mục kiểu `media`, nên
+       banner toàn ảnh cận cảnh đèn, mâm xe. Giờ chỉ chạy đúng ảnh banner đại
+       lý tự khai; không khai thì hero đứng yên một ảnh. */
+    public function test_hero_khong_co_anh_banner_thi_khong_dung_bang_chuyen(): void
+    {
+        $product = Product::create([
+            'name' => 'VF 7 mẫu',
+            'slug' => 'vf-7-mau-banner',
+            'status' => 'published',
+            'published_at' => now(),
+            'hero' => ['type' => 'image', 'src' => 'catalog/hero/vf-7.jpg'],
+            'sections' => [[
+                'type' => 'media',
+                'title' => 'Thư viện',
+                'items' => [['image' => 'catalog/sections/anh-can-canh.jpg', 'label' => 'Đèn LED']],
+            ]],
+        ]);
+
+        $hero = $this->heroMarkup($this->get('/san-pham/'.$product->slug)->assertOk()->getContent());
+
+        $this->assertStringNotContainsString('data-gal-slide', $hero, 'hero không được dựng băng chuyền khi chưa khai banner');
+        $this->assertStringNotContainsString('anh-can-canh.jpg', $hero, 'hero không được mượn ảnh của mục nội dung');
+
+        $product->update([
+            'hero' => [
+                'type' => 'image',
+                'src' => 'catalog/hero/vf-7.jpg',
+                'banners' => [['image' => 'catalog/hero/banner-uu-dai.jpg', 'label' => 'Ưu đãi tháng 9']],
+            ],
+        ]);
+
+        $hero = $this->heroMarkup($this->get('/san-pham/'.$product->slug)->assertOk()->getContent());
+
+        $this->assertStringContainsString('banner-uu-dai.jpg', $hero, 'thiếu ảnh banner đã khai');
+        $this->assertStringContainsString('Ưu đãi tháng 9', $hero, 'thiếu chú thích banner');
+        // Khai banner rồi thì hero chạy đúng ảnh banner, ảnh hero không lên nữa.
+        $this->assertStringNotContainsString('vf-7.jpg', $hero, 'hero vẫn còn lẫn ảnh hero cũ');
+    }
+
+    /** Chỉ phần nền của hero. og:image ở <head> cũng trỏ ảnh hero nên phải cắt ra. */
+    private function heroMarkup(string $html): string
+    {
+        $from = strpos($html, 'class="hero__media"');
+
+        if ($from === false) {
+            return '';
+        }
+
+        return substr($html, $from, (strpos($html, 'class="hero__body"', $from) ?: $from + 4000) - $from);
+    }
 }

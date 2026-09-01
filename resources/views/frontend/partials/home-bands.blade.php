@@ -82,9 +82,9 @@
                 <div class="offer__actions">
                     <a class="btn btn--light" href="{{ route('products.index') }}">Xem {{ Str::lower(catalog_label('product.plural')) }}</a>
                     @if (Route::has('booking'))
-                        <a class="btn btn--ghost" href="{{ route('booking') }}">Đặt cọc ngay</a>
+                        <a class="btn btn--ghost" href="{{ route('booking') }}">{{ catalog_label('cta.deposit') }} ngay</a>
                     @elseif ($lead)
-                        <a class="btn btn--ghost" href="{{ route('products.show', $lead->slug) }}#form-dat-coc">Đặt cọc ngay</a>
+                        <a class="btn btn--ghost" href="{{ route('products.show', $lead->slug) }}#form-dat-coc">{{ catalog_label('cta.deposit') }} ngay</a>
                     @endif
                 </div>
             </div>

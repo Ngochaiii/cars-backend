@@ -80,6 +80,52 @@ class HomeBandDesignTest extends TestCase
             ->assertSee('offer--text-only', false);
     }
 
+    /* Khối "Hành trình sở hữu" trước đây cắm chết trong view: chữ sửa được
+       phải vào code, còn ảnh ô lớn thì mượn ảnh hero của xe đầu danh sách nên
+       đổi ảnh xe là ảnh khối này đổi theo. */
+    public function test_hanh_trinh_so_huu_sua_duoc_trong_admin(): void
+    {
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Hành trình sở hữu')
+            ->assertSee('Khám phá dòng xe');
+
+        Setting::put('tools_note', 'Mua xe tại đại lý');
+        Setting::put('tools_title', 'Bốn bước là có xe');
+        Setting::put('tools_text', 'Đại lý lo trọn gói từ tư vấn tới giao xe.');
+        Setting::put('tools_image', 'catalog/settings/hanh-trinh.jpg');
+        Setting::put('tools_items', implode("\n", [
+            'Xem bảng giá|Giá lăn bánh từng phiên bản.|/bang-gia',
+            'Gọi tư vấn|Nói chuyện với nhân viên đại lý.|tel:0900000000',
+        ]));
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Mua xe tại đại lý')
+            ->assertSee('Bốn bước là có xe')
+            ->assertSee('Đại lý lo trọn gói từ tư vấn tới giao xe.')
+            ->assertSee('catalog/settings/hanh-trinh.jpg', false)
+            ->assertSee('Xem bảng giá')
+            ->assertSee('tel:0900000000', false)
+            // Khai ô riêng thì bộ mặc định biến mất hẳn, không trộn lẫn.
+            ->assertDontSee('Khám phá dòng xe')
+            ->assertDontSee('Trải nghiệm lái thử');
+    }
+
+    /* Dòng thiếu link thì bỏ qua, không dựng ra một ô bấm vào không đi đâu. */
+    public function test_o_hanh_trinh_thieu_link_thi_bo_qua(): void
+    {
+        Setting::put('tools_items', implode("\n", [
+            'Có link|Mô tả|/bang-gia',
+            'Thiếu link|Mô tả',
+        ]));
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Có link')
+            ->assertDontSee('Thiếu link');
+    }
+
     /* Ảnh băng ưu đãi là khoá Cài đặt riêng. Trước đây nó mượn ảnh hero của mặt
        hàng đầu danh sách, nên đại lý đổi ảnh xe là băng ưu đãi đổi theo. */
     public function test_uu_dai_dung_anh_rieng_chu_khong_muon_anh_cua_xe(): void

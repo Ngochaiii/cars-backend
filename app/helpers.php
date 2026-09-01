@@ -169,3 +169,23 @@ if (! function_exists('catalog_field_label')) {
         return new HtmlString($html);
     }
 }
+
+if (! function_exists('catalog_rich_text')) {
+    /**
+     * Nội dung dài của bài viết / mục văn bản.
+     *
+     * Ô soạn thảo lưu HTML, nhưng nội dung nhập từ trước khi có ô đó là văn bản
+     * thuần — in thẳng là mất hết dấu xuống dòng. Nên chia hai đường: có thẻ thì
+     * lọc qua danh sách cho phép, không có thẻ thì escape rồi nl2br như cũ.
+     */
+    function catalog_rich_text(?string $body): HtmlString
+    {
+        $body = (string) $body;
+
+        if (! preg_match('/<[a-z][^>]*>/i', $body)) {
+            return new HtmlString(nl2br(e($body)));
+        }
+
+        return new HtmlString(\App\Support\RichText::clean($body));
+    }
+}

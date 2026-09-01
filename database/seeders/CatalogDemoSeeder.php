@@ -59,9 +59,11 @@ class CatalogDemoSeeder extends Seeder
         $deposit = Catalog::query('form')->updateOrCreate(
             ['key' => 'dat-coc'],
             [
-                'name' => 'Đặt cọc',
-                'description' => 'Cọc giữ suất xe — hoàn lại 100% trong 7 ngày nếu bạn đổi ý. Thanh toán sau khi tư vấn viên xác nhận.',
-                'success_message' => 'Đã nhận yêu cầu đặt cọc, tư vấn viên sẽ gọi lại trong vòng 2 giờ làm việc để xác nhận.',
+                // Khoá vẫn là `dat-coc` để không gãy link cũ và lead đã lưu;
+                // chỉ phần chữ hiện ra cho khách là đổi theo cách bán hiện tại.
+                'name' => 'Báo giá',
+                'description' => 'Nhận bảng giá lăn bánh và ưu đãi đang chạy cho đúng phiên bản bạn quan tâm.',
+                'success_message' => 'Đã nhận yêu cầu báo giá, tư vấn viên sẽ gọi lại trong vòng 2 giờ làm việc.',
             ],
         );
 

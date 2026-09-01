@@ -39,6 +39,17 @@ return [
         'option' => ['single' => 'Màu xe',    'plural' => 'Bảng màu'],
         'sections' => 'Chi tiết xe',
         'specs' => 'Thông số kỹ thuật',
+
+        /*
+         * Chữ trên các nút kêu gọi hành động. Gom về một chỗ vì nó nằm rải ở
+         * cả chục chỗ: header, thẻ xe, hero, thanh dính đáy, coverflow, băng
+         * ưu đãi. Đại lý đổi cách bán (đặt cọc → báo giá → tư vấn) thì sửa
+         * đúng một dòng ở đây.
+         */
+        'cta' => [
+            'deposit' => 'Báo giá',
+            'test_drive' => 'Lái thử',
+        ],
     ],
 
     // Bật/tắt từng khối. Admin ẩn khối tắt, API không trả field tương ứng.
@@ -98,6 +109,7 @@ return [
     'section_types' => [
         'media' => 'Ảnh',
         'text' => 'Văn bản',
+        'notice' => 'Thông báo',
         'video' => 'Video',
         'table' => 'Bảng',
         'form' => 'Form',
@@ -148,6 +160,12 @@ return [
                 'header_cta' => ['label' => 'Nhãn nút bên phải header', 'type' => 'text'],
                 'promo_text' => ['label' => 'Băng khuyến mãi trên cùng', 'type' => 'text'],
                 'promo_url' => ['label' => 'Link băng khuyến mãi', 'type' => 'url'],
+
+                'tools_note' => ['label' => 'Hành trình sở hữu — dòng nhỏ', 'type' => 'text'],
+                'tools_title' => ['label' => 'Hành trình sở hữu — tiêu đề', 'type' => 'text'],
+                'tools_text' => ['label' => 'Hành trình sở hữu — mô tả', 'type' => 'textarea'],
+                'tools_image' => ['label' => 'Hành trình sở hữu — ảnh ô lớn (trống thì lấy ảnh xe đầu danh sách)', 'type' => 'image'],
+                'tools_items' => ['label' => 'Hành trình sở hữu — các ô (mỗi dòng "Tên|Mô tả|Link", ô đầu là ô lớn có ảnh)', 'type' => 'textarea'],
 
                 'offer_note' => ['label' => 'Ưu đãi — dòng nhỏ', 'type' => 'text'],
                 'offer_title' => ['label' => 'Ưu đãi — tiêu đề', 'type' => 'text'],

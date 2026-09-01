@@ -18,6 +18,13 @@ use Tests\TestCase;
  */
 class PostLayoutParityTest extends TestCase
 {
+    /*
+     * Ô nội dung là trình soạn thảo có định dạng nên nó lưu HTML: gõ một đoạn
+     * chữ trơn vào form thì xuống DB đã được bọc trong thẻ <p>. Chốt lại đúng
+     * chuỗi đó để lần sau đổi ô nhập là test kêu ngay.
+     */
+    private const BODY_HTML = '<p>Khoang lái được tối ưu cho cả hành trình trong đô thị và đường dài.</p>';
+
     protected PostCategory $category;
 
     protected function setUp(): void
@@ -112,7 +119,7 @@ class PostLayoutParityTest extends TestCase
         $this->assertSame($this->category->id, $post->post_category_id);
         $this->assertSame('vf-7-ra-mat.jpg', basename((string) $post->cover));
         $this->assertSame('vf-7-news-social.jpg', basename((string) data_get($post->seo, 'image')));
-        $this->assertSame('Khoang lái được tối ưu cho cả hành trình trong đô thị và đường dài.', $post->sections[0]['body']);
+        $this->assertSame(self::BODY_HTML, $post->sections[0]['body']);
         $this->assertSame('496 km', $post->sections[2]['rows'][0]['value']);
 
         $this->get('/tin-tuc')
@@ -141,7 +148,7 @@ class PostLayoutParityTest extends TestCase
 
         $this->assertSame($post->cover, $data['cover']);
         $this->assertSame('Xe điện', $data['category']['name']);
-        $this->assertSame('Khoang lái được tối ưu cho cả hành trình trong đô thị và đường dài.', $data['sections'][0]['body']);
+        $this->assertSame(self::BODY_HTML, $data['sections'][0]['body']);
         $this->assertSame('https://cars.example/tin/vf-7-ra-mat', $data['canonical']);
         $this->assertSame('https://cars.example/tin/vf-7-ra-mat', $data['jsonld']['url']);
         $this->assertStringEndsWith('/storage/catalog/seo/vf-7-news-social.jpg', $data['jsonld']['image']);
@@ -161,7 +168,7 @@ class PostLayoutParityTest extends TestCase
 
         $this->assertSame('VF 7 ra mắt phiên bản mới tại Việt Nam', $post->title);
         $this->assertSame('vf-7-ra-mat.jpg', basename((string) $post->cover));
-        $this->assertSame('Khoang lái được tối ưu cho cả hành trình trong đô thị và đường dài.', $post->sections[0]['body']);
+        $this->assertSame(self::BODY_HTML, $post->sections[0]['body']);
         $this->assertSame('https://cars.example/tin/vf-7-ra-mat', data_get($post->seo, 'canonical'));
     }
 }

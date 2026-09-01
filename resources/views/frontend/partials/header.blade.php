@@ -91,8 +91,8 @@
 
             @if (Route::has('booking'))
                 <a class="btn btn--sm" href="{{ route('booking') }}">
-                    <span class="header__cta-long">{{ catalog_setting('header_cta', 'Đặt cọc & lái thử') }}</span>
-                    <span class="header__cta-short">Đặt cọc</span>
+                    <span class="header__cta-long">{{ catalog_setting('header_cta', catalog_label('cta.deposit').' & '.Str::lower(catalog_label('cta.test_drive'))) }}</span>
+                    <span class="header__cta-short">{{ catalog_label('cta.deposit') }}</span>
                 </a>
             @elseif (filled($hotline))
                 <a class="btn btn--sm" href="tel:{{ preg_replace('/\s+/', '', $hotline) }}">Gọi tư vấn</a>
@@ -121,7 +121,7 @@
                     <path d="M6.5 3v3M17.5 3v3M4 8.5h16M5.5 5h13A1.5 1.5 0 0 1 20 6.5v12a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-12A1.5 1.5 0 0 1 5.5 5Z"/>
                     <path d="m9 14 2 2 4-4"/>
                 </svg>
-                <span><small>Đăng ký ngay</small>Lái thử &amp; đặt cọc</span>
+                <span><small>Đăng ký ngay</small>{{ catalog_label('cta.test_drive') }} &amp; {{ Str::lower(catalog_label('cta.deposit')) }}</span>
             </a>
         @endif
     </nav>

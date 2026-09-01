@@ -4,9 +4,9 @@
       - type = video → nhúng video (YouTube/Vimeo/mp4) làm nền
       - không có hero → khối chữ trên nền xám nhạt, không để trang trống hốc
 
-    Ảnh hero gộp với ảnh của các mục kiểu `media` thành một băng chuyền —
-    không cần thêm cột `gallery` vào bảng products. Chỉ một ảnh thì không
-    dựng băng chuyền, khỏi thừa nút.
+    Ảnh hero gộp với các ảnh banner khai trong `hero.banners` thành một băng
+    chuyền — không cần thêm cột `gallery` vào bảng products. Chỉ một ảnh thì
+    không dựng băng chuyền, khỏi thừa nút.
 --}}
 @php
     $hero    = $product->hero ?? [];
@@ -25,23 +25,35 @@
     $lede = $hero['lede'] ?? null;
 
     // Băng chuyền chỉ dựng cho hero ẢNH — hero video thì để video chạy yên.
+    // Khai banner rồi thì hero chạy ĐÚNG những ảnh banner đó, ảnh hero không
+    // xuất hiện nữa (nó vẫn còn việc riêng: ảnh chia sẻ mạng xã hội và thumbnail
+    // ở thanh đặt cọc). Chưa khai banner nào thì lùi về đúng ảnh hero, đứng yên
+    // một tấm, không băng chuyền và không nút.
+    //
+    // Trước đây chỗ này tự quét ảnh của mọi mục kiểu `media` trong trang, nên
+    // banner toàn ảnh cận cảnh đèn, mâm xe — thứ không bao giờ hợp làm ảnh phủ
+    // trọn màn hình.
     $shots = collect();
 
-    if ($media && ! $isVideo) {
-        $shots->push(['src' => $media, 'label' => $product->name]);
-
-        foreach ($product->renderableSections() as $sec) {
-            if (($sec['type'] ?? 'media') !== 'media') {
-                continue;
-            }
-            foreach ($sec['items'] ?? [] as $item) {
-                if ($img = catalog_image($item['image'] ?? null)) {
-                    $shots->push(['src' => $img, 'label' => $item['label'] ?? ($sec['title'] ?? '')]);
-                }
+    if (! $isVideo) {
+        foreach ((array) ($hero['banners'] ?? []) as $banner) {
+            if ($img = catalog_image($banner['image'] ?? null)) {
+                $shots->push(['src' => $img, 'label' => $banner['label'] ?? $product->name]);
             }
         }
 
-        $shots = $shots->unique('src')->take(5)->values();
+        $shots = $shots->unique('src')->values();
+    }
+
+    $hasBanners = $shots->isNotEmpty();
+
+    if ($hasBanners) {
+        // Có banner thì banner là nền của hero — kể cả khi xe chưa có ảnh hero.
+        // Bản mobile riêng là của ảnh hero, không được ghép nhầm dưới banner.
+        $media = $shots->first()['src'];
+        $mobileMedia = null;
+    } elseif ($media && ! $isVideo) {
+        $shots->push(['src' => $media, 'label' => $product->name]);
     }
 @endphp
 
@@ -73,11 +85,12 @@
                     @endif
                 @endforeach
             @else
+                @php $only = $shots->first(); @endphp
                 <picture>
                     @if ($mobileMedia)
                         <source media="(max-width: 680px)" srcset="{{ $mobileMedia }}">
                     @endif
-                    <x-img :src="$media" :alt="$product->name" sizes="100vw" eager />
+                    <x-img :src="$only['src']" :alt="$only['label']" sizes="100vw" eager />
                 </picture>
             @endif
         </div>
@@ -116,7 +129,7 @@
                      có thì lùi về neo tới form nằm cuối trang. --}}
                 <div class="hero__actions">
                     @if (Route::has('booking'))
-                        <a class="btn btn--accent" href="{{ route('booking', ['xe' => $product->slug]) }}">Đặt cọc</a>
+                        <a class="btn btn--accent" href="{{ route('booking', ['xe' => $product->slug]) }}">{{ catalog_label('cta.deposit') }}</a>
                         <a class="btn btn--ghost"
                            href="{{ route('booking', ['xe' => $product->slug, 'hinh-thuc' => 'dat-lich-lai-thu']) }}">Đăng ký lái thử</a>
                     @else

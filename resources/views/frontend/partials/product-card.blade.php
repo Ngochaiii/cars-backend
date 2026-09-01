@@ -50,7 +50,7 @@
 
         <div class="card__actions">
             @if (Route::has('booking'))
-                <a class="btn btn--sm" href="{{ route('booking', ['xe' => $product->slug]) }}">Đặt cọc</a>
+                <a class="btn btn--sm" href="{{ route('booking', ['xe' => $product->slug]) }}">{{ catalog_label('cta.deposit') }}</a>
                 <a class="btn btn--sm btn--outline" href="{{ $url }}">Xem chi tiết</a>
             @else
                 <a class="btn btn--sm" href="{{ $url }}">Xem chi tiết</a>

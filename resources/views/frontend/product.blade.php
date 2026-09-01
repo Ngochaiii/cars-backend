@@ -50,7 +50,7 @@
                     @if (filled($product->specs))<a href="#thong-so">Thông số</a>@endif
                     @if ($loan)<a href="#tra-gop">Trả góp</a>@endif
                 </div>
-                <a class="btn btn--accent btn--sm" href="{{ $bookingUrl }}">Đặt cọc</a>
+                <a class="btn btn--accent btn--sm" href="{{ $bookingUrl }}">{{ catalog_label('cta.deposit') }}</a>
             </div>
         </nav>
         {{-- ── Hero ───────────────────────────────────────────────────── --}}
@@ -227,7 +227,7 @@
                             <a class="btn btn--outline order-bar__call"
                                href="tel:{{ preg_replace('/\s+/', '', $hotline) }}">Gọi tư vấn</a>
                         @endif
-                        <a class="btn btn--accent" href="{{ $bookingUrl }}">Đặt cọc</a>
+                        <a class="btn btn--accent" href="{{ $bookingUrl }}">{{ catalog_label('cta.deposit') }}</a>
                         <a class="order-bar__test" href="{{ $testDriveUrl }}">Đăng ký lái thử</a>
                     </div>
                 </div>

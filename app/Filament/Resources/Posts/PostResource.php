@@ -101,6 +101,16 @@ class PostResource extends Resource
                         ->image()
                         ->directory('catalog/posts'),
 
+                    Select::make('cover_width')
+                        ->label('Bề rộng ảnh bìa')
+                        ->options([
+                            'narrow' => 'Cột chữ (thẳng hàng với bài)',
+                            'wide' => 'Rộng bằng khung nội dung',
+                            'full' => 'Tràn hết màn hình',
+                        ])
+                        ->placeholder('Cột chữ')
+                        ->helperText('Mặc định ảnh bìa thẳng hàng với chữ. Chọn rộng hoặc tràn khi muốn ảnh mở đầu thật lớn.'),
+
                     Textarea::make('excerpt')
                         ->label('Tóm tắt')
                         ->rows(3)

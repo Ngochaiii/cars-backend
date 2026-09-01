@@ -8,8 +8,15 @@
 
     $bare = true → bỏ khung <section class="section"><div class="wrap">, dùng
     khi mục đã nằm sẵn trong một cột có padding riêng (VD trang tĩnh 2 cột).
+
+    $defaultWidth → bề rộng cho mục không tự khai `width`. Bài viết truyền
+    'narrow' để mọi khối thẳng hàng với cột chữ; sản phẩm và trang tĩnh giữ
+    'wide' như cũ. Người nhập chọn lại từng mục trong admin.
 --}}
-@php $bare = $bare ?? false; @endphp
+@php
+    $bare = $bare ?? false;
+    $defaultWidth = $defaultWidth ?? 'wide';
+@endphp
 
 @foreach ($sections as $section)
     @php
@@ -19,12 +26,23 @@
         // ảnh — nên phần đầu do partial media tự dựng. Render nó ở đây nữa
         // thì chữ nằm trên, cột chữ bỏ trống, ảnh co lại còn 40% (đúng chỗ
         // trang chi tiết từng lệch khỏi bản thiết kế).
-        $headInside = $type === 'media'
-            && in_array($section['layout'] ?? '', ['split', 'split-alt'], true);
+        // Mục "thông báo" đặt tên mục làm nhãn nhỏ BÊN TRONG hộp, nên phần
+        // đầu do partial notice tự dựng — render ở đây nữa là có hai tiêu đề.
+        $headInside = $type === 'notice'
+            || ($type === 'media' && in_array($section['layout'] ?? '', ['split', 'split-alt'], true));
+
+        $width = $section['width'] ?? $defaultWidth;
+
+        // 'full' bỏ hẳn khung .wrap: mục chiếm trọn bề ngang màn hình.
+        $wrapClass = match ($width) {
+            'narrow' => 'wrap wrap--narrow',
+            'full' => 'section__full',
+            default => 'wrap',
+        };
     @endphp
 
     @if ($bare)
-        <div class="section-bare" @isset($section['title']) id="{{ Str::slug($section['title']) }}" @endisset>
+        <div class="section-bare section-bare--{{ $width }}" @isset($section['title']) id="{{ Str::slug($section['title']) }}" @endisset>
             @if (! $headInside && (isset($section['title']) || isset($section['intro'])))
                 <div class="section__head">
                     @isset($section['title'])<h2>{{ $section['title'] }}</h2>@endisset
@@ -35,12 +53,12 @@
             @includeIf('frontend.partials.section.'.$type, ['section' => $section])
         </div>
     @else
-        <section class="section story-section story-section--{{ $type }}
+        <section class="section story-section story-section--{{ $type }} section--{{ $width }}
                         @if ($type === 'media') story-section--{{ $section['layout'] ?? 'cols-3' }} @endif
                         {{ $loop->even ? 'story-section--alt' : '' }}"
                  data-story-section
                  @isset($section['title']) id="{{ Str::slug($section['title']) }}" @endisset>
-            <div class="wrap">
+            <div class="{{ $wrapClass }}">
                 @if (! $headInside && (isset($section['title']) || isset($section['intro'])))
                     <div class="section__head">
                         @isset($section['title'])<h2>{{ $section['title'] }}</h2>@endisset

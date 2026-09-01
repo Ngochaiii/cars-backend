@@ -5,6 +5,7 @@ namespace App\Filament\Schemas;
 use App\Filament\Forms\Components\NativeMediaUpload;
 use App\Support\Catalog;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -44,6 +45,20 @@ class SectionsRepeater
                     ->default('cols-3')
                     ->selectablePlaceholder(false),
 
+                /*
+                 * Bề rộng của mục. Bỏ trống thì theo mặc định của trang: bài
+                 * viết xếp mọi mục thẳng hàng với cột chữ, trang sản phẩm và
+                 * trang tĩnh vẫn rộng bằng khung nội dung như trước.
+                 */
+                Select::make('width')
+                    ->label('Bề rộng')
+                    ->options([
+                        'narrow' => 'Cột chữ (hẹp, dễ đọc)',
+                        'wide' => 'Rộng bằng khung nội dung',
+                        'full' => 'Tràn hết màn hình',
+                    ])
+                    ->placeholder('Theo mặc định của trang'),
+
                 Select::make('type')
                     ->label('Kiểu')
                     ->options(Catalog::sectionTypes())
@@ -57,11 +72,23 @@ class SectionsRepeater
                     ->rows(2)
                     ->columnSpanFull(),
 
-                Textarea::make('body')
+                /*
+                 * Ô này trước là Textarea nên dán bài từ Word/Google Docs vào
+                 * là mất sạch chữ đậm, tiêu đề, danh sách. RichEditor giữ lại
+                 * phần cấu trúc khi dán, còn font/cỡ chữ/màu của tài liệu gốc
+                 * thì bỏ — trang web có thang chữ riêng, bê nguyên vào là mỗi
+                 * bài một kiểu.
+                 */
+                RichEditor::make('body')
                     ->label('Nội dung')
-                    ->rows(6)
+                    ->helperText('Dán thẳng từ Word/Google Docs được: giữ chữ đậm, nghiêng, tiêu đề, danh sách và link.')
+                    ->toolbarButtons([
+                        ['bold', 'italic', 'underline', 'strike', 'link'],
+                        ['h2', 'h3', 'bulletList', 'orderedList', 'blockquote', 'table'],
+                        ['undo', 'redo'],
+                    ])
                     ->columnSpanFull()
-                    ->visible(fn (Get $get) => $get('type') === 'text'),
+                    ->visible(fn (Get $get) => in_array($get('type'), ['text', 'notice'], true)),
 
                 /*
                  * Ba kiểu mục dưới đây có trong config('catalog.section_types')

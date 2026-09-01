@@ -49,7 +49,7 @@
                         <span class="booking__step-num">{{ $i + 1 }}</span>
                         <span>
                             <b>{{ $label }}</b>
-                            <em data-booking-step-sub>{{ ['Đặt cọc hoặc lái thử', 'Họ tên, điện thoại', 'Tư vấn viên gọi lại'][$i] }}</em>
+                            <em data-booking-step-sub>{{ [catalog_label('cta.deposit').' hoặc '.Str::lower(catalog_label('cta.test_drive')), 'Họ tên, điện thoại', 'Tư vấn viên gọi lại'][$i] }}</em>
                         </span>
                     </li>
                 @endforeach

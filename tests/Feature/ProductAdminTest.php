@@ -176,4 +176,30 @@ class ProductAdminTest extends TestCase
         $this->assertSame('', $blank[0]['intro'], 'Mẫu giữ khung, không giữ chữ của sản phẩm cũ.');
         $this->assertSame([], $blank[0]['items'], 'Mẫu không mang theo ảnh.');
     }
+
+    /* Ảnh banner hero nằm trong cột JSON `hero`, lưu qua đường dẫn chấm của
+       Filament — dễ rơi mất khi form đổi. Chốt lại đường đi từ form xuống DB. */
+    public function test_luu_duoc_anh_banner_hero_qua_form(): void
+    {
+        Livewire::test(CreateProduct::class)
+            ->fillForm([
+                'name' => 'Lexus RX 350',
+                'slug' => 'lexus-rx-350',
+                'status' => 'draft',
+                'hero' => [
+                    'type' => 'image',
+                    'src' => ['catalog/hero/rx.jpg'],
+                    'banners' => [
+                        ['image' => ['catalog/hero/banner-1.jpg'], 'label' => 'Ưu đãi tháng 9'],
+                    ],
+                ],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $hero = Product::where('slug', 'lexus-rx-350')->firstOrFail()->hero;
+
+        $this->assertSame('catalog/hero/banner-1.jpg', data_get($hero, 'banners.0.image'));
+        $this->assertSame('Ưu đãi tháng 9', data_get($hero, 'banners.0.label'));
+    }
 }

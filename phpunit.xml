@@ -18,6 +18,12 @@
         </include>
     </source>
     <php>
+        <!--
+            Form admin dùng Repeater lồng RichEditor; dựng cả form trong test
+            Livewire ăn hơn 128M mặc định của PHP, quá ngưỡng là process chết
+            giữa chừng chứ không báo lỗi test.
+        -->
+        <ini name="memory_limit" value="512M"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>

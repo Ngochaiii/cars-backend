@@ -60,7 +60,7 @@
             {{-- Hai lối đi thay vì một: khách sẵn sàng thì đặt cọc, còn phân vân
                  thì đăng ký lái thử — trước đây chỉ có một nút cho cả hai. --}}
             <div class="variant__actions">
-                <a class="btn btn--accent btn--block" href="{{ $datCoc }}">Đặt cọc</a>
+                <a class="btn btn--accent btn--block" href="{{ $datCoc }}">{{ catalog_label('cta.deposit') }}</a>
                 <a class="btn btn--outline btn--block" href="{{ $laiThu }}">Đăng ký lái thử</a>
             </div>
         </li>

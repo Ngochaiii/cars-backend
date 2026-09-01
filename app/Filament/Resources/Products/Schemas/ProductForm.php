@@ -132,6 +132,27 @@ class ProductForm
                     ->helperText('Bỏ trống thì hero chỉ còn tiêu đề và giá — KHÔNG tự lấy mô tả SEO, vì mô tả đó đã dùng cho khối mở đầu bên dưới.')
                     ->rows(3)
                     ->columnSpanFull(),
+
+                Repeater::make('hero.banners')
+                    ->label('Ảnh banner chạy cùng hero')
+                    ->helperText('Bỏ trống thì hero chỉ đứng yên một ảnh — KHÔNG tự lấy ảnh từ các mục bên dưới nữa. Ảnh ở đây phủ trọn màn hình nên chọn ảnh ngang, đừng dùng ảnh cận cảnh chi tiết.')
+                    ->addActionLabel('+ Thêm ảnh banner')
+                    ->defaultItems(0)
+                    ->reorderableWithDragAndDrop()
+                    ->itemLabel(fn (array $state): ?string => $state['label'] ?? null)
+                    ->visible(fn (Get $get) => $get('hero.type') !== 'video')
+                    ->schema([
+                        NativeMediaUpload::make('image')
+                            ->label('Ảnh')
+                            ->image()
+                            ->directory('catalog/hero')
+                            ->required(),
+                        TextInput::make('label')
+                            ->label('Chú thích')
+                            ->helperText('Hiện mờ ở góc dưới ảnh. Bỏ trống thì lấy tên xe.'),
+                    ])
+                    ->columns(2)
+                    ->columnSpanFull(),
             ]);
     }
 
