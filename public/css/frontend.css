@@ -412,6 +412,42 @@ b, strong { font-weight: 700; }
    tấm ảnh thành vùng bấm. Ảnh loại này thường đã thiết kế sẵn chữ bên trong,
    phủ thêm gradient là làm đục thiết kế của người ta. */
 .hero__slide--bare .hero__media::after { display: none; }
+
+/* Trang chi tiết xe ở chế độ "chỉ hiện ảnh": bỏ lớp phủ tối và bỏ cả chiều cao
+   tối thiểu 760px. Ảnh KHÔNG bị nhốt trong một khung tỉ lệ cố định nữa — khung
+   ảnh trở lại dòng chảy bình thường nên chiều cao khối chạy theo đúng tỉ lệ
+   thật của ảnh. Ép 16:9 thì ảnh nào rộng hơn (banner hãng hay 1.9–2.2) sẽ bị
+   xén mất hai mép, đúng thứ cần tránh ở chế độ này. */
+.hero--bare { min-height: 0; display: block; background: #fff; }
+.hero--bare .hero__media { position: static; }
+.hero--bare .hero__media::after { display: none; }
+.hero--bare .hero__media img,
+.hero--bare .hero__media picture,
+.hero--bare .hero__media picture img,
+.hero--bare .hero__shot,
+.hero--bare picture.hero__shot,
+.hero--bare picture.hero__shot img {
+    position: static;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+/* Nhiều banner: các tấm xếp chồng nên tấm đang hiện phải là tấm duy nhất
+   chiếm chỗ, không thì khối cao bằng tổng chiều cao tất cả ảnh. */
+.hero--bare .hero__shot:not(.is-on) { display: none; }
+/* Khối chữ dưới banner nằm trên nền SÁNG, trong khi giá và nút ghost vốn được
+   vẽ cho hero nền tối — không đổi màu thì chữ trắng trên nền trắng. */
+.hero-caption { padding-block: var(--s-9); background: var(--soft-2); }
+.hero-caption .hero__inner { max-width: 720px; }
+.hero-caption h1 { font-size: var(--fs-h1); }
+.hero-caption .hero__price-label { color: var(--muted); }
+.hero-caption .hero__price-now { color: var(--ink); }
+.hero-caption .hero__price-was { color: var(--muted-2); }
+.hero-caption .hero__lede { color: var(--body); }
+.hero-caption .btn--ghost { border-color: var(--line-in); color: var(--ink); }
+.hero-caption .btn--ghost:hover { background: rgba(7, 21, 34, .06); }
+/* Mũi tên "cuộn để khám phá" là chữ trắng — ảnh banner sáng thì mất hút. */
+.hero--bare .hero__scroll-cue { display: none; }
 .hero__bare-link { position: absolute; inset: 0; z-index: 2; }
 .hero__bare-link:focus-visible { outline: 3px solid var(--accent); outline-offset: -6px; }
 
@@ -2214,6 +2250,13 @@ html.js .hero--carousel.hero--bare-active .hero__slide--bare.is-on {
 
 /* Hero chi tiết xe: hình ảnh chiếm trọn khung, nội dung neo vào vùng an toàn. */
 .hero--product { min-height: clamp(650px, calc(100svh - 130px), 820px); }
+/* Chế độ "chỉ hiện ảnh" thì chiều cao do chính ảnh quyết định. Luật này phải
+   nằm sau (và đủ nặng hơn) .hero--product ở trên, không thì banner vẫn bị kéo
+   cao 650px và hở ra một mảng nền dưới ảnh. */
+.hero--product.hero--bare { min-height: 0; }
+.hero--product.hero--bare .hero__shot,
+.hero--product.hero--bare picture.hero__shot,
+.hero--product.hero--bare picture.hero__shot img { width: 100%; height: auto; object-fit: contain; }
 .hero--product .hero__media::after {
     background: linear-gradient(90deg, rgba(4, 13, 24, .72) 0%, rgba(4, 13, 24, .22) 56%, rgba(4, 13, 24, .04) 100%);
 }
@@ -2462,6 +2505,7 @@ html.js .hero--carousel.hero--bare-active .hero__slide--bare.is-on {
     .disc__actions { gap: var(--s-2); }
 
     .hero--product { min-height: min(720px, calc(100svh - 92px)); padding: 0; align-items: flex-end; }
+    .hero--product.hero--bare { min-height: 0; }
     .hero--product .hero__body { padding: 0 0 var(--s-12); }
     .hero--product .hero__body h1 { font-size: var(--fs-h1); }
     .hero--product .hero__lede { display: none; }
@@ -5139,4 +5183,239 @@ html.js .home-story.home-motion-ready [data-home-reveal].home-reveal--media:not(
     .spec-media__file { justify-self: stretch; }
     /* Không có hover trên cảm ứng — hiện luôn gợi ý phóng to. */
     .spec-media__zoom { opacity: 1; transform: none; }
+}
+
+/* ═══════════ PRODUCT HERO COMMAND DECK ═══════════
+   Banner quảng bá và thông tin bán hàng là một sân khấu duy nhất. Tấm ảnh
+   giữ vai trò cảm xúc; bảng nổi ở chân ảnh đảm nhiệm tên xe, giá và thao tác. */
+.hero--product .hero__tagline {
+    max-width: 46ch;
+    margin: calc(-1 * var(--s-2)) 0 var(--s-4);
+    color: rgba(255, 255, 255, .9);
+    font-size: var(--fs-xl);
+    font-weight: 500;
+    line-height: 1.45;
+}
+.hero--product.hero--plain .hero__tagline { color: var(--body); }
+.hero__commerce { min-width: 0; }
+.hero__cta-cluster { display: grid; gap: var(--s-3); }
+.hero__action-icon {
+    display: inline-block;
+    margin-left: var(--s-3);
+    font-size: var(--fs-xl);
+    font-weight: 400;
+    line-height: 1;
+    transition: transform var(--dur-fast) var(--ease-cine);
+}
+.hero__actions .btn:hover .hero__action-icon { transform: translateX(4px); }
+.hero__support {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--s-2);
+    color: rgba(255, 255, 255, .72);
+    font-size: var(--fs-xs);
+}
+.hero__support strong { color: #fff; font-size: var(--fs-sm); }
+.hero__support:hover strong { text-decoration: underline; }
+
+/* Có banner thiết kế sẵn: giới hạn chiều cao theo cả chiều rộng lẫn viewport
+   để bảng thao tác luôn ló vào màn hình đầu, thay vì rơi hẳn xuống dưới fold. */
+.product-story .hero--product.hero--bare {
+    display: block;
+    min-height: 0;
+    overflow: hidden;
+    background: #e9f0f7;
+}
+.product-story .hero--product.hero--bare::after { display: none; }
+.product-story .hero--product.hero--bare .hero__media {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: clamp(400px, 45vw, min(640px, calc(100svh - 260px)));
+    overflow: hidden;
+}
+.product-story .hero--product.hero--bare .hero__media > picture,
+.product-story .hero--product.hero--bare .hero__media > img,
+.product-story .hero--product.hero--bare .hero__shot,
+.product-story .hero--product.hero--bare picture.hero__shot,
+.product-story .hero--product.hero--bare picture.hero__shot img {
+    width: 100%;
+    height: 100%;
+}
+.product-story .hero--product.hero--bare .hero__media img,
+.product-story .hero--product.hero--bare .hero__media > picture img,
+.product-story .hero--product.hero--bare .hero__shot,
+.product-story .hero--product.hero--bare picture.hero__shot img {
+    position: static;
+    object-fit: cover;
+    object-position: center 48%;
+    transform: none;
+}
+.product-story .hero--product.hero--bare .hero__media::after { display: none; }
+
+.hero-caption {
+    position: relative;
+    z-index: 6;
+    padding: 0 0 var(--s-7);
+    background: linear-gradient(180deg, #f4f7fb 0%, #fff 100%);
+}
+.hero-caption__wrap { position: relative; margin-top: -68px; }
+.hero-caption__panel {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(24px, 2.5vw, 40px);
+    border: 1px solid rgba(16, 24, 32, .08);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, .96);
+    box-shadow: 0 24px 70px rgba(7, 21, 37, .16);
+    backdrop-filter: blur(18px);
+}
+.hero-caption__panel::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), #6cb3ff 42%, transparent 82%);
+}
+.hero-caption .hero__inner--summary {
+    display: grid;
+    grid-template-columns: minmax(250px, 1fr) auto;
+    align-items: center;
+    gap: clamp(28px, 4vw, 64px);
+    max-width: none;
+}
+.hero-caption .hero__identity { min-width: 0; }
+.hero-caption .eyebrow {
+    margin-bottom: var(--s-2);
+    color: var(--accent);
+    letter-spacing: .2em;
+}
+.hero-caption h1 {
+    margin: 0;
+    color: var(--automotive-ink);
+    font-size: clamp(38px, 4vw, 58px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -.045em;
+}
+.hero-caption .hero__tagline {
+    max-width: 44ch;
+    margin: var(--s-3) 0 0;
+    color: var(--body);
+    font-size: var(--fs-lg);
+    line-height: 1.5;
+}
+.hero-caption .hero__lede {
+    max-width: 56ch;
+    margin: var(--s-2) 0 0;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+}
+.hero-caption .hero__commerce {
+    display: flex;
+    align-items: center;
+    gap: clamp(24px, 3vw, 48px);
+}
+.hero-caption .hero__price {
+    display: grid;
+    flex: none;
+    gap: 2px;
+    min-width: 150px;
+    margin: 0;
+    padding: var(--s-2) clamp(24px, 3vw, 48px) var(--s-2) 0;
+    border-right: 1px solid var(--line-2);
+}
+.hero-caption .hero__price-label {
+    color: var(--muted);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+}
+.hero-caption .hero__price-now {
+    color: var(--automotive-ink);
+    font-size: clamp(26px, 2.4vw, 36px);
+    line-height: 1.2;
+    letter-spacing: -.035em;
+}
+.hero-caption .hero__price-was { color: var(--muted-2); font-size: var(--fs-sm); }
+.hero-caption .hero__actions { flex-wrap: nowrap; gap: var(--s-3); }
+.hero-caption .hero__actions .btn {
+    min-width: 166px;
+    height: 54px;
+    padding-inline: var(--s-6);
+    border-radius: 8px;
+    font-size: var(--fs-sm);
+    letter-spacing: .02em;
+    text-transform: none;
+}
+.hero-caption .btn--ghost {
+    border-color: #ccd3dc;
+    background: #fff;
+    color: var(--automotive-ink);
+}
+.hero-caption .btn--ghost:hover {
+    border-color: var(--automotive-ink);
+    background: var(--automotive-ink);
+    color: #fff;
+}
+.hero-caption .hero__support { color: var(--muted); }
+.hero-caption .hero__support strong { color: var(--automotive-ink); }
+.hero-caption + .wrap .breadcrumb { padding-top: 0; }
+
+@media (max-width: 1180px) {
+    .hero-caption .hero__inner--summary {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--s-6);
+    }
+    .hero-caption .hero__commerce { justify-content: space-between; }
+}
+
+@media (max-width: 680px) {
+    .product-story .hero--product.hero--bare .hero__media {
+        height: clamp(280px, 72vw, 400px);
+    }
+    .product-story .hero--product.hero--bare .hero__media img,
+    .product-story .hero--product.hero--bare .hero__media > picture img,
+    .product-story .hero--product.hero--bare .hero__shot,
+    .product-story .hero--product.hero--bare picture.hero__shot img {
+        object-position: center;
+    }
+    .hero-caption { padding-bottom: var(--s-5); }
+    .hero-caption__wrap { margin-top: -28px; }
+    .hero-caption__panel {
+        padding: var(--s-6) var(--s-5) var(--s-5);
+        border-radius: 18px;
+        box-shadow: 0 18px 44px rgba(7, 21, 37, .14);
+    }
+    .hero-caption .hero__inner--summary { gap: var(--s-5); }
+    .hero-caption h1 { font-size: 38px; }
+    .hero-caption .hero__tagline { margin-top: var(--s-2); font-size: var(--fs-base); }
+    .hero-caption .hero__lede { display: none; }
+    .hero-caption .hero__commerce {
+        display: grid;
+        align-items: stretch;
+        gap: var(--s-5);
+    }
+    .hero-caption .hero__price {
+        grid-template-columns: 1fr auto;
+        align-items: baseline;
+        min-width: 0;
+        padding: 0 0 var(--s-4);
+        border-right: 0;
+        border-bottom: 1px solid var(--line-2);
+    }
+    .hero-caption .hero__price-was { grid-column: 2; }
+    .hero-caption .hero__actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--s-2);
+    }
+    .hero-caption .hero__actions .btn {
+        min-width: 0;
+        height: 50px;
+        padding-inline: var(--s-3);
+        font-size: var(--fs-xs);
+    }
+    .hero-caption .hero__support { justify-content: center; }
 }

@@ -105,13 +105,16 @@ class ProductForm
 
                 NativeMediaUpload::make('hero.src')
                     ->label('Ảnh desktop')
+                    ->helperText(fn (Get $get) => $get('hero.bare')
+                        ? 'Khung 16:9 — khuyến nghị 2560 × 1440 px, ảnh hiện trọn không bị xén.'
+                        : 'Khuyến nghị 2560 × 1440 px. Ảnh bị xén theo chiều cao màn hình và có lớp phủ tối bên trái để đọc chữ.')
                     ->image()
                     ->directory('catalog/hero')
                     ->visible(fn (Get $get) => $get('hero.type') !== 'video'),
 
                 NativeMediaUpload::make('hero.mobile_src')
                     ->label('Ảnh mobile')
-                    ->helperText('Khuyến nghị 4:5 hoặc 3:4, chừa vùng an toàn cho tiêu đề và nút.')
+                    ->helperText('Khuyến nghị 1080 × 1350 px (4:5) hoặc 1080 × 1440 px (3:4), chừa vùng an toàn cho tiêu đề và nút.')
                     ->image()
                     ->directory('catalog/hero')
                     ->visible(fn (Get $get) => $get('hero.type') !== 'video'),
@@ -133,9 +136,18 @@ class ProductForm
                     ->rows(3)
                     ->columnSpanFull(),
 
+                Toggle::make('hero.bare')
+                    ->label('Ảnh hero cũng chỉ hiện ảnh, không đè chữ')
+                    ->live()
+                    ->helperText('Khai ảnh banner bên dưới thì đã mặc nhiên chỉ hiện ảnh, không cần bật gì. Công tắc này dành cho trường hợp KHÔNG dùng banner mà chính ảnh hero đã là một tấm thiết kế sẵn: bỏ lớp phủ tối, ảnh chạy đúng 16:9 không bị xén, tên xe – giá – hai nút tụt xuống ngay dưới ảnh.')
+                    ->visible(fn (Get $get) => $get('hero.type') !== 'video')
+                    ->columnSpanFull(),
+
                 Repeater::make('hero.banners')
                     ->label('Ảnh banner chạy cùng hero')
-                    ->helperText('Bỏ trống thì hero chỉ đứng yên một ảnh — KHÔNG tự lấy ảnh từ các mục bên dưới nữa. Ảnh ở đây phủ trọn màn hình nên chọn ảnh ngang, đừng dùng ảnh cận cảnh chi tiết.')
+                    ->helperText(fn (Get $get) => $get('hero.bare')
+                        ? 'Chế độ "chỉ hiện ảnh": khung 16:9, khuyến nghị 2560 × 1440 px. Ảnh hiện trọn, không bị xén — chữ trong ảnh nằm đâu cũng đọc được.'
+                        : 'Ảnh phủ trọn màn hình và bị xén theo chiều cao, khuyến nghị 2560 × 1440 px, chừa khoảng trống bên TRÁI cho tiêu đề và hai nút. Đừng dùng ảnh cận cảnh chi tiết.')
                     ->addActionLabel('+ Thêm ảnh banner')
                     ->defaultItems(0)
                     ->reorderableWithDragAndDrop()

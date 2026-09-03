@@ -22,8 +22,8 @@
     @php
         $defaultVariant = $product->variants->firstWhere('is_default', true) ?? $product->variants->first();
         $heroImage      = catalog_image(data_get($product->hero, 'src'));
-        // Khối mở đầu có tiêu đề RIÊNG, không lặp lại tagline đang làm h1 ở
-        // hero — bản thiết kế dùng hai câu khác nhau.
+        // Khối mở đầu có tiêu đề RIÊNG, không lặp lại tagline ở bảng thông tin
+        // ngay dưới hero — bản thiết kế dùng hai câu khác nhau.
         $introTitle     = data_get($product->hero, 'intro_title');
         $intro          = data_get($product->hero, 'intro_body') ?: data_get($product->seo, 'description');
         $orderForm      = $forms->first();

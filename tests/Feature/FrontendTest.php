@@ -84,8 +84,8 @@ class FrontendTest extends TestCase
     // --- Trang chi tiết mặt hàng ---
 
     /**
-     * Trang chi tiết bám bản thiết kế: hero lấy TAGLINE làm tiêu đề,
-     * hiện giá rút gọn và dựng các phiên bản thành thẻ chọn rõ ràng.
+     * Trang chi tiết bám bản thiết kế: tên xe là h1, tagline là lời hứa phụ,
+     * giá dùng dạng rút gọn và các phiên bản thành thẻ chọn rõ ràng.
      */
     public function test_trang_chi_tiet_hien_du_hero_chi_so_mau_va_thong_so(): void
     {
@@ -115,7 +115,8 @@ class FrontendTest extends TestCase
             ->assertSee('data-story-hero', false)
             ->assertSee('data-story-cta', false)
             ->assertSee('Lexus GX 550')
-            ->assertSee('Bản lĩnh chinh phục')  // tagline là tiêu đề lớn của hero
+            ->assertSee('<h1>Lexus GX 550</h1>', false)
+            ->assertSee('class="hero__tagline">Bản lĩnh chinh phục</p>', false)
             ->assertSee('5,99 tỷ')              // hero dùng giá rút gọn
             ->assertSee('349')
             ->assertSee('Công suất')

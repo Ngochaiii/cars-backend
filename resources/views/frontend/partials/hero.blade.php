@@ -18,6 +18,7 @@
     $variant  = $product->variants->firstWhere('is_default', true) ?? $product->variants->first();
     $priceNow = $product->price_from ?: $variant?->price;
     $priceWas = $variant?->price_original;
+    $heroHotline = catalog_setting('hotline');
 
     // Mỗi câu chữ đầu trang có ĐÚNG MỘT nguồn. Trước đây câu này cũng lùi về
     // mô tả SEO giống khối mở đầu, nên xe nào chưa điền là in y hệt một câu
@@ -47,6 +48,14 @@
 
     $hasBanners = $shots->isNotEmpty();
 
+    // Khai banner là mặc nhiên "chỉ hiện ảnh": ảnh banner luôn có bố cục và chữ
+    // riêng, phủ gradient tối rồi đè tiêu đề của site lên là làm đục thiết kế
+    // của nó. Khối chữ không mất — nó tụt xuống ngay dưới banner.
+    //
+    // Công tắc `bare` dành cho trường hợp không khai banner mà chính ẢNH HERO
+    // đã là một tấm thiết kế sẵn.
+    $bareHero = ! $isVideo && ($hasBanners || ($hero['bare'] ?? false));
+
     if ($hasBanners) {
         // Có banner thì banner là nền của hero — kể cả khi xe chưa có ảnh hero.
         // Bản mobile riêng là của ảnh hero, không được ghép nhầm dưới banner.
@@ -57,7 +66,7 @@
     }
 @endphp
 
-<section class="hero hero--product {{ $media ? 'hero--overlay' : 'hero--plain' }}" id="tong-quan"
+<section class="hero hero--product {{ $media ? ($bareHero ? 'hero--bare' : 'hero--overlay') : 'hero--plain' }}" id="tong-quan"
          data-story-hero @if ($shots->count() > 1) data-gallery @endif>
     @if ($media)
         <div class="hero__media">
@@ -96,51 +105,13 @@
         </div>
     @endif
 
-    <div class="hero__body">
-        <div class="wrap">
-            <div class="hero__inner">
-                <span class="eyebrow">
-                    {{ $product->name }}@if ($product->category) · {{ $product->category->name }}@endif
-                </span>
-
-                {{-- Bản thiết kế lấy CÂU TAGLINE làm tiêu đề lớn, tên xe đã
-                     nằm ở dòng nhỏ phía trên rồi. Xe chưa đặt tagline thì lùi
-                     về tên, khỏi để hero cụt đầu. --}}
-                <h1>{{ $product->tagline ?: $product->name }}</h1>
-
-                @if ($lede)
-                    <p class="hero__lede">{{ $lede }}</p>
-                @endif
-
-                @if ($priceNow)
-                    {{-- Giá rút gọn ("799 triệu") như thiết kế — hero để đọc
-                         lướt, con số đầy đủ nằm ở phiên bản và form. --}}
-                    <div class="hero__price">
-                        <span class="hero__price-label">Giá từ</span>
-                        <span class="hero__price-now">{{ catalog_money_short($priceNow) }}</span>
-                        @if ($priceWas && $priceWas > $priceNow)
-                            <span class="hero__price-was">{{ catalog_money_short($priceWas) }}</span>
-                        @endif
-                    </div>
-                @endif
-
-                {{-- Bản thiết kế có hai nút: đặt cọc (nhấn) và lái thử. Có
-                     trang /dat-coc thì trỏ thẳng vào đó kèm xe đang xem; chưa
-                     có thì lùi về neo tới form nằm cuối trang. --}}
-                <div class="hero__actions">
-                    @if (Route::has('booking'))
-                        <a class="btn btn--accent" href="{{ route('booking', ['xe' => $product->slug]) }}">{{ catalog_label('cta.deposit') }}</a>
-                        <a class="btn btn--ghost"
-                           href="{{ route('booking', ['xe' => $product->slug, 'hinh-thuc' => 'dat-lich-lai-thu']) }}">Đăng ký lái thử</a>
-                    @else
-                        @foreach ($heroForms ?? [] as $i => $hf)
-                            <a class="btn {{ $i === 0 ? 'btn--accent' : 'btn--ghost' }}" href="#form-{{ $hf->key }}">{{ $hf->name }}</a>
-                        @endforeach
-                    @endif
-                </div>
+    @unless ($bareHero)
+        <div class="hero__body">
+            <div class="wrap">
+                @include('frontend.partials.hero-body')
             </div>
         </div>
-    </div>
+    @endunless
 
     @if ($shots->count() > 1)
         <button type="button" class="arrow arrow--float arrow--float-prev" data-gal-prev aria-label="Ảnh trước">‹</button>
@@ -165,3 +136,15 @@
         </div>
     @endif
 </section>
+
+@if ($bareHero)
+    {{-- Bảng điều khiển nối trực tiếp với chân banner: ảnh quảng bá vẫn nguyên
+         tính chất, còn tên xe, giá và các CTA nằm trong cùng một nhịp nhìn. --}}
+    <div class="hero-caption">
+        <div class="wrap hero-caption__wrap">
+            <div class="hero-caption__panel">
+                @include('frontend.partials.hero-body')
+            </div>
+        </div>
+    </div>
+@endif

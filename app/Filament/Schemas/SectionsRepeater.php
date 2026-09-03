@@ -57,7 +57,14 @@ class SectionsRepeater
                         'wide' => 'Rộng bằng khung nội dung',
                         'full' => 'Tràn hết màn hình',
                     ])
-                    ->placeholder('Theo mặc định của trang'),
+                    ->live()
+                    ->placeholder('Theo mặc định của trang')
+                    ->helperText(fn (Get $get) => match ($get('width')) {
+                        'narrow' => 'Ảnh trong mục rộng khoảng 1000 px — khuyến nghị ảnh ngang 1600 px trở lên.',
+                        'wide' => 'Mục rộng bằng khung nội dung (1456 px) — khuyến nghị ảnh ngang 2000 px trở lên.',
+                        'full' => 'Mục tràn hết màn hình — khuyến nghị ảnh ngang 2560 px trở lên, chủ thể nằm giữa vì hai mép sẽ bị xén ở màn hẹp.',
+                        default => 'Bỏ trống thì theo mặc định của trang: bài viết dùng cột chữ, trang sản phẩm dùng khung nội dung.',
+                    }),
 
                 Select::make('type')
                     ->label('Kiểu')

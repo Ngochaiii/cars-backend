@@ -18,6 +18,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Resources\Resource;
@@ -108,8 +109,13 @@ class PostResource extends Resource
                             'wide' => 'Rộng bằng khung nội dung',
                             'full' => 'Tràn hết màn hình',
                         ])
+                        ->live()
                         ->placeholder('Cột chữ')
-                        ->helperText('Mặc định ảnh bìa thẳng hàng với chữ. Chọn rộng hoặc tràn khi muốn ảnh mở đầu thật lớn.'),
+                        ->helperText(fn (Get $get) => match ($get('cover_width')) {
+                            'wide' => 'Khung ảnh 16:7 rộng 1456 px — khuyến nghị 2000 × 875 px.',
+                            'full' => 'Khung ảnh 16:7 tràn hết màn hình — khuyến nghị 2560 × 1120 px.',
+                            default => 'Ảnh bìa thẳng hàng với chữ, khung 16:7 rộng khoảng 1014 px — khuyến nghị 1600 × 700 px.',
+                        }),
 
                     Textarea::make('excerpt')
                         ->label('Tóm tắt')

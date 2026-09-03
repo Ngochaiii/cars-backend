@@ -289,4 +289,35 @@ class ProductLayoutParityTest extends TestCase
 
         return substr($html, $from, (strpos($html, 'class="hero__body"', $from) ?: $from + 4000) - $from);
     }
+
+    /* Chế độ "chỉ hiện ảnh": banner không bị phủ tối và không bị đè chữ, nhưng
+       trang vẫn phải còn đúng một <h1> tên xe trong bảng thao tác nối chân ảnh. */
+    public function test_hero_chi_hien_anh_thi_chu_tut_xuong_duoi_banner(): void
+    {
+        $product = Product::create([
+            'name' => 'VF 7 mẫu',
+            'slug' => 'vf-7-mau-bare',
+            'tagline' => 'Chiếc xe của gia đình',
+            'status' => 'published',
+            'published_at' => now(),
+            'hero' => [
+                'type' => 'image',
+                'src' => 'catalog/hero/vf-7.jpg',
+                'bare' => true,
+            ],
+        ]);
+
+        $html = $this->get('/san-pham/'.$product->slug)->assertOk()->getContent();
+        $hero = $this->heroMarkup($html);
+
+        $this->assertStringContainsString('hero--bare', $html);
+        $this->assertStringNotContainsString('hero--overlay', $html, 'banner không được phủ lớp tối');
+        $this->assertStringNotContainsString('hero__body', $hero, 'không đè chữ lên banner');
+
+        $this->assertStringContainsString('hero-caption', $html);
+        $this->assertStringContainsString('hero-caption__panel', $html);
+        $this->assertSame(1, substr_count($html, '<h1>'), 'trang phải còn đúng một h1');
+        $this->assertStringContainsString('<h1>VF 7 mẫu</h1>', $html);
+        $this->assertStringContainsString('class="hero__tagline">Chiếc xe của gia đình</p>', $html);
+    }
 }
