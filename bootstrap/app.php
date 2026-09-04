@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Sau Cloudflare, IP khách nằm trong X-Forwarded-For còn IP nối tới
+        // Nginx là của Cloudflare. Không khai báo proxy tin cậy thì mọi lead
+        // ghi chung một IP, và link sinh ra có thể tụt về http.
+        $middleware->trustProxies(at: '*');
+
         // Bắt đường dẫn cũ trong bảng redirects. TOÀN CỤC chứ không phải nhóm
         // web: đường dẫn cũ thường không còn route nào nên nhóm web không kịp
         // chạy trước khi Laravel ném 404.
