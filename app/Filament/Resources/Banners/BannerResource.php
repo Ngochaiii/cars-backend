@@ -84,14 +84,14 @@ class BannerResource extends Resource
                 ->label('Ảnh desktop')
                 ->image()
                 ->directory('catalog/banners')
-                ->helperText('Khuyến nghị tỷ lệ 16:9, tối đa 1920 px. Bỏ trống thì banner dùng nền tối.')
+                ->helperText('Khuyến nghị 1920×820 px (gần 21:9) để ảnh và thanh chuyển slide nằm gọn trong màn hình laptop. Bỏ trống thì banner dùng nền tối.')
                 ->columnSpan(1),
 
             NativeMediaUpload::make('image_mobile')
                 ->label('Ảnh mobile')
                 ->image()
                 ->directory('catalog/banners')
-                ->helperText('Khuyến nghị tỷ lệ 4:5. Bỏ trống thì dùng ảnh desktop và tự cắt theo khung.')
+                ->helperText('Khuyến nghị 1080×1350 px (4:5). Nên tải riêng vì nếu bỏ trống, ảnh desktop 21:9 sẽ bị thu nhỏ và chữ trong ảnh khó đọc trên điện thoại.')
                 ->columnSpan(1),
 
             TextInput::make('cta_label')

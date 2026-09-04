@@ -2445,7 +2445,12 @@ html.js .hero--carousel.hero--bare-active .hero__slide--bare.is-on {
 }
 
 @media (max-width: 680px) {
-    :root { --pad: 20px; }
+    :root {
+        --pad: 20px;
+        /* Khoảng mà thanh liên hệ cố định chiếm ở đáy màn hình.
+           Hero dùng cùng một biến để nút chuyển slide không bị che. */
+        --mobile-contact-dock-offset: calc(74px + env(safe-area-inset-bottom, 0px));
+    }
 
     .promo-bar { padding: var(--s-2) var(--s-4); font-size: var(--fs-2xs); line-height: 1.5; }
     .hero--carousel { padding-block: 0; }
@@ -2455,15 +2460,18 @@ html.js .hero--carousel.hero--bare-active .hero__slide--bare.is-on {
     .brand img { max-width: 150px; max-height: 30px; }
     .header__cta .btn { padding-inline: var(--s-3); font-size: var(--fs-xs); }
 
-    /* Mọi slide cùng một chiều cao; slide chỉ-ảnh không còn nằm
-       giữa một vùng đen do slide có chữ cao hơn. */
-    .hero--carousel .hero__slide,
-    .hero--carousel .hero__slide--bare {
-        min-height: min(720px, calc(100svh - 96px));
+    /* Slide có chữ chỉ chiếm phần màn hình còn lại sau header và
+       thanh liên hệ. Mốc 720px cũ làm carousel cao gần trọn viewport,
+       trong khi slide chỉ-ảnh 16:9 chỉ cao khoảng 220px. */
+    .hero--carousel .hero__slide:not(.hero__slide--bare) {
+        min-height: clamp(500px, calc(100svh - 170px), 600px);
         padding: 0;
         align-items: flex-end;
     }
-    .hero--carousel .hero__body { padding: 0 0 var(--s-12); }
+    .hero--carousel .hero__slide--bare { padding: 0; }
+    .hero--carousel .hero__body {
+        padding: 0 0 calc(var(--s-12) + var(--s-9));
+    }
     .hero--carousel .hero__body h1 { font-size: var(--fs-h1); }
     .hero--carousel .hero__media img { object-position: center center; }
     .hero--carousel.hero--bare-active .hero__slide--bare.is-on {
@@ -2472,7 +2480,7 @@ html.js .hero--carousel.hero--bare-active .hero__slide--bare.is-on {
     }
     .hero--carousel .hero__nav {
         position: absolute;
-        bottom: 22px;
+        bottom: calc(12px + var(--mobile-contact-dock-offset));
         padding-block: 0;
         background: transparent;
     }
@@ -2483,8 +2491,28 @@ html.js .hero--carousel.hero--bare-active .hero__slide--bare.is-on {
         background: var(--automotive-dark);
     }
     .hero--carousel .hero__arrows { display: none; }
-    .hero__dot { width: 22px; }
-    .hero__dot.is-on { width: 38px; }
+    /* Vạch 2px vẫn giữ nhịp thị giác, nhưng nút thật cao 44px để
+       có thể bấm bằng ngón tay thay vì phải chạm trúng một sợi chỉ. */
+    .hero__dots { gap: var(--s-2); min-width: 0; }
+    .hero__count { margin-left: 0; }
+    .hero__dot {
+        position: relative;
+        width: 22px;
+        height: 44px;
+        background: transparent;
+    }
+    .hero__dot::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: 0;
+        left: 0;
+        height: 2px;
+        background: rgba(255, 255, 255, .45);
+        transform: translateY(-50%);
+    }
+    .hero__dot.is-on { width: 38px; background: transparent; }
+    .hero__dot.is-on::before { background: #fff; }
 
     .tools__inner { padding-block: var(--s-7); }
     .tools__grid { grid-template-columns: 1fr; gap: 0; }
