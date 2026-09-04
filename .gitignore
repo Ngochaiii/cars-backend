@@ -25,3 +25,6 @@ yarn-error.log
 
 # Tài liệu nội bộ
 /doc
+
+# Script deploy riêng của máy, chứa IP server
+/deploy.sh
