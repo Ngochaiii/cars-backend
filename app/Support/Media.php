@@ -2,7 +2,7 @@
 
 namespace App\Support;
 
-use App\Console\Commands\BuildImageVariants;
+use App\Media\ImageVariantBuilder;
 use App\Media\MediaStore;
 use Illuminate\Support\Str;
 
@@ -54,14 +54,14 @@ class Media
         $rel = self::normalise($path);
 
         $parts = array_map(
-            fn (int $w) => static::store()->url(BuildImageVariants::variantPath($rel, $w)).' '.$w.'w',
+            fn (int $w) => static::store()->url(ImageVariantBuilder::variantPath($rel, $w)).' '.$w.'w',
             $entry['v'],
         );
 
         // Chỉ đưa bản gốc vào khi nó không lớn hơn bậc lớn nhất. Ảnh gốc 5760px
         // mà nằm trong srcset thì màn Retina sẽ chọn đúng nó (1440 logical =
         // 2880 device px), và ta lại tải về đúng tấm 867 KB muốn tránh.
-        if ($entry['w'] <= max(BuildImageVariants::WIDTHS)) {
+        if ($entry['w'] <= max(ImageVariantBuilder::WIDTHS)) {
             $parts[] = static::store()->url($rel).' '.$entry['w'].'w';
         }
 
@@ -130,8 +130,8 @@ class Media
 
         $store = static::store();
 
-        return self::$manifest = $store->exists(BuildImageVariants::MANIFEST)
-            ? (json_decode((string) $store->read(BuildImageVariants::MANIFEST), true) ?: [])
+        return self::$manifest = $store->exists(ImageVariantBuilder::MANIFEST)
+            ? (json_decode((string) $store->read(ImageVariantBuilder::MANIFEST), true) ?: [])
             : [];
     }
 

@@ -10,15 +10,15 @@ class NativeMediaUpload extends Field
 {
     protected string $view = 'filament.forms.components.native-media-upload';
 
-    protected string | Closure $directory = 'catalog/media';
+    protected string|Closure $directory = 'catalog/media';
 
-    protected string | Closure $kind = 'image';
+    protected string|Closure $kind = 'image';
 
-    protected bool | Closure $isMultiple = false;
+    protected bool|Closure $isMultiple = false;
 
-    protected bool | Closure $isReorderable = false;
+    protected bool|Closure $isReorderable = false;
 
-    protected int | string | Closure $previewHeight = 160;
+    protected int|string|Closure $previewHeight = 160;
 
     protected function setUp(): void
     {
@@ -70,7 +70,7 @@ class NativeMediaUpload extends Field
         });
     }
 
-    public function directory(string | Closure $directory): static
+    public function directory(string|Closure $directory): static
     {
         $this->directory = $directory;
 
@@ -91,21 +91,21 @@ class NativeMediaUpload extends Field
         return $this;
     }
 
-    public function multiple(bool | Closure $condition = true): static
+    public function multiple(bool|Closure $condition = true): static
     {
         $this->isMultiple = $condition;
 
         return $this;
     }
 
-    public function reorderable(bool | Closure $condition = true): static
+    public function reorderable(bool|Closure $condition = true): static
     {
         $this->isReorderable = $condition;
 
         return $this;
     }
 
-    public function imagePreviewHeight(int | string | Closure $height): static
+    public function imagePreviewHeight(int|string|Closure $height): static
     {
         $this->previewHeight = $height;
 
@@ -151,5 +151,17 @@ class NativeMediaUpload extends Field
         $key = $this->getKind() === 'pdf' ? 'max_pdf_size_kb' : 'max_image_size_kb';
 
         return max(1, (int) config("media.{$key}")) * 1024;
+    }
+
+    public function getClientImageMaxDimension(): int
+    {
+        return max(400, (int) config('media.client_image_max_dimension', 1920));
+    }
+
+    public function getClientImageQuality(): float
+    {
+        $percent = min(100, max(40, (int) config('media.client_image_quality', 82)));
+
+        return $percent / 100;
     }
 }

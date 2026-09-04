@@ -106,8 +106,8 @@ class ProductForm
                 NativeMediaUpload::make('hero.src')
                     ->label('Ảnh desktop')
                     ->helperText(fn (Get $get) => $get('hero.bare')
-                        ? 'Khung 16:9 — khuyến nghị 2560 × 1440 px, ảnh hiện trọn không bị xén.'
-                        : 'Khuyến nghị 2560 × 1440 px. Ảnh bị xén theo chiều cao màn hình và có lớp phủ tối bên trái để đọc chữ.')
+                        ? 'Khung 16:9 — khuyến nghị 1920 × 1080 px, ảnh hiện trọn không bị xén.'
+                        : 'Khuyến nghị 1920 × 1080 px. Ảnh lớn hơn được tự thu nhỏ trước khi gửi; ảnh hiển thị bị xén theo chiều cao và có lớp phủ tối bên trái để đọc chữ.')
                     ->image()
                     ->directory('catalog/hero')
                     ->visible(fn (Get $get) => $get('hero.type') !== 'video'),
@@ -146,8 +146,8 @@ class ProductForm
                 Repeater::make('hero.banners')
                     ->label('Ảnh banner chạy cùng hero')
                     ->helperText(fn (Get $get) => $get('hero.bare')
-                        ? 'Chế độ "chỉ hiện ảnh": khung 16:9, khuyến nghị 2560 × 1440 px. Ảnh hiện trọn, không bị xén — chữ trong ảnh nằm đâu cũng đọc được.'
-                        : 'Ảnh phủ trọn màn hình và bị xén theo chiều cao, khuyến nghị 2560 × 1440 px, chừa khoảng trống bên TRÁI cho tiêu đề và hai nút. Đừng dùng ảnh cận cảnh chi tiết.')
+                        ? 'Chế độ "chỉ hiện ảnh": khung 16:9, khuyến nghị 1920 × 1080 px. Ảnh hiện trọn, không bị xén — chữ trong ảnh nằm đâu cũng đọc được.'
+                        : 'Ảnh phủ trọn màn hình và bị xén theo chiều cao, khuyến nghị 1920 × 1080 px, chừa khoảng trống bên TRÁI cho tiêu đề và hai nút. Đừng dùng ảnh cận cảnh chi tiết.')
                     ->addActionLabel('+ Thêm ảnh banner')
                     ->defaultItems(0)
                     ->reorderableWithDragAndDrop()

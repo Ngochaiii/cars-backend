@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Forms\Components\NativeMediaUpload;
 use App\Filament\Resources\Products\Pages\EditProduct;
+use App\Media\ImageVariantBuilder;
 use App\Media\MediaStore;
 use App\Models\Product;
 use App\Models\User;
@@ -12,6 +14,27 @@ use Tests\TestCase;
 
 class AdminMediaAndPriceTest extends TestCase
 {
+    public function test_cau_hinh_toi_uu_anh_phia_trinh_duyet_duoc_gioi_han_an_toan(): void
+    {
+        config([
+            'media.client_image_max_dimension' => 1920,
+            'media.client_image_quality' => 82,
+        ]);
+
+        $upload = NativeMediaUpload::make('banner')->image();
+
+        $this->assertSame(1920, $upload->getClientImageMaxDimension());
+        $this->assertSame(0.82, $upload->getClientImageQuality());
+
+        config([
+            'media.client_image_max_dimension' => 100,
+            'media.client_image_quality' => 10,
+        ]);
+
+        $this->assertSame(400, $upload->getClientImageMaxDimension());
+        $this->assertSame(0.4, $upload->getClientImageQuality());
+    }
+
     public function test_admin_upload_anh_khong_can_fileinfo_va_chi_luu_relative_path(): void
     {
         $this->actingAs(User::create([
@@ -36,6 +59,56 @@ class AdminMediaAndPriceTest extends TestCase
         $this->assertSame('/storage/'.$data['path'], $data['url']);
         $this->assertTrue(app(MediaStore::class)->exists($data['path']));
         $this->assertStringNotContainsString('.php', $data['path']);
+    }
+
+    public function test_admin_upload_anh_tu_tao_bien_the_responsive_va_manifest(): void
+    {
+        $this->actingAs(User::create([
+            'name' => 'Admin',
+            'email' => 'responsive-media@test.local',
+            'password' => 'x',
+        ]));
+
+        $data = $this->post('/admin/media', [
+            'file' => UploadedFile::fake()->image('banner.jpg', 1000, 500),
+            'directory' => 'catalog/hero',
+            'kind' => 'image',
+        ], ['Accept' => 'application/json'])
+            ->assertCreated()
+            ->assertJsonPath('data.responsive_widths', [400, 800])
+            ->json('data');
+
+        $media = app(MediaStore::class);
+
+        foreach ([400, 800] as $width) {
+            $this->assertTrue($media->exists(ImageVariantBuilder::variantPath($data['path'], $width)));
+        }
+
+        $manifest = json_decode((string) $media->read(ImageVariantBuilder::MANIFEST), true);
+
+        $this->assertSame([
+            'w' => 1000,
+            'h' => 500,
+            'v' => [400, 800],
+        ], $manifest[$data['path']]);
+
+        $second = $this->post('/admin/media', [
+            'file' => UploadedFile::fake()->image('banner-2.jpg', 600, 300),
+            'directory' => 'catalog/hero',
+            'kind' => 'image',
+        ], ['Accept' => 'application/json'])
+            ->assertCreated()
+            ->assertJsonPath('data.responsive_widths', [400])
+            ->json('data');
+
+        $manifest = json_decode((string) $media->read(ImageVariantBuilder::MANIFEST), true);
+
+        $this->assertArrayHasKey($data['path'], $manifest);
+        $this->assertSame([
+            'w' => 600,
+            'h' => 300,
+            'v' => [400],
+        ], $manifest[$second['path']]);
     }
 
     public function test_admin_upload_tu_choi_php_gia_anh_va_thu_muc_la(): void

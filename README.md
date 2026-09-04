@@ -87,6 +87,16 @@ file/kích thước ảnh, tự đặt tên an toàn, ghi file vào thư mục m
 đường dẫn tương đối (`catalog/...`) trong database. Luồng này không gọi
 `finfo`, `mime_content_type`, Flysystem hay Media Library.
 
+Trước khi POST, trình duyệt tự thu ảnh về cạnh dài tối đa 1920 px và mã hoá
+WebP chất lượng 82%. Nếu bản WebP không nhẹ hơn hoặc trình duyệt không hỗ trợ,
+uploader giữ nguyên file gốc. Có thể chỉnh bằng
+`MEDIA_CLIENT_IMAGE_MAX_DIMENSION` và `MEDIA_CLIENT_IMAGE_QUALITY`.
+
+Ngay sau khi lưu, endpoint tự sinh các bản WebP responsive 400/800/1280 px
+(tuỳ chiều rộng ảnh) và cập nhật manifest cho `<x-img>`. Vì vậy ảnh upload từ
+admin dùng `srcset` ngay lập tức; không cần chạy `php artisan catalog:images`
+sau mỗi lần upload. Lệnh này chỉ còn dùng để xử lý lại ảnh cũ hoặc rebuild.
+
 Mặc định local vẫn dùng `storage/app/public` và `php artisan storage:link`.
 Trên VPS nên đặt media ngoài thư mục mỗi release để deploy code không làm mất
 ảnh:

@@ -31,6 +31,15 @@ return [
     'max_pixels' => (int) env('MEDIA_MAX_PIXELS', 40_000_000),
 
     /*
+     * Ảnh được thu nhỏ và mã hoá WebP ngay trong trình duyệt trước khi POST.
+     * Đây là mục tiêu tối ưu, không phải giới hạn upload: nếu trình duyệt
+     * không mã hoá được hoặc file mới không nhẹ hơn thì uploader giữ file gốc.
+     */
+    'client_image_max_dimension' => (int) env('MEDIA_CLIENT_IMAGE_MAX_DIMENSION', 1920),
+
+    'client_image_quality' => (int) env('MEDIA_CLIENT_IMAGE_QUALITY', 82),
+
+    /*
      * The browser submits a directory name, so it must be allow-listed on the
      * server. The value is the only kind of file accepted in that directory.
      */

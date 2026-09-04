@@ -4,6 +4,8 @@
     $isReorderable = $isReorderable();
     $kind = $getKind();
     $maxBytes = $getMaxBytes();
+    $clientImageMaxDimension = $getClientImageMaxDimension();
+    $clientImageQuality = $getClientImageQuality();
 @endphp
 
 <x-dynamic-component :component="$getFieldWrapperView()" :field="$field">
@@ -21,7 +23,11 @@
             directory: @js($getDirectory()),
             mediaBase: @js(rtrim((string) config('media.url', '/storage'), '/')),
             maxBytes: @js($maxBytes),
+            clientImageMaxDimension: @js($clientImageMaxDimension),
+            clientImageQuality: @js($clientImageQuality),
             disabled: @js($isDisabled()),
+            progressText: '',
+            optimizationNote: '',
 
             paths() {
                 if (Array.isArray(this.state)) return this.state.filter(Boolean)
@@ -57,7 +63,6 @@
             },
 
             async upload(files) {
-
                 if (! files.length) return
 
                 if (! this.multiple && files.length > 1) {
@@ -65,23 +70,35 @@
                     return
                 }
 
-                const oversized = files.find((file) => file.size > this.maxBytes)
-                if (oversized) {
-                    this.error = `File ${oversized.name} vượt quá ${Math.round(this.maxBytes / 1048576)} MB.`
-                    return
-                }
-
                 this.uploading = true
                 this.error = ''
+                this.optimizationNote = ''
 
                 try {
                     const uploaded = []
+                    let originalBytes = 0
+                    let sentBytes = 0
 
                     for (const file of files) {
+                        this.progressText = this.kind === 'image'
+                            ? `Đang tối ưu ${file.name}…`
+                            : `Đang chuẩn bị ${file.name}…`
+
+                        const prepared = await this.prepareUpload(file)
+
+                        if (prepared.blob.size > this.maxBytes) {
+                            throw new Error(`File ${file.name} sau khi tối ưu vẫn vượt quá ${Math.round(this.maxBytes / 1048576)} MB.`)
+                        }
+
+                        originalBytes += file.size
+                        sentBytes += prepared.blob.size
+
                         const body = new FormData()
-                        body.append('file', file)
+                        body.append('file', prepared.blob, prepared.name)
                         body.append('directory', this.directory)
                         body.append('kind', this.kind)
+
+                        this.progressText = `Đang tải ${prepared.name}…`
 
                         const response = await fetch(this.endpoint, {
                             method: 'POST',
@@ -106,6 +123,11 @@
                         uploaded.push(payload.data.path)
                     }
 
+                    if (sentBytes < originalBytes) {
+                        const percent = Math.round((1 - (sentBytes / originalBytes)) * 100)
+                        this.optimizationNote = `Đã giảm ${percent}% dung lượng trước khi tải lên.`
+                    }
+
                     this.state = this.multiple
                         ? [...this.paths(), ...uploaded]
                         : uploaded[0]
@@ -113,6 +135,54 @@
                     this.error = exception.message || 'Không thể tải file lên máy chủ.'
                 } finally {
                     this.uploading = false
+                    this.progressText = ''
+                }
+            },
+
+            async prepareUpload(file) {
+                if (this.kind !== 'image' || ! window.createImageBitmap) {
+                    return { blob: file, name: file.name }
+                }
+
+                let bitmap
+
+                try {
+                    try {
+                        bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
+                    } catch (_) {
+                        bitmap = await createImageBitmap(file)
+                    }
+
+                    const longestSide = Math.max(bitmap.width, bitmap.height)
+                    const scale = Math.min(1, this.clientImageMaxDimension / longestSide)
+                    const width = Math.max(1, Math.round(bitmap.width * scale))
+                    const height = Math.max(1, Math.round(bitmap.height * scale))
+                    const canvas = document.createElement('canvas')
+                    canvas.width = width
+                    canvas.height = height
+
+                    const context = canvas.getContext('2d')
+                    if (! context) return { blob: file, name: file.name }
+
+                    context.drawImage(bitmap, 0, 0, width, height)
+
+                    const webp = await new Promise((resolve) => {
+                        canvas.toBlob(resolve, 'image/webp', this.clientImageQuality)
+                    })
+
+                    if (! webp || webp.type !== 'image/webp' || webp.size >= file.size) {
+                        return { blob: file, name: file.name }
+                    }
+
+                    const stem = file.name.replace(/\.[^.]+$/, '') || 'image'
+
+                    return { blob: webp, name: `${stem}.webp` }
+                } catch (_) {
+                    // Trình duyệt cũ hoặc ảnh không giải mã được: để server
+                    // kiểm tra file gốc như luồng cũ, không làm hỏng upload.
+                    return { blob: file, name: file.name }
+                } finally {
+                    if (bitmap?.close) bitmap.close()
                 }
             },
 
@@ -186,12 +256,19 @@
             >
             <span class="native-media__plus" aria-hidden="true">＋</span>
             <span>
-                <strong x-text="uploading ? 'Đang tải lên…' : @js($isMultiple ? 'Chọn hoặc kéo nhiều file' : 'Chọn hoặc kéo file')"></strong>
-                <small>{{ $kind === 'pdf' ? 'PDF' : 'JPEG, PNG hoặc WebP' }} · tối đa {{ (int) round($maxBytes / 1048576) }} MB/file</small>
+                <strong x-text="uploading ? (progressText || 'Đang tải lên…') : @js($isMultiple ? 'Chọn hoặc kéo nhiều file' : 'Chọn hoặc kéo file')"></strong>
+                <small>
+                    @if ($kind === 'pdf')
+                        PDF · tối đa {{ (int) round($maxBytes / 1048576) }} MB/file
+                    @else
+                        JPEG, PNG hoặc WebP · tự tối ưu WebP tối đa {{ $clientImageMaxDimension }} px trước khi gửi
+                    @endif
+                </small>
             </span>
         </label>
 
         <p class="native-media__error" x-show="error" x-text="error" x-cloak></p>
+        <p class="native-media__success" x-show="optimizationNote" x-text="optimizationNote" x-cloak></p>
     </div>
 </x-dynamic-component>
 
@@ -219,6 +296,7 @@
         .native-media__drop strong, .native-media__drop small { display: block; }
         .native-media__drop small { margin-top: .2rem; color: #71717a; font-size: .75rem; }
         .native-media__error { margin: 0; color: #dc2626; font-size: .8rem; }
+        .native-media__success { margin: 0; color: #15803d; font-size: .8rem; }
         .dark .native-media__item { border-color: rgba(255,255,255,.13); background: rgba(255,255,255,.03); }
         .dark .native-media__name, .dark .native-media__drop small { color: #a1a1aa; }
         .dark .native-media__icon { color: #d4d4d8; }
