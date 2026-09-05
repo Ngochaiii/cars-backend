@@ -334,4 +334,18 @@ class ProductLayoutParityTest extends TestCase
         $this->assertStringNotContainsString('object-fit: cover;', $bareRules);
         $this->assertStringNotContainsString('height: clamp(', $bareRules);
     }
+
+    public function test_css_noi_dung_chi_tiet_can_deu_tren_mobile_va_day_hang_tren_desktop(): void
+    {
+        $css = (string) file_get_contents(public_path('css/frontend.css'));
+
+        $this->assertMatchesRegularExpression(
+            '/\.product-story \.tabs__body\s*\{[^}]*max-width:\s*none;/s',
+            $css
+        );
+        $this->assertStringContainsString('html.js .product-story .tabs__nav', $css);
+        $this->assertStringContainsString('grid-template-columns: repeat(2, minmax(0, 1fr));', $css);
+        $this->assertStringContainsString('text-align: justify;', $css);
+        $this->assertStringContainsString('text-align-last: left;', $css);
+    }
 }
