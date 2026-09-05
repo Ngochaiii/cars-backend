@@ -316,8 +316,22 @@ class ProductLayoutParityTest extends TestCase
 
         $this->assertStringContainsString('hero-caption', $html);
         $this->assertStringContainsString('hero-caption__panel', $html);
+        $this->assertMatchesRegularExpression('/css\/frontend\.css\?v=\d+/', $html);
         $this->assertSame(1, substr_count($html, '<h1>'), 'trang phải còn đúng một h1');
         $this->assertStringContainsString('<h1>VF 7 mẫu</h1>', $html);
         $this->assertStringContainsString('class="hero__tagline">Chiếc xe của gia đình</p>', $html);
+    }
+
+    public function test_css_banner_chi_tiet_hien_tron_anh_khong_dung_cover(): void
+    {
+        $css = (string) file_get_contents(public_path('css/frontend.css'));
+        $from = strpos($css, '/* Có banner thiết kế sẵn:');
+        $to = strpos($css, '.hero-caption {', $from);
+        $bareRules = substr($css, $from, $to - $from);
+
+        $this->assertStringContainsString('height: auto;', $bareRules);
+        $this->assertStringContainsString('object-fit: contain;', $bareRules);
+        $this->assertStringNotContainsString('object-fit: cover;', $bareRules);
+        $this->assertStringNotContainsString('height: clamp(', $bareRules);
     }
 }

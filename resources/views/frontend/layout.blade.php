@@ -16,6 +16,7 @@
     $pageCanonical   = $canonical ?? request()->url();
     $pageImage       = $ogImage ?? null;
     $pageType        = $ogType ?? 'website';
+    $frontendCssVersion = filemtime(public_path('css/frontend.css'));
 @endphp
 <!DOCTYPE html>
 <html lang="vi">
@@ -63,7 +64,7 @@
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap">
 
-    <link rel="stylesheet" href="{{ asset('css/frontend.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/frontend.css') }}?v={{ $frontendCssVersion }}">
 
     @isset($jsonld)
         <script type="application/ld+json">{!! json_encode($jsonld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
