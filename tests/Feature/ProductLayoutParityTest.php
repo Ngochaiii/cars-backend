@@ -351,5 +351,21 @@ class ProductLayoutParityTest extends TestCase
         $this->assertStringContainsString('grid-template-columns: repeat(2, minmax(0, 1fr));', $css);
         $this->assertStringContainsString('text-align: justify;', $css);
         $this->assertStringContainsString('text-align-last: left;', $css);
+        $this->assertMatchesRegularExpression(
+            '/\.product-page \.header__cta\s*\{[^}]*display:\s*none;/s',
+            $css
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.hero-caption \.hero__inner--summary\s*\{[^}]*text-align:\s*center;/s',
+            $css
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.hero-caption \.hero__price\s*\{[^}]*align-items:\s*center;[^}]*text-align:\s*center;/s',
+            $css
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.hero-caption \.hero__commerce\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);[^}]*justify-content:\s*stretch;[^}]*justify-items:\s*stretch;[^}]*width:\s*100%;/s',
+            $css
+        );
     }
 }

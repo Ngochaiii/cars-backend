@@ -2360,6 +2360,9 @@ html.js .hero--carousel.hero--bare-active .hero__slide--bare.is-on {
     .header__cta-long { display: none; }
     .header__cta-short { display: inline; }
     .header__tel, .header__search { display: none; }
+    /* Trang xe đã có CTA riêng trong product-nav ngay dưới header. Ẩn CTA
+       chung để mobile không xuất hiện hai nút "Báo giá" liền nhau. */
+    .product-page .header__cta { display: none; }
 
     .nav-toggle__button {
         position: relative;
@@ -5503,10 +5506,23 @@ html.js .home-story.home-motion-ready [data-home-reveal].home-reveal--media:not(
     .hero-caption__wrap { margin-top: -28px; }
     .hero-caption__panel {
         padding: var(--s-6) var(--s-5) var(--s-5);
-        border-radius: 18px;
+        border-radius: 20px;
         box-shadow: 0 18px 44px rgba(7, 21, 37, .14);
     }
-    .hero-caption .hero__inner--summary { gap: var(--s-5); }
+    .hero-caption .hero__inner--summary {
+        gap: var(--s-5);
+        text-align: center;
+    }
+    .hero-caption .hero__identity {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .hero-caption .eyebrow {
+        display: inline-flex;
+        margin-bottom: var(--s-2);
+    }
     .hero-caption h1 {
         max-width: 100%;
         font-size: clamp(30px, 9vw, 38px);
@@ -5517,28 +5533,42 @@ html.js .home-story.home-motion-ready [data-home-reveal].home-reveal--media:not(
     .hero-caption .hero__lede { display: none; }
     .hero-caption .hero__commerce {
         display: grid;
+        grid-template-columns: minmax(0, 1fr);
         align-items: stretch;
-        gap: var(--s-5);
+        justify-content: stretch;
+        justify-items: stretch;
+        gap: var(--s-4);
+        width: 100%;
     }
     .hero-caption .hero__price {
-        grid-template-columns: 1fr auto;
-        align-items: baseline;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
         min-width: 0;
-        padding: 0 0 var(--s-4);
-        border-right: 0;
-        border-bottom: 1px solid var(--line-2);
+        padding: var(--s-3) var(--s-4);
+        border: 1px solid rgba(16, 24, 32, .08);
+        border-radius: 14px;
+        background: #f5f7fa;
+        text-align: center;
     }
-    .hero-caption .hero__price-was { grid-column: 2; }
+    .hero-caption .hero__price-was { grid-column: auto; }
     .hero-caption .hero__actions {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: var(--s-2);
+        width: 100%;
+        margin-inline: auto;
     }
     .hero-caption .hero__actions .btn {
         min-width: 0;
-        height: 50px;
+        height: 52px;
         padding-inline: var(--s-3);
         font-size: var(--fs-xs);
     }
-    .hero-caption .hero__support { justify-content: center; }
+    .hero-caption .hero__support {
+        justify-content: center;
+        width: 100%;
+        min-height: 24px;
+    }
 }
