@@ -304,6 +304,34 @@ class FrontendTest extends TestCase
         $this->get('/')->assertOk()->assertSee(catalog_label('product.plural'));
     }
 
+    public function test_css_bo_loc_phan_khuc_mobile_khong_ep_chu_xuong_dong(): void
+    {
+        $css = (string) file_get_contents(public_path('css/frontend.css'));
+
+        $this->assertMatchesRegularExpression(
+            '/\.vehicle-index-toolbar \.chips\s*\{[^}]*margin:\s*0;[^}]*padding:\s*0;[^}]*overflow-x:\s*auto;/s',
+            $css
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.vehicle-index-toolbar \.chips > li\s*\{[^}]*flex:\s*0 0 auto;/s',
+            $css
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.vehicle-index-toolbar \.chip\s*\{[^}]*width:\s*max-content;[^}]*white-space:\s*nowrap;/s',
+            $css
+        );
+    }
+
+    public function test_css_menu_mobile_dong_khong_lam_tran_ngang_trang(): void
+    {
+        $css = (string) file_get_contents(public_path('css/frontend.css'));
+
+        $this->assertStringContainsString(
+            'body:not(.nav-open) .site-header { overflow-x: clip; }',
+            $css
+        );
+    }
+
     public function test_tin_tuc_va_chuyen_muc(): void
     {
         $chuyenMuc = PostCategory::create(['name' => 'Trải nghiệm']);

@@ -2396,6 +2396,11 @@ html.js .hero--carousel.hero--bare-active .hero__slide--bare.is-on {
         overflow-y: auto;
     }
     .nav-open .nav { transform: translateX(0); }
+    /* Drawer đóng được đẩy sang phải để tạo hiệu ứng trượt, nhưng phần nằm
+       ngoài màn hình vẫn bị trình duyệt tính vào scrollWidth (430px thành
+       827px). Chỉ clip header lúc menu đóng; khi mở phải để visible để drawer
+       fixed phủ đủ chiều cao màn hình như bình thường. */
+    body:not(.nav-open) .site-header { overflow-x: clip; }
     .nav__list { gap: 0; }
     .nav__link { padding: var(--s-4) 0; color: var(--ink); font-size: var(--fs-lg); font-weight: 600; }
     .nav__sub { padding-left: var(--s-3); }
@@ -3865,6 +3870,7 @@ html.js .home-story.home-motion-ready [data-home-reveal].home-reveal--media.is-r
 }
 .product-story .story-section--alt { background: #f4f7fa; }
 .product-story .story-section .section__head { max-width: 820px; margin-bottom: clamp(28px, 3vw, 42px); }
+.product-story .story-section .section__head:not(.section__head--center) { max-width: none; }
 .product-story .story-section .section__head h2 {
     font-size: var(--fs-h1);
     font-weight: 500;
@@ -3876,6 +3882,19 @@ html.js .home-story.home-motion-ready [data-home-reveal].home-reveal--media.is-r
     color: #65707b;
     font-size: var(--fs-xl);
     line-height: 1.65;
+}
+.product-story .story-section .section__head:not(.section__head--center) p,
+.product-story .intro:has(h2) p,
+.product-story .tabs__body p,
+.product-story .layout-split .split__body p,
+.product-story .gallery__desc,
+.product-story .item > p,
+.product-story .story-section--text .prose {
+    max-width: none;
+    text-align: justify;
+    text-align-last: left;
+    text-justify: inter-word;
+    overflow-wrap: break-word;
 }
 .product-story .story-section--split .layout-split,
 .product-story .story-section--split-alt .layout-split {
@@ -4883,14 +4902,21 @@ body.nav-open .site-header {
     flex-wrap: nowrap;
     gap: var(--s-2);
     min-width: 0;
+    margin: 0;
+    padding: 0;
+    border-bottom: 0;
     overflow-x: auto;
     scrollbar-width: none;
 }
 .vehicle-index-toolbar .chips::-webkit-scrollbar { display: none; }
+.vehicle-index-toolbar .chips > li { flex: 0 0 auto; }
 .vehicle-index-toolbar .chip {
     flex: 0 0 auto;
+    width: max-content;
     border-color: rgba(7, 21, 34, .12);
     background: #fff;
+    line-height: 1;
+    white-space: nowrap;
 }
 .vehicle-index-toolbar .chip span {
     display: inline-grid;

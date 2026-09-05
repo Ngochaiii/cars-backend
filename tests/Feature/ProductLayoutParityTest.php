@@ -343,6 +343,10 @@ class ProductLayoutParityTest extends TestCase
             '/\.product-story \.tabs__body\s*\{[^}]*max-width:\s*none;/s',
             $css
         );
+        $this->assertMatchesRegularExpression(
+            '/\.product-story \.story-section \.section__head:not\(\.section__head--center\)\s*\{[^}]*max-width:\s*none;/s',
+            $css
+        );
         $this->assertStringContainsString('html.js .product-story .tabs__nav', $css);
         $this->assertStringContainsString('grid-template-columns: repeat(2, minmax(0, 1fr));', $css);
         $this->assertStringContainsString('text-align: justify;', $css);
