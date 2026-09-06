@@ -5,7 +5,11 @@
 
     Biến: $cars · $rows · $all
 --}}
-@extends('frontend.layout', ['title' => 'So sánh xe'])
+@extends('frontend.layout', [
+    'title'     => 'So sánh xe',
+    'canonical' => \App\Support\Url::route('compare'),
+    'robots'    => 'noindex,follow',
+])
 
 @section('content')
     <div class="wrap">

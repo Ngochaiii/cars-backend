@@ -25,7 +25,7 @@
 @extends('frontend.layout', [
     'title'       => $mode->name.' — '.catalog_setting('site_name', config('app.name')),
     'description' => $mode->description,
-    'canonical'   => route('booking'),
+    'canonical'   => \App\Support\Url::route('booking'),
 ])
 
 @section('content')
@@ -36,7 +36,11 @@
                 <div class="booking__intro {{ $form->key === $activeKey ? 'is-on' : '' }}"
                      data-booking-intro="{{ $form->key }}" @if ($form->key !== $activeKey) hidden @endif>
                     <div class="booking__kicker" data-booking-kicker>{{ $form->name }} — bước 1/3</div>
-                    <h1>{{ $form->name }}</h1>
+                    @if ($form->key === $activeKey)
+                        <h1>{{ $form->name }}</h1>
+                    @else
+                        <h2>{{ $form->name }}</h2>
+                    @endif
                     @if ($form->description)
                         <p class="booking__lede">{{ $form->description }}</p>
                     @endif

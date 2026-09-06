@@ -4,10 +4,21 @@
 
     Biến: $heading · $products (paginator) · $categories · $category? · $intro?
 --}}
+@php
+    $indexDescription = data_get($seo ?? null, 'description')
+        ?: ($intro ?? null)
+        ?: 'Khám phá thiết kế, quãng đường và công nghệ của từng mẫu xe để tìm lựa chọn phù hợp nhất.';
+    $indexCanonical = \App\Support\Url::paginated(
+        $canonical ?? request()->url(),
+        $products->currentPage(),
+    );
+@endphp
 @extends('frontend.layout', [
     'title'       => data_get($seo ?? null, 'title', $heading),
-    'description' => data_get($seo ?? null, 'description', $intro ?? null),
-    'canonical'   => $canonical ?? null,
+    'description' => $indexDescription,
+    'canonical'   => $indexCanonical,
+    'prev'        => $products->previousPageUrl(),
+    'next'        => $products->nextPageUrl(),
     'bodyClass'   => 'vehicle-index-page',
 ])
 

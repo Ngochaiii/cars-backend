@@ -5,7 +5,9 @@
     Biến: $q · $products · $posts
 --}}
 @extends('frontend.layout', [
-    'title' => filled($q) ? 'Tìm "'.$q.'"' : 'Tìm kiếm',
+    'title'     => filled($q) ? 'Tìm "'.$q.'"' : 'Tìm kiếm',
+    'canonical' => \App\Support\Url::route('search'),
+    'robots'    => 'noindex,follow',
 ])
 
 @section('content')

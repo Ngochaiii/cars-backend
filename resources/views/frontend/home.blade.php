@@ -13,6 +13,10 @@
     'title'       => catalog_setting('site_name', config('app.name')),
     'description' => catalog_setting('site_description'),
     'canonical'   => rtrim(config('app.url'), '/').'/',
+    'ogImage'     => \App\Support\Url::asset(
+        data_get($banners->first(), 'image') ?: data_get($products->first(), 'hero.src')
+    ),
+    'jsonld'      => \App\Support\JsonLd::organization(),
 ])
 
 @section('content')
@@ -116,6 +120,7 @@
     @endphp
 
     <div class="home-story" data-home-story>
+        <h1 class="sr-only">{{ catalog_setting('site_name', config('app.name')) }}</h1>
 
     {{-- ── Hero carousel ──────────────────────────────────────────────── --}}
     @if ($slides->isNotEmpty())
@@ -187,7 +192,7 @@
                                     <span class="eyebrow">{{ $eyebrow }}</span>
                                 @endif
 
-                                <h1>{{ $heading }}</h1>
+                                <h2>{{ $heading }}</h2>
 
                                 @if (filled($lede))
                                     <p class="hero__lede">{{ $lede }}</p>

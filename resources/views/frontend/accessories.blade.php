@@ -9,8 +9,12 @@
 --}}
 @extends('frontend.layout', [
     'title'       => data_get($category->seo, 'title', $category->name),
-    'description' => data_get($category->seo, 'description', $category->description),
-    'canonical'   => route('accessories'),
+    'description' => data_get($category->seo, 'description')
+        ?: $category->description
+        ?: 'Phụ kiện chính hãng, thiết bị sạc và sản phẩm chăm sóc xe.',
+    'canonical'   => \App\Support\Url::paginated(\App\Support\Url::route('accessories'), $products->currentPage()),
+    'prev'        => $products->previousPageUrl(),
+    'next'        => $products->nextPageUrl(),
 ])
 
 @section('content')

@@ -30,6 +30,22 @@ class Url
         return rtrim(config('app.url'), '/').static::to($type, $slug);
     }
 
+    /** URL tuyệt đối của named route, luôn dùng domain APP_URL cho SEO. */
+    public static function route(string $name, array $parameters = []): string
+    {
+        $path = route($name, $parameters, false);
+
+        return rtrim(config('app.url'), '/').'/'.ltrim($path, '/');
+    }
+
+    /** Canonical tự trỏ cho trang phân trang, không mang theo filter/UTM. */
+    public static function paginated(string $base, int $page): string
+    {
+        $base = strtok($base, '?') ?: $base;
+
+        return $page > 1 ? $base.'?page='.$page : $base;
+    }
+
     /** URL ảnh tuyệt đối dùng cho canonical metadata và dữ liệu có cấu trúc. */
     public static function asset(mixed $path): ?string
     {

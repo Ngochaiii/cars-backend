@@ -79,10 +79,15 @@ class JsonLd
 
         return array_filter([
             '@context' => 'https://schema.org',
-            '@type' => 'Organization',
+            '@type' => config('catalog.seo.organization.type', 'Organization'),
+            '@id' => rtrim(config('app.url'), '/').'/#organization',
             'name' => $name,
             'url' => rtrim(config('app.url'), '/'),
             'logo' => Url::asset($logo),
+            'image' => Url::asset(Setting::get('social_image') ?: $logo),
+            'telephone' => Setting::get('hotline'),
+            'email' => Setting::get('email'),
+            'address' => Setting::get('address'),
             'sameAs' => array_values(array_filter(
                 config('catalog.seo.organization.sameAs')
                     ?: [Setting::get('facebook'), Setting::get('youtube'), Setting::get('tiktok')]

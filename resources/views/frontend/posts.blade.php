@@ -7,9 +7,19 @@
 
     Biến: $heading · $posts (paginator) · $categories · $postCategory?
 --}}
+@php
+    $postsCanonical = \App\Support\Url::paginated(
+        $canonical ?? request()->url(),
+        $posts->currentPage(),
+    );
+    $postsDescription = 'Tin tức, ưu đãi và thông tin mới nhất từ '.catalog_setting('site_name', config('app.name')).'.';
+@endphp
 @extends('frontend.layout', [
-    'title'     => $heading,
-    'canonical' => $canonical ?? null,
+    'title'       => $heading,
+    'description' => $postsDescription,
+    'canonical'   => $postsCanonical,
+    'prev'        => $posts->previousPageUrl(),
+    'next'        => $posts->nextPageUrl(),
 ])
 
 @section('content')

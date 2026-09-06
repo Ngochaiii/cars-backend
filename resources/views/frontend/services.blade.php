@@ -22,8 +22,9 @@
 @endphp
 
 @extends('frontend.layout', [
-    'title'     => $title ?: $note,
-    'canonical' => route('services'),
+    'title'       => $title ?: $note,
+    'description' => catalog_setting('service_description', 'Tìm trạm sạc và dịch vụ chăm sóc xe gần bạn.'),
+    'canonical'   => \App\Support\Url::route('services'),
 ])
 
 @section('content')

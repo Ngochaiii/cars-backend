@@ -144,6 +144,7 @@ return [
                 'tax_code' => ['label' => 'Mã số thuế', 'type' => 'text'],
                 'logo' => ['label' => 'Logo', 'type' => 'image'],
                 'favicon' => ['label' => 'Favicon', 'type' => 'image'],
+                'social_image' => ['label' => 'Ảnh chia sẻ mặc định (Open Graph)', 'type' => 'image'],
                 'map_image' => ['label' => 'Ảnh bản đồ chỉ đường', 'type' => 'image'],
                 'map_url' => ['label' => 'Link Google Maps', 'type' => 'url'],
                 'visit_title' => ['label' => 'Tiêu đề thẻ liên hệ ở trang tĩnh', 'type' => 'text'],
@@ -203,6 +204,7 @@ return [
             'fields' => [
                 'service_note' => ['label' => 'Dòng nhỏ trên tiêu đề', 'type' => 'text'],
                 'service_title' => ['label' => 'Tiêu đề trang', 'type' => 'text'],
+                'service_description' => ['label' => 'Mô tả SEO', 'type' => 'textarea'],
                 'service_map' => ['label' => 'Ảnh bản đồ trạm sạc', 'type' => 'image'],
 
                 'stations' => ['label' => 'Danh sách trạm (mỗi dòng "Tên|Trạng thái|Thông tin|ok hoặc warn")', 'type' => 'textarea'],
@@ -423,8 +425,16 @@ return [
         // Loại trang đưa vào sitemap
         'sitemap_includes' => ['product', 'category', 'post', 'page'],
 
+        // Route tĩnh có nội dung cần Google lập chỉ mục. Search/compare
+        // cố ý không có mặt vì sinh nhiều URL theo query string.
+        'sitemap_routes' => [
+            'home', 'products.index', 'booking', 'accessories',
+            'dealers', 'services', 'posts.index',
+        ],
+
         // Tổ chức đứng sau — dùng cho JSON-LD Organization
         'organization' => [
+            'type' => 'AutoDealer',
             'name' => null,   // null thì lấy settings('site_name')
             'logo' => null,   // null thì lấy settings('logo')
             'sameAs' => [],     // link mạng xã hội

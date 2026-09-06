@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Facades\Route;
+
 /**
  * Sinh sitemap.xml từ các bản đã publish. Không cần package ngoài —
  * cấu trúc sitemap là XML thuần, và tự viết thì không phụ thuộc phiên bản
@@ -12,13 +14,44 @@ class Sitemap
     /** @return array<int, array{loc: string, lastmod: ?string}> */
     public function urls(): array
     {
-        $urls = [];
+        $urls = $this->staticUrls();
 
         foreach ((array) config('catalog.seo.sitemap_includes', []) as $type) {
             $urls = [...$urls, ...$this->urlsFor($type)];
         }
 
         return $urls;
+    }
+
+    /** @return array<int, array{loc: string, lastmod: null}> */
+    protected function staticUrls(): array
+    {
+        return collect((array) config('catalog.seo.sitemap_routes', []))
+            ->filter(fn (string $name): bool => $this->staticRouteIsAvailable($name))
+            ->map(fn (string $name): array => [
+                'loc' => Url::route($name),
+                'lastmod' => null,
+            ])
+            ->values()
+            ->all();
+    }
+
+    protected function staticRouteIsAvailable(string $name): bool
+    {
+        if (! Route::has($name)) {
+            return false;
+        }
+
+        return match ($name) {
+            'booking' => Catalog::feature('forms')
+                && Catalog::query('form')
+                    ->whereIn('key', (array) config('catalog.frontend.booking.forms', []))
+                    ->where('is_active', true)
+                    ->exists(),
+            'accessories' => filled($slug = config('catalog.frontend.accessory_category'))
+                && Catalog::query('category')->where('slug', $slug)->exists(),
+            default => true,
+        };
     }
 
     public function toXml(): string
@@ -54,6 +87,14 @@ class Sitemap
         };
 
         $query = Catalog::query($modelKey);
+
+        // Danh mục phụ kiện có URL public riêng và route danh mục chỉ
+        // redirect 301 sang URL đó. Sitemap không được liệt kê URL redirect.
+        if ($type === 'category'
+            && Route::has('accessories')
+            && filled($slug = config('catalog.frontend.accessory_category'))) {
+            $query->where('slug', '!=', $slug);
+        }
 
         // Product/Post có lịch đăng nên phải dùng đúng scope published,
         // tránh làm lộ URL hẹn giờ trong sitemap. Page không có published_at.

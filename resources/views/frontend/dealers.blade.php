@@ -7,8 +7,9 @@
     Biến: $provinces (đã eager-load dealers)
 --}}
 @extends('frontend.layout', [
-    'title'     => 'Hệ thống đại lý — '.catalog_setting('site_name', config('app.name')),
-    'canonical' => route('dealers'),
+    'title'       => 'Hệ thống đại lý — '.catalog_setting('site_name', config('app.name')),
+    'description' => 'Tìm showroom, số điện thoại, giờ mở cửa và chỉ đường tới đại lý gần bạn.',
+    'canonical'   => \App\Support\Url::route('dealers'),
 ])
 
 @section('content')

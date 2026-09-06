@@ -112,9 +112,35 @@ Nginx phục vụ chính thư mục đó (đổi path theo máy chủ):
 location ^~ /storage/ {
     alias /var/www/cars/shared/media/;
     autoindex off;
+    expires 1y;
+    add_header Cache-Control "public, max-age=31536000, immutable" always;
     add_header X-Content-Type-Options nosniff always;
 }
+
+# frontend.css/frontend.js có ?v=filemtime trong HTML, nên cache immutable an toàn.
+location ~* ^/(?:css/frontend\.css|js/frontend\.js)$ {
+    expires 1y;
+    add_header Cache-Control "public, max-age=31536000, immutable" always;
+    try_files $uri =404;
+}
+
+# Tài nguyên Vite có tên file hash.
+location ^~ /build/ {
+    expires 1y;
+    add_header Cache-Control "public, max-age=31536000, immutable" always;
+    try_files $uri =404;
+}
 ```
+
+Với Cloudflare, giữ cache HTML ở chế độ `DYNAMIC`: frontend có form
+CSRF và flash session nên không được `Cache Everything` toàn site. Cache
+dài `/storage/*`, `/css/frontend.css`, `/js/frontend.js` và `/build/*` đã
+đủ để phần lớn request ảnh/tĩnh trở thành HIT.
+
+Cloudflare **AI Crawl Control → Manage robots.txt** có thể chèn directive
+`Content-Signal` chưa thuộc chuẩn robots.txt mà Lighthouse hiểu. Tắt tuỳ
+chọn này nếu cần Lighthouse SEO 100; file `public/robots.txt` của app đã
+có sitemap và các rule crawl cần thiết.
 
 Thư mục `MEDIA_ROOT` phải cho user PHP-FPM quyền ghi. Do Laravel và Filament
 vẫn kéo các package có khai báo platform `ext-fileinfo` dù luồng upload của app

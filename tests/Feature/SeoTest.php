@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Http\Middleware\HandleRedirects;
+use App\Models\Category;
 use App\Models\Post;
 use App\Models\Product;
 use App\Models\Redirect;
@@ -116,13 +117,30 @@ class SeoTest extends TestCase
         Product::create(['name' => 'Đã đăng', 'slug' => 'da-dang', 'status' => 'published']);
         Product::create(['name' => 'Còn nháp', 'slug' => 'con-nhap', 'status' => 'draft']);
 
-        $xml = $this->get('/sitemap.xml')
+        $response = $this->get('/sitemap.xml')
             ->assertOk()
             ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
-            ->getContent();
+            ->assertHeader('Cache-Control', 'max-age=300, public, s-maxage=3600, stale-while-revalidate=86400');
 
+        $this->assertFalse($response->headers->has('Set-Cookie'));
+        $xml = $response->getContent();
+
+        $this->assertStringContainsString('<loc>https://lexus.vn/</loc>', $xml);
+        $this->assertStringContainsString('<loc>https://lexus.vn/san-pham</loc>', $xml);
         $this->assertStringContainsString('https://lexus.vn/san-pham/da-dang', $xml);
         $this->assertStringNotContainsString('con-nhap', $xml);
+    }
+
+    public function test_sitemap_khong_liet_ke_url_danh_muc_se_redirect(): void
+    {
+        Category::create(['name' => 'Phụ kiện', 'slug' => 'phu-kien']);
+        Category::create(['name' => 'SUV', 'slug' => 'suv']);
+
+        $xml = $this->get('/sitemap.xml')->assertOk()->getContent();
+
+        $this->assertStringContainsString('<loc>https://lexus.vn/phu-kien</loc>', $xml);
+        $this->assertStringContainsString('<loc>https://lexus.vn/danh-muc/suv</loc>', $xml);
+        $this->assertStringNotContainsString('/danh-muc/phu-kien', $xml);
     }
 
     public function test_sitemap_la_xml_hop_le(): void
@@ -200,6 +218,40 @@ class SeoTest extends TestCase
         $org = JsonLd::organization();
 
         $this->assertSame('Lexus Việt Nam', $org['name']);
+        $this->assertSame('AutoDealer', $org['@type']);
         $this->assertContains('https://facebook.com/lexus', $org['sameAs']);
+    }
+
+    public function test_trang_chu_co_mot_h1_og_image_jsonld_va_robots(): void
+    {
+        Setting::put('site_name', 'Lexus Việt Nam');
+        Setting::put('social_image', 'catalog/seo/social.webp');
+        Product::create(['name' => 'Lexus RZ', 'status' => 'published']);
+
+        $html = $this->get('/')->assertOk()->getContent();
+
+        $this->assertSame(1, substr_count($html, '<h1'));
+        $this->assertStringContainsString('name="robots" content="index,follow,max-image-preview:large"', $html);
+        $this->assertStringContainsString('property="og:image" content="https://lexus.vn/storage/catalog/seo/social.webp"', $html);
+        $this->assertStringContainsString('"@type":"AutoDealer"', $html);
+    }
+
+    public function test_canonical_phan_trang_tu_tro_va_search_compare_noindex(): void
+    {
+        config(['catalog.frontend.per_page' => 1]);
+        Product::create(['name' => 'Xe A', 'status' => 'published']);
+        Product::create(['name' => 'Xe B', 'status' => 'published']);
+
+        $this->get('/san-pham?page=2')
+            ->assertOk()
+            ->assertSee('<link rel="canonical" href="https://lexus.vn/san-pham?page=2">', false);
+
+        $this->get('/tim-kiem?q=VF')
+            ->assertOk()
+            ->assertSee('<meta name="robots" content="noindex,follow">', false);
+
+        $this->get('/so-sanh?xe=xe-a,xe-b')
+            ->assertOk()
+            ->assertSee('<meta name="robots" content="noindex,follow">', false);
     }
 }

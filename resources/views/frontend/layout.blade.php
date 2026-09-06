@@ -2,7 +2,8 @@
     Layout chung của trang khách xem.
 
     Biến nhận vào (đều tuỳ chọn):
-      $title · $description · $canonical · $ogImage · $jsonld · $bodyClass
+      $title · $description · $canonical · $ogImage · $jsonld · $robots
+      $prev · $next · $bodyClass
 
     CSS là file tĩnh public/css/frontend.css — không vite, không build.
     Font nạp bằng <link> chứ không @import trong CSS: @import bắt trình duyệt
@@ -14,9 +15,13 @@
     $pageTitle       = $title ?? $siteName;
     $pageDescription = $description ?? null;
     $pageCanonical   = $canonical ?? request()->url();
-    $pageImage       = $ogImage ?? null;
+    $pageImage       = \App\Support\Url::asset(
+        ($ogImage ?? null) ?: catalog_setting('social_image') ?: catalog_setting('logo')
+    );
     $pageType        = $ogType ?? 'website';
+    $pageRobots      = $robots ?? 'index,follow,max-image-preview:large';
     $frontendCssVersion = filemtime(public_path('css/frontend.css'));
+    $frontendJsVersion  = filemtime(public_path('js/frontend.js'));
 @endphp
 <!DOCTYPE html>
 <html lang="vi">
@@ -30,7 +35,14 @@
     @if (filled($pageDescription))
         <meta name="description" content="{{ $pageDescription }}">
     @endif
+    <meta name="robots" content="{{ $pageRobots }}">
     <link rel="canonical" href="{{ $pageCanonical }}">
+    @if (filled($prev ?? null))
+        <link rel="prev" href="{{ $prev }}">
+    @endif
+    @if (filled($next ?? null))
+        <link rel="next" href="{{ $next }}">
+    @endif
 
     <meta property="og:locale" content="vi_VN">
     <meta property="og:type" content="{{ $pageType }}">
@@ -84,6 +96,6 @@
 
     @include('frontend.partials.popup')
 
-    <script src="{{ asset('js/frontend.js') }}" defer></script>
+    <script src="{{ asset('js/frontend.js') }}?v={{ $frontendJsVersion }}" defer></script>
 </body>
 </html>

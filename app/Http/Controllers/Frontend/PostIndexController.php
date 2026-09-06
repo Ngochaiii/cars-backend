@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Support\Catalog;
+use App\Support\Url;
 use Illuminate\Contracts\View\View;
 
 /**
@@ -14,9 +15,10 @@ class PostIndexController extends Controller
     public function __invoke(): View
     {
         return view('frontend.posts', [
-            'heading'    => 'Tin tức',
+            'heading' => 'Tin tức',
+            'canonical' => Url::route('posts.index'),
             'categories' => Catalog::query('post_category')->orderBy('sort')->get(),
-            'posts'      => Catalog::query('post')
+            'posts' => Catalog::query('post')
                 ->published()
                 ->with('category')
                 ->latest('published_at')

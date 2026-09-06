@@ -18,7 +18,10 @@ use App\Http\Controllers\Frontend\SearchController;
 use App\Http\Controllers\Frontend\ServiceController;
 use App\Http\Controllers\SitemapController;
 use App\Support\Url;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,7 +41,11 @@ Route::post('admin/media', MediaUploadController::class)
 |--------------------------------------------------------------------------
 */
 if (config('catalog.seo.sitemap', true)) {
-    Route::get('sitemap.xml', SitemapController::class)->name('sitemap');
+    Route::get('sitemap.xml', SitemapController::class)
+        // XML công khai không cần session/CSRF. Bỏ ba middleware này để
+        // không phát cookie và cho Cloudflare cache an toàn.
+        ->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class])
+        ->name('sitemap');
 }
 
 /*

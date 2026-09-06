@@ -1,2 +1,7 @@
 User-agent: *
 Disallow:
+Disallow: /admin/
+Disallow: /api/
+Disallow: /gui-form/
+
+Sitemap: https://vinfast-bacgiang.com/sitemap.xml
