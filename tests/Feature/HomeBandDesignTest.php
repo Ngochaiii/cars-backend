@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Post;
+use App\Models\PostCategory;
 use App\Models\Product;
 use App\Models\Setting;
 use Tests\TestCase;
@@ -148,5 +150,53 @@ class HomeBandDesignTest extends TestCase
             ->assertOk()
             ->assertSee('catalog/settings/uu-dai.jpg', false)
             ->assertDontSee('offer--text-only', false);
+    }
+
+    public function test_tin_trang_chu_la_ba_the_dong_deu_du_chuyen_muc_va_ngay(): void
+    {
+        $category = PostCategory::create(['name' => 'Ưu đãi']);
+
+        foreach (range(1, 3) as $index) {
+            Post::create([
+                'title' => "Tin mới {$index}",
+                'slug' => "tin-moi-{$index}",
+                'excerpt' => "Mô tả ngắn cho tin số {$index}.",
+                'cover' => "catalog/posts/tin-{$index}.jpg",
+                'post_category_id' => $category->id,
+                'status' => 'published',
+                'published_at' => now()->subDays($index),
+            ]);
+        }
+
+        $html = $this->get('/')
+            ->assertOk()
+            ->assertSee('Tin tức &amp; ưu đãi', false)
+            ->assertSee('Cập nhật từ VinFast Bắc Giang')
+            ->assertSee('home-editorial__grid home-editorial__grid--3', false)
+            ->assertSee('home-editorial__meta', false)
+            ->assertSee('Ưu đãi')
+            ->assertSee('Xem tất cả tin tức')
+            ->assertDontSee('tiles__side', false)
+            ->getContent();
+
+        $this->assertSame(3, substr_count($html, 'class="home-editorial__card"'));
+        $this->assertSame(3, substr_count($html, '<time datetime='));
+    }
+
+    public function test_css_tin_trang_chu_ba_cot_va_cuon_snap_tren_mobile(): void
+    {
+        $css = (string) file_get_contents(public_path('css/frontend.css'));
+
+        $this->assertMatchesRegularExpression(
+            '/\.home-story \.home-editorial__grid\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\);/s',
+            $css
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.home-story \.home-editorial__media\s*\{[^}]*aspect-ratio:\s*16 \/ 9;/s',
+            $css
+        );
+        $this->assertStringContainsString('-webkit-line-clamp: 2;', $css);
+        $this->assertStringContainsString('scroll-snap-type: x mandatory;', $css);
+        $this->assertStringContainsString('grid-auto-columns: min(84vw, 340px);', $css);
     }
 }

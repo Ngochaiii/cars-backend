@@ -149,63 +149,65 @@
     </section>
 @endif
 
-{{-- ── Khám phá đại lý (lấy từ bài viết) ──────────────────────────── --}}
+{{-- ── Tin tức & ưu đãi (ba bài mới nhất) ─────────────────────────── --}}
 @if ($posts->isNotEmpty())
-    <section class="block home-section home-editorial" data-home-section>
+    @php $editorialPosts = $posts->take(3)->values(); @endphp
+
+    <section class="block home-section home-editorial" aria-labelledby="home-editorial-title" data-home-section>
         <div class="wrap">
-            <div class="section__head home-editorial__head" data-home-reveal>
-                <span class="eyebrow">Câu chuyện &amp; trải nghiệm</span>
-                <h2>Khám phá đại lý</h2>
-            </div>
-
-            @php $tileLead = $posts->first(); $tileRest = $posts->slice(1)->take(2); @endphp
-
-            <div class="tiles {{ $tileRest->isEmpty() ? 'tiles--solo' : '' }}" data-home-reveal>
-                <a class="tile" href="{{ route('posts.show', $tileLead->slug) }}">
-                    <div class="tile__media">
-                        @php $cover = catalog_image($tileLead->cover) ?: $editorialFallbacks->first(); @endphp
-                        @if ($cover)
-                            <x-img :src="$cover" :alt="$tileLead->title" sizes="(max-width: 960px) 100vw, 55vw" />
-                        @else
-                            <div class="ph" style="height:100%">[ {{ $tileLead->title }} ]</div>
-                        @endif
-                    </div>
-                    @if ($tileLead->category)
-                        <div class="tile__kicker">{{ $tileLead->category->name }}</div>
-                    @endif
-                    <div class="tile__title">{{ $tileLead->title }}</div>
-                    @if ($tileLead->excerpt)
-                        <p>{{ Str::limit($tileLead->excerpt, 160) }}</p>
-                    @endif
+            <header class="section__head home-editorial__head" data-home-reveal>
+                <div>
+                    <span class="eyebrow">Cập nhật từ {{ catalog_setting('site_name', 'VinFast Bắc Giang') }}</span>
+                    <h2 id="home-editorial-title">Tin tức &amp; ưu đãi</h2>
+                </div>
+                <a class="home-editorial__all" href="{{ route('posts.index') }}">
+                    <span>Xem tất cả tin tức</span>
+                    <span aria-hidden="true">↗</span>
                 </a>
+            </header>
 
-                @if ($tileRest->isNotEmpty())
-                    <div class="tiles__side">
-                        @foreach ($tileRest as $tile)
-                            <a class="tile" href="{{ route('posts.show', $tile->slug) }}">
-                                <div class="tile__media">
-                                    @php
-                                        $cover = catalog_image($tile->cover)
-                                            ?: $editorialFallbacks->get($loop->index + 1)
-                                            ?: $editorialFallbacks->first();
-                                    @endphp
-                                    @if ($cover)
-                                        <x-img :src="$cover" :alt="$tile->title" sizes="(max-width: 960px) 100vw, 30vw" />
-                                    @else
-                                        <div class="ph" style="height:100%">[ {{ $tile->title }} ]</div>
+            <div class="home-editorial__grid home-editorial__grid--{{ $editorialPosts->count() }}" data-home-reveal>
+                @foreach ($editorialPosts as $tile)
+                    @php
+                        $cover = catalog_image($tile->cover)
+                            ?: $editorialFallbacks->get($loop->index)
+                            ?: $editorialFallbacks->first();
+                    @endphp
+
+                    <article class="home-editorial__card">
+                        <a class="home-editorial__link" href="{{ route('posts.show', $tile->slug) }}">
+                            <div class="home-editorial__media">
+                                @if ($cover)
+                                    <x-img :src="$cover" :alt="$tile->title" sizes="(max-width: 680px) 84vw, 33vw" />
+                                @else
+                                    <div class="ph" style="height:100%">[ {{ $tile->title }} ]</div>
+                                @endif
+                            </div>
+
+                            <div class="home-editorial__body">
+                                <div class="home-editorial__meta">
+                                    <span>{{ $tile->category?->name ?: 'Tin tức' }}</span>
+                                    @if ($tile->published_at)
+                                        <time datetime="{{ $tile->published_at->toDateString() }}">
+                                            {{ $tile->published_at->format('d/m/Y') }}
+                                        </time>
                                     @endif
                                 </div>
-                                <div class="tile__kicker">{{ $tile->category?->name ?: $tile->published_at?->format('d/m/Y') }}</div>
-                                <div class="tile__title">{{ $tile->title }}</div>
-                            </a>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
 
-            <p class="pagination-wrap">
-                <a class="link-arrow" href="{{ route('posts.index') }}">Xem tất cả tin tức ›</a>
-            </p>
+                                <h3 class="home-editorial__title">{{ $tile->title }}</h3>
+
+                                @if ($tile->excerpt)
+                                    <p class="home-editorial__excerpt">{{ Str::limit($tile->excerpt, 120) }}</p>
+                                @endif
+
+                                <span class="home-editorial__more">
+                                    Đọc bài viết <span aria-hidden="true">→</span>
+                                </span>
+                            </div>
+                        </a>
+                    </article>
+                @endforeach
+            </div>
         </div>
     </section>
 @endif
