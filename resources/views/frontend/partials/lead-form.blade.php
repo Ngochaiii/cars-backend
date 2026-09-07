@@ -16,6 +16,16 @@
     // của nó.
     $isThisForm = $errors->{$form->key}->any();
     $old = fn (string $key, mixed $default = null) => $isThisForm ? old($key, $default) : $default;
+
+    $hasProductField = $form->fields->contains(fn ($field) => $field->type === 'product');
+    $productOptions = $hasProductField
+        ? \App\Support\Catalog::query('product')
+            ->published()
+            ->notInCategory(config('catalog.frontend.accessory_category'))
+            ->orderBy('sort')
+            ->orderBy('name')
+            ->pluck('name', 'id')
+        : collect();
 @endphp
 
 <div class="lead-form-wrap" id="form-{{ $form->key }}">
@@ -27,12 +37,12 @@
         </div>
     @endif
 
-    <form class="lead-form" method="POST" action="{{ route('leads.store', $form) }}">
+    <form class="lead-form" method="POST" action="{{ route('leads.store', $form) }}" data-lead-form>
         @csrf
 
-        @isset($product)
+        @if (isset($product) && ! $hasProductField)
             <input type="hidden" name="product_id" value="{{ $product->id }}">
-        @endisset
+        @endif
 
         {{-- Bẫy bot: ẩn bằng CSS, người thật không thấy nên luôn để trống. --}}
         <div class="honeypot" aria-hidden="true">
@@ -86,6 +96,19 @@
                         </select>
                         @break
 
+                    @case('product')
+                        <select id="f-{{ $form->key }}-{{ $field->key }}" name="{{ $field->key }}"
+                                @if ($required) required @endif>
+                            <option value="">{{ $field->placeholder ?: '— Chọn mẫu xe —' }}</option>
+                            @foreach ($productOptions as $value => $label)
+                                <option value="{{ $value }}"
+                                        @selected((int) $old($field->key, $product->id ?? null) === (int) $value)>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @break
+
                     @case('radio')
                     @case('checkbox')
                         @php $isCheckbox = $field->type === 'checkbox'; @endphp
@@ -96,6 +119,7 @@
                                         <input type="{{ $isCheckbox ? 'checkbox' : 'radio' }}"
                                                name="{{ $field->key }}{{ $isCheckbox ? '[]' : '' }}"
                                                value="{{ $value }}"
+                                               @if ($required && (! $isCheckbox || $soloCheckbox)) required @endif
                                                @checked($isCheckbox
                                                    ? in_array($value, (array) $old($field->key, []), false)
                                                    : $old($field->key) == $value)>
@@ -123,6 +147,8 @@
                 @enderror
             </div>
         @endforeach
+
+        <div class="lead-form__status field--full" data-lead-status role="status" aria-live="polite" hidden></div>
 
         <div class="field field--full">
             <button class="btn btn--accent" type="submit">{{ $form->name }}</button>

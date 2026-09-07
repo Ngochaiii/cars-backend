@@ -373,6 +373,7 @@
         var key = 'popup:' + (root.dataset.popupKey || 'mac-dinh');
         var days = parseInt(root.dataset.popupDays, 10) || 0;
         var delay = (parseInt(root.dataset.popupDelay, 10) || 10) * 1000;
+        var successTimer = null;
 
         try {
             var until = parseInt(localStorage.getItem(key), 10);
@@ -405,6 +406,7 @@
 
         function close() {
             clearTimeout(timer);
+            clearTimeout(successTimer);
             root.hidden = true;
             remember();
             document.removeEventListener('keydown', onKey);
@@ -431,9 +433,162 @@
             if (e.target.closest('[data-popup-close]')) { e.preventDefault(); close(); }
         });
 
-        /* Bấm Gửi thì coi như xong việc: ghi mốc luôn để lần sau khỏi hiện. */
+        /* Chỉ đóng sau khi server xác nhận đã nhận lead. Thông báo nổi vẫn
+           còn trên màn hình sau khi popup đóng; lỗi thì popup ở nguyên. */
         var form = root.querySelector('form');
-        if (form) form.addEventListener('submit', remember);
+        if (form) {
+            form.addEventListener('lead:success', function () {
+                remember();
+                successTimer = setTimeout(close, 700);
+            });
+        }
+    }
+
+    /* ── Form tư vấn: gửi nền, không tải lại cả trang ───────────────── */
+    var leadToastTimer = null;
+
+    function showLeadToast(message) {
+        var toast = document.querySelector('[data-lead-toast]');
+
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.className = 'lead-toast';
+            toast.dataset.leadToast = '';
+            toast.setAttribute('role', 'status');
+            toast.setAttribute('aria-live', 'polite');
+            document.body.appendChild(toast);
+        }
+
+        clearTimeout(leadToastTimer);
+        toast.textContent = message;
+        toast.hidden = false;
+
+        requestAnimationFrame(function () {
+            toast.classList.add('is-visible');
+        });
+
+        leadToastTimer = setTimeout(function () {
+            toast.classList.remove('is-visible');
+            setTimeout(function () { toast.hidden = true; }, 250);
+        }, 3500);
+    }
+
+    function initLeadForm(form) {
+        if (!window.fetch || !window.FormData) return;
+
+        var status = form.querySelector('[data-lead-status]');
+        var button = form.querySelector('button[type="submit"]');
+        var buttonText = button ? button.textContent : '';
+
+        function showStatus(message, tone) {
+            if (!status) return;
+            status.hidden = false;
+            status.textContent = message;
+            status.classList.toggle('is-success', tone === 'success');
+            status.classList.toggle('is-error', tone === 'error');
+        }
+
+        function clearErrors() {
+            form.querySelectorAll('[data-lead-error]').forEach(function (error) {
+                error.remove();
+            });
+            form.querySelectorAll('[aria-invalid="true"]').forEach(function (field) {
+                field.removeAttribute('aria-invalid');
+            });
+            if (status) {
+                status.hidden = true;
+                status.textContent = '';
+                status.classList.remove('is-success', 'is-error');
+            }
+        }
+
+        function fieldFor(key) {
+            var fields = form.querySelectorAll('[name]');
+            for (var i = 0; i < fields.length; i++) {
+                if (fields[i].name === key || fields[i].name === key + '[]') return fields[i];
+            }
+            return null;
+        }
+
+        function showValidationErrors(errors) {
+            var first = null;
+            Object.keys(errors || {}).forEach(function (key) {
+                var field = fieldFor(key);
+                if (!field) return;
+                if (!first) first = field;
+                field.setAttribute('aria-invalid', 'true');
+
+                var host = field.closest('.field');
+                if (!host) return;
+                var error = document.createElement('p');
+                error.className = 'field__error';
+                error.dataset.leadError = '';
+                error.textContent = Array.isArray(errors[key]) ? errors[key][0] : errors[key];
+                host.appendChild(error);
+            });
+            if (first && first.focus) first.focus();
+        }
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            if (form.dataset.submitting === 'true') return;
+
+            clearErrors();
+            form.dataset.submitting = 'true';
+            form.setAttribute('aria-busy', 'true');
+            if (button) {
+                button.disabled = true;
+                button.textContent = 'Đang gửi…';
+            }
+            showStatus('Đang gửi thông tin…', 'loading');
+
+            fetch(form.action, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new FormData(form)
+            })
+                .then(function (response) {
+                    return response.json().catch(function () { return {}; }).then(function (json) {
+                        if (!response.ok) {
+                            throw { status: response.status, json: json };
+                        }
+                        return json;
+                    });
+                })
+                .then(function (json) {
+                    var message = json.message || 'Đã nhận thông tin, chúng tôi sẽ liên hệ sớm.';
+                    form.reset();
+                    showStatus(message, 'success');
+                    showLeadToast(message);
+                    form.dispatchEvent(new CustomEvent('lead:success', {
+                        bubbles: true,
+                        detail: { message: message }
+                    }));
+                })
+                .catch(function (failure) {
+                    var json = failure && failure.json ? failure.json : {};
+                    if (failure && failure.status === 422 && json.errors) {
+                        showValidationErrors(json.errors);
+                        showStatus('Vui lòng kiểm tra lại các thông tin được đánh dấu.', 'error');
+                    } else if (failure && failure.status === 429) {
+                        showStatus('Bạn đã gửi quá nhanh. Vui lòng chờ một phút rồi thử lại.', 'error');
+                    } else {
+                        showStatus('Chưa gửi được thông tin. Vui lòng kiểm tra kết nối và thử lại.', 'error');
+                    }
+                })
+                .finally(function () {
+                    delete form.dataset.submitting;
+                    form.removeAttribute('aria-busy');
+                    if (button) {
+                        button.disabled = false;
+                        button.textContent = buttonText;
+                    }
+                });
+        });
     }
 
     /* ── Trang chủ: reveal theo chương + parallax ảnh có giới hạn ───── */
@@ -1059,6 +1214,7 @@
         document.querySelectorAll('[data-tabs]').forEach(initTabs);
         document.querySelectorAll('.booking').forEach(initBooking);
         document.querySelectorAll('[data-popup]').forEach(initPopup);
+        document.querySelectorAll('[data-lead-form]').forEach(initLeadForm);
         document.querySelectorAll('[data-home-story]').forEach(initHomeStory);
         document.querySelectorAll('[data-product-story]').forEach(initProductStory);
         document.querySelectorAll('[data-scrolly]').forEach(initScrolly);

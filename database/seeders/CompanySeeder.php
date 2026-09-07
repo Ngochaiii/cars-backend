@@ -38,9 +38,8 @@ class CompanySeeder extends Seeder
         $setting::put('hotline', '0889 159 579');
         $setting::put('email', 'ngochoa25.cv@gmail.com');
 
-        // Popup dùng chính form tư vấn đầy đủ, không phải form chỉ-email: khách
-        // đã chịu mở popup thì hỏi luôn thời điểm mua và cách thanh toán, sales
-        // gọi lại mới biết ưu tiên ai trước.
+        // Popup hỏi tối thiểu họ tên, số điện thoại và mẫu xe quan tâm để giảm
+        // ma sát nhưng sales vẫn biết cần tư vấn dòng xe nào.
         $setting::put('popup_form', 'dang-ky-tu-van');
         $setting::put('popup_title', 'Nhận báo giá & ưu đãi mới nhất');
         $setting::put('popup_text', 'Đăng ký ngay, tư vấn viên sẽ liên hệ trong thời gian sớm nhất.');

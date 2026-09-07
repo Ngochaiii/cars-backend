@@ -2,8 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Events\LeadReceived;
 use App\Models\Form;
+use App\Models\Lead;
+use App\Models\Product;
 use App\Models\Setting;
+use Database\Seeders\CatalogDemoSeeder;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -150,5 +155,55 @@ class PopupTest extends TestCase
             ->get('/')
             ->assertOk()
             ->assertDontSee('data-popup', false);
+    }
+
+    public function test_form_tu_van_chi_hoi_lien_he_va_luu_mau_xe_khach_quan_tam(): void
+    {
+        $this->seed(CatalogDemoSeeder::class);
+        Event::fake([LeadReceived::class]);
+
+        $product = Product::create([
+            'name' => 'VinFast VF 7',
+            'slug' => 'vinfast-vf-7',
+            'status' => 'published',
+            'sort' => 1,
+        ]);
+
+        Setting::put('popup_form', 'dang-ky-tu-van');
+        Setting::put('popup_title', 'Nhận báo giá & ưu đãi mới nhất');
+
+        $html = $this->get('/')->assertOk()->getContent();
+        $popup = Str::between($html, '<div class="popup"', '</form>');
+
+        $this->assertStringContainsString('Họ và tên', $popup);
+        $this->assertStringContainsString('Số điện thoại', $popup);
+        $this->assertStringContainsString('Mẫu xe quan tâm', $popup);
+        $this->assertStringContainsString('VinFast VF 7', $popup);
+        $this->assertStringContainsString('name="agree[]"', $popup);
+        $this->assertStringContainsString('value="1"', $popup);
+        $this->assertMatchesRegularExpression('/name="agree\[\]"[^>]+required/', $popup);
+        $this->assertStringNotContainsString('Email', $popup);
+        $this->assertStringNotContainsString('Thời gian dự kiến mua xe', $popup);
+        $this->assertStringNotContainsString('Phương thức thanh toán dự kiến', $popup);
+        $this->assertStringNotContainsString('Quý khách cần hỗ trợ thêm', $popup);
+
+        $this->postJson('/gui-form/dang-ky-tu-van', [
+            'name' => 'Khách kiểm thử',
+            'phone' => '0900000099',
+            'product_id' => $product->id,
+            'agree' => ['1'],
+        ])
+            ->assertCreated()
+            ->assertJsonStructure(['message', 'data' => ['id']]);
+
+        $lead = Lead::where('form_id', Form::where('key', 'dang-ky-tu-van')->value('id'))->sole();
+
+        $this->assertSame($product->id, $lead->product_id);
+        $this->assertSame('VinFast VF 7', $lead->product->name);
+        $this->assertNull($lead->email);
+        $this->assertSame(
+            ['name', 'phone', 'product_id', 'agree'],
+            array_keys($lead->data),
+        );
     }
 }

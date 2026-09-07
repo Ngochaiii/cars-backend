@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources\Forms;
 
-use BackedEnum;
 use App\Filament\Concerns\HasCatalogNavigation;
 use App\Filament\Resources\Forms\Pages\CreateForm;
 use App\Filament\Resources\Forms\Pages\EditForm;
 use App\Filament\Resources\Forms\Pages\ListForms;
 use App\Support\Catalog;
+use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -39,15 +39,16 @@ class FormResource extends Resource
 
     /** Các kiểu ô. `options` chỉ hiện với kiểu có lựa chọn. */
     public const TYPES = [
-        'text'     => 'Một dòng',
+        'text' => 'Một dòng',
         'textarea' => 'Nhiều dòng',
-        'email'    => 'Email',
-        'tel'      => 'Điện thoại',
-        'date'     => 'Ngày',
-        'select'   => 'Danh sách chọn',
-        'radio'    => 'Chọn một',
+        'email' => 'Email',
+        'tel' => 'Điện thoại',
+        'product' => 'Mẫu xe đang bán',
+        'date' => 'Ngày',
+        'select' => 'Danh sách chọn',
+        'radio' => 'Chọn một',
         'checkbox' => 'Chọn nhiều',
-        'hidden'   => 'Ẩn',
+        'hidden' => 'Ẩn',
     ];
 
     public static function getModel(): string
@@ -163,6 +164,8 @@ class FormResource extends Resource
                                 ->keyLabel('Giá trị lưu')
                                 ->valueLabel('Chữ hiển thị')
                                 ->visible(fn (Get $get): bool => in_array($get('type'), ['select', 'radio', 'checkbox'], true))
+                                ->required(fn (Get $get): bool => in_array($get('type'), ['select', 'radio', 'checkbox'], true))
+                                ->helperText('Bắt buộc có ít nhất một lựa chọn để frontend tạo được ô nhập.')
                                 ->columnSpanFull(),
 
                             Select::make('rules')
@@ -198,9 +201,9 @@ class FormResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListForms::route('/'),
+            'index' => ListForms::route('/'),
             'create' => CreateForm::route('/create'),
-            'edit'   => EditForm::route('/{record}/edit'),
+            'edit' => EditForm::route('/{record}/edit'),
         ];
     }
 

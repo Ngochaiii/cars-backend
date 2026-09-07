@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Catalog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Validation\Rule;
@@ -14,7 +15,7 @@ class FormField extends Model
     {
         return [
             'options' => 'array',
-            'rules'   => 'array',
+            'rules' => 'array',
         ];
     }
 
@@ -28,13 +29,24 @@ class FormField extends Model
     {
         $rules = $this->rules ?: ['nullable'];
 
-        $rules[] = match ($this->type) {
-            'email'    => 'email',
-            'tel'      => 'string',
-            'date'     => 'date',
-            'checkbox' => 'array',
-            default    => 'string',
+        $typeRules = match ($this->type) {
+            'email' => ['email'],
+            'tel' => ['string'],
+            'date' => ['date'],
+            'checkbox' => ['array'],
+            'product' => [
+                'integer',
+                Rule::exists(Catalog::model('product'), 'id')
+                    ->where(fn ($query) => $query
+                        ->where('status', 'published')
+                        ->whereNull('deleted_at')
+                        ->where(fn ($published) => $published
+                            ->whereNull('published_at')
+                            ->orWhere('published_at', '<=', now()))),
+            ],
+            default => ['string'],
         };
+        $rules = [...$rules, ...$typeRules];
 
         if (in_array($this->type, ['select', 'radio'], true) && filled($this->options)) {
             $rules[] = Rule::in(array_keys($this->options));

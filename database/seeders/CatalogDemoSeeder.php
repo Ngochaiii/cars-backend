@@ -79,13 +79,13 @@ class CatalogDemoSeeder extends Seeder
 
         // Form cuối trang chi tiết xe — khai ở
         // config('catalog.frontend.product_forms'). Bản thiết kế chỉ có MỘT
-        // form ở trang chi tiết, đúng bốn ô: họ tên, điện thoại, email và ô
-        // đồng ý xử lý dữ liệu.
+        // form ở trang chi tiết: chỉ hỏi thông tin đủ để gọi lại và mẫu xe
+        // khách đang quan tâm.
         $consult = Catalog::query('form')->updateOrCreate(
             ['key' => 'dang-ky-tu-van'],
             [
                 'name' => 'Đăng ký tư vấn',
-                'description' => 'Vui lòng để lại thông tin, đại lý sẽ cập nhật cho Quý khách thông tin sản phẩm và ưu đãi mới nhất.',
+                'description' => 'Chọn mẫu xe bạn quan tâm, tư vấn viên sẽ liên hệ và gửi thông tin phù hợp.',
                 'success_message' => 'Đã nhận thông tin của bạn. Tư vấn viên sẽ liên hệ trong vòng 2 giờ làm việc.',
             ],
         );
@@ -98,36 +98,14 @@ class CatalogDemoSeeder extends Seeder
             ['key' => 'phone', 'label' => 'Số điện thoại', 'type' => 'tel', 'rules' => ['required'], 'sort' => 2,
                 'placeholder' => '09xx xxx xxx', 'width' => 'half'],
 
-            ['key' => 'email', 'label' => 'Email', 'type' => 'email', 'rules' => ['required', 'email'], 'sort' => 3,
-                'placeholder' => 'ban@email.com'],
-
-            // Hai ô này là thứ sales cần nhất khi gọi lại: biết khách định mua
-            // khi nào và trả bằng cách nào thì xếp được thứ tự ưu tiên.
-            ['key' => 'buy_time', 'label' => 'Thời gian dự kiến mua xe', 'type' => 'select',
-                'rules' => ['required'], 'sort' => 4, 'width' => 'half',
-                'options' => [
-                    'trong-thang' => 'Trong tháng này',
-                    '1-3-thang' => 'Trong 1–3 tháng',
-                    '3-6-thang' => 'Trong 3–6 tháng',
-                    'chua-ro' => 'Chưa xác định',
-                ]],
-
-            ['key' => 'payment', 'label' => 'Phương thức thanh toán dự kiến', 'type' => 'select',
-                'rules' => ['required'], 'sort' => 5, 'width' => 'half',
-                'options' => [
-                    'tra-thang' => 'Trả thẳng',
-                    'tra-gop' => 'Trả góp',
-                    'chua-ro' => 'Chưa xác định',
-                ]],
-
-            ['key' => 'note', 'label' => 'Quý khách cần hỗ trợ thêm thông tin gì?', 'type' => 'textarea',
-                'rules' => ['nullable', 'max:300'], 'sort' => 6],
+            ['key' => 'product_id', 'label' => 'Mẫu xe quan tâm', 'type' => 'product',
+                'rules' => ['required'], 'sort' => 3, 'placeholder' => '— Chọn mẫu xe —'],
 
             // Nghị định 13/2023: câu đồng ý phải dẫn được tới chính sách bảo vệ
             // dữ liệu. Cú pháp [chữ](đường-dẫn) do catalog_field_label() dựng
             // thành link — nhãn gõ trong admin nên không gõ thẻ HTML được.
             ['key' => 'agree', 'label' => 'Đồng ý xử lý dữ liệu', 'type' => 'checkbox',
-                'rules' => ['required'], 'sort' => 7,
+                'rules' => ['required'], 'sort' => 4,
                 'options' => ['1' => 'Tôi đồng ý cho đại lý xử lý dữ liệu cá nhân của tôi theo '
                     .'[Chính sách bảo vệ dữ liệu cá nhân](/chinh-sach-bao-mat).']],
         ]);

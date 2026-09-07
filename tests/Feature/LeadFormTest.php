@@ -7,10 +7,11 @@ use App\Models\Form;
 use App\Models\Lead;
 use App\Models\Product;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\ViewErrorBag;
 use Tests\TestCase;
 
 /**
- * Form lead trên trang Blade — POST thường, không JS.
+ * Form lead trên trang Blade hỗ trợ cả fetch JSON và POST thường dự phòng.
  *
  * Cùng action StoreLead với API nên honeypot, chống trùng, mail và webhook
  * phải giống hệt. Test ở đây canh cái "giống hệt" đó.
@@ -71,6 +72,58 @@ class LeadFormTest extends TestCase
         $this->assertSame(['name' => 'Đạt', 'phone' => '0987654321'], $lead->data);
 
         Event::assertDispatched(LeadReceived::class);
+    }
+
+    public function test_fetch_form_luu_lead_va_tra_json_de_khong_tai_lai_trang(): void
+    {
+        Event::fake([LeadReceived::class]);
+
+        $response = $this->postJson('/gui-form/dat-lich-lai-thu', [
+            'name' => 'Khách kiểm thử',
+            'phone' => '0900000099',
+        ]);
+
+        $lead = Lead::sole();
+
+        $response
+            ->assertCreated()
+            ->assertJsonPath('message', 'Tư vấn viên sẽ gọi lại trong 15 phút.')
+            ->assertJsonPath('data.id', $lead->id)
+            ->assertHeader('content-type', 'application/json');
+
+        $this->assertSame('Khách kiểm thử', $lead->name);
+        $this->assertSame('0900000099', $lead->phone);
+        Event::assertDispatched(LeadReceived::class);
+    }
+
+    public function test_fetch_form_tra_loi_json_va_khong_luu_khi_thieu_du_lieu(): void
+    {
+        $this->postJson('/gui-form/dat-lich-lai-thu', ['name' => 'Khách kiểm thử'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('phone');
+
+        $this->assertSame(0, Lead::count());
+    }
+
+    public function test_form_render_du_thong_tin_de_javascript_gui_nen(): void
+    {
+        $html = view('frontend.partials.lead-form', [
+            'form' => $this->form->load('fields'),
+            'errors' => new ViewErrorBag,
+        ])->render();
+
+        $this->assertStringContainsString('data-lead-form', $html);
+        $this->assertStringContainsString('data-lead-status', $html);
+        $this->assertStringContainsString('name="_token"', $html);
+
+        $javascript = file_get_contents(public_path('js/frontend.js'));
+
+        $this->assertIsString($javascript);
+        $this->assertStringContainsString('event.preventDefault();', $javascript);
+        $this->assertStringContainsString("Accept: 'application/json'", $javascript);
+        $this->assertStringContainsString('showLeadToast(message);', $javascript);
+        $this->assertStringContainsString("form.dispatchEvent(new CustomEvent('lead:success'", $javascript);
+        $this->assertStringContainsString('successTimer = setTimeout(close, 700);', $javascript);
     }
 
     public function test_thieu_field_bat_buoc_thi_quay_lai_kem_loi(): void

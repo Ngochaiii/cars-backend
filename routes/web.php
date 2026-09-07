@@ -127,10 +127,10 @@ if (app()->environment('local')) {
 
 /*
 |--------------------------------------------------------------------------
-| Lead — form Blade gửi POST thường
+| Lead — POST thường, được nâng cấp thành fetch khi có JavaScript
 |--------------------------------------------------------------------------
-| Không cần JS: bấm Gửi là request thật, xong thì redirect về đúng trang cũ
-| kèm câu cảm ơn. Cùng action với API nên honeypot/chống trùng y hệt.
+| Có JS: endpoint trả JSON để trang không reload. Tắt JS: redirect về đúng
+| trang cũ kèm câu cảm ơn. Cùng action nên validation/chống trùng y hệt.
 */
 if (catalog_feature('forms')) {
     Route::post('gui-form/{form:key}', LeadController::class)
