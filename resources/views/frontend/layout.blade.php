@@ -94,6 +94,7 @@
     @include('frontend.partials.newsletter')
     @include('frontend.partials.footer')
 
+    @include('frontend.partials.floating-contact')
     @include('frontend.partials.popup')
 
     <script src="{{ asset('js/frontend.js') }}?v={{ $frontendJsVersion }}" defer></script>

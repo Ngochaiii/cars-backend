@@ -13,7 +13,7 @@ use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * Bảo đảm một bài viết đầy đủ tạo từ Filament đi nguyên vẹn
+ * Bảo đảm một bài viết văn bản tạo từ Filament đi nguyên vẹn
  * qua database, trang danh sách, trang chi tiết và API.
  */
 class PostLayoutParityTest extends TestCase
@@ -65,34 +65,7 @@ class PostLayoutParityTest extends TestCase
             'published_at' => now()->subMinute(),
             'cover' => ['catalog/posts/vf-7-ra-mat.jpg'],
             'excerpt' => 'Mẫu SUV điện được bổ sung công nghệ an toàn và màu sắc mới.',
-            'sections' => [
-                [
-                    'title' => 'Thiết kế hướng tới người lái',
-                    'type' => 'text',
-                    'layout' => 'cols-3',
-                    'intro' => 'Những thay đổi đáng chú ý trên phiên bản mới.',
-                    'body' => 'Khoang lái được tối ưu cho cả hành trình trong đô thị và đường dài.',
-                ],
-                [
-                    'title' => 'Hình ảnh thực tế',
-                    'type' => 'media',
-                    'layout' => 'cols-2',
-                    'items' => [[
-                        'image' => ['catalog/sections/vf-7-noi-that.jpg'],
-                        'label' => 'Nội thất VF 7',
-                        'desc' => 'Không gian tối giản và hiện đại.',
-                    ]],
-                ],
-                [
-                    'title' => 'Thông tin nhanh',
-                    'type' => 'table',
-                    'layout' => 'cols-3',
-                    'rows' => [
-                        ['label' => 'Quãng đường', 'value' => '496 km'],
-                        ['label' => 'Dung lượng pin', 'value' => '75,3 kWh'],
-                    ],
-                ],
-            ],
+            'article_body' => 'Khoang lái được tối ưu cho cả hành trình trong đô thị và đường dài.',
             'seo' => [
                 'title' => 'VF 7 phiên bản mới — thông tin chính thức',
                 'description' => 'Hình ảnh và thông tin chi tiết VF 7 phiên bản mới.',
@@ -120,7 +93,9 @@ class PostLayoutParityTest extends TestCase
         $this->assertSame('vf-7-ra-mat.jpg', basename((string) $post->cover));
         $this->assertSame('vf-7-news-social.jpg', basename((string) data_get($post->seo, 'image')));
         $this->assertSame(self::BODY_HTML, $post->sections[0]['body']);
-        $this->assertSame('496 km', $post->sections[2]['rows'][0]['value']);
+        $this->assertArrayNotHasKey('title', $post->sections[0]);
+        $this->assertArrayNotHasKey('layout', $post->sections[0]);
+        $this->assertArrayNotHasKey('width', $post->sections[0]);
 
         $this->get('/tin-tuc')
             ->assertOk()
@@ -135,8 +110,6 @@ class PostLayoutParityTest extends TestCase
             ->assertOk()
             ->assertSee('Mẫu SUV điện được bổ sung công nghệ an toàn')
             ->assertSee('Khoang lái được tối ưu')
-            ->assertSee('Nội thất VF 7')
-            ->assertSee('496 km')
             ->getContent();
 
         $this->assertStringContainsString('<link rel="canonical" href="https://cars.example/tin/vf-7-ra-mat">', $html);
@@ -154,7 +127,7 @@ class PostLayoutParityTest extends TestCase
         $this->assertStringEndsWith('/storage/catalog/seo/vf-7-news-social.jpg', $data['jsonld']['image']);
     }
 
-    public function test_sua_tin_trong_admin_khong_lam_mat_noi_dung_anh_va_seo(): void
+    public function test_sua_tin_trong_admin_khong_lam_mat_noi_dung_anh_bia_va_seo(): void
     {
         $post = $this->createPost();
 
@@ -170,5 +143,50 @@ class PostLayoutParityTest extends TestCase
         $this->assertSame('vf-7-ra-mat.jpg', basename((string) $post->cover));
         $this->assertSame(self::BODY_HTML, $post->sections[0]['body']);
         $this->assertSame('https://cars.example/tin/vf-7-ra-mat', data_get($post->seo, 'canonical'));
+    }
+
+    public function test_sua_bai_cu_gop_cac_muc_chu_va_giu_nguyen_muc_media_bang(): void
+    {
+        $post = Post::create([
+            'title' => 'Bài viết định dạng cũ',
+            'slug' => 'bai-viet-dinh-dang-cu',
+            'status' => 'draft',
+            'sections' => [
+                [
+                    'title' => 'Phần mở đầu',
+                    'intro' => 'Giới thiệu ngắn.',
+                    'type' => 'text',
+                    'body' => '<p>Nội dung cũ.</p>',
+                ],
+                [
+                    'title' => 'Hình ảnh',
+                    'type' => 'media',
+                    'layout' => 'cols-2',
+                    'items' => [['image' => 'catalog/sections/vf-7-noi-that.jpg']],
+                ],
+                [
+                    'title' => 'Thông tin nhanh',
+                    'type' => 'table',
+                    'rows' => [['label' => 'Quãng đường', 'value' => '496 km']],
+                ],
+            ],
+        ]);
+
+        Livewire::test(EditPost::class, ['record' => $post->getRouteKey()])
+            ->assertSuccessful()
+            ->assertFormSet([
+                'article_body' => '<h2>Phần mở đầu</h2><p>Giới thiệu ngắn.</p><p>Nội dung cũ.</p>',
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $sections = $post->refresh()->sections;
+
+        $this->assertCount(3, $sections);
+        $this->assertSame('text', $sections[0]['type']);
+        $this->assertStringContainsString('Nội dung cũ.', $sections[0]['body']);
+        $this->assertSame('media', $sections[1]['type']);
+        $this->assertSame('table', $sections[2]['type']);
+        $this->assertSame('496 km', $sections[2]['rows'][0]['value']);
     }
 }

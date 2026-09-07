@@ -2,27 +2,32 @@
 
 namespace App\Filament\Resources\Posts;
 
-use App\Filament\Forms\Components\NativeMediaUpload;
-use BackedEnum;
 use App\Filament\Concerns\HasCatalogNavigation;
+use App\Filament\Forms\Components\NativeMediaUpload;
 use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\EditPost;
 use App\Filament\Resources\Posts\Pages\ListPosts;
-use App\Filament\Schemas\SectionsRepeater;
 use App\Filament\Schemas\SeoSection;
+use App\Services\GeminiArticleWriter;
 use App\Support\Catalog;
 use App\Support\Url;
+use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ImageColumn;
@@ -30,6 +35,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
+use Throwable;
 
 class PostResource extends Resource
 {
@@ -85,9 +91,9 @@ class PostResource extends Resource
                     Select::make('status')
                         ->label('Trạng thái')
                         ->options([
-                            'draft'     => 'Nháp',
+                            'draft' => 'Nháp',
                             'published' => 'Đã đăng',
-                            'archived'  => 'Lưu trữ',
+                            'archived' => 'Lưu trữ',
                         ])
                         ->default('draft')
                         ->required()
@@ -100,6 +106,7 @@ class PostResource extends Resource
                     NativeMediaUpload::make('cover')
                         ->label('Ảnh bìa')
                         ->image()
+                        ->live()
                         ->directory('catalog/posts'),
 
                     Select::make('cover_width')
@@ -125,10 +132,96 @@ class PostResource extends Resource
                 ]),
 
             Section::make('Nội dung')
-                ->description('Cùng cơ chế mục như sản phẩm — thêm mục ảnh, mục văn bản, mục video tuỳ bài.')
+                ->description('Dán nội dung từ website, Word hoặc Google Docs. Hệ thống giữ tiêu đề, đoạn văn, chữ đậm, danh sách và liên kết.')
                 ->collapsible()
                 ->columnSpanFull()
-                ->schema([SectionsRepeater::make()]),
+                ->schema([
+                    Textarea::make('ai_instructions')
+                        ->label('Yêu cầu thêm cho Gemini')
+                        ->placeholder('Ví dụ: nhấn mạnh ưu đãi tháng này, hướng tới khách mua xe gia đình, bài khoảng 1.000 từ…')
+                        ->helperText('Không bắt buộc. Tiêu đề và ảnh bìa ở phía trên là dữ liệu chính để AI viết bài.')
+                        ->rows(3)
+                        ->dehydrated(false)
+                        ->columnSpanFull(),
+
+                    Actions::make([
+                        Action::make('generateArticleWithGemini')
+                            ->label('Sinh bài viết bằng Gemini')
+                            ->icon(Heroicon::OutlinedSparkles)
+                            ->color('info')
+                            ->requiresConfirmation(fn (Get $schemaGet): bool => filled($schemaGet('article_body')))
+                            ->modalHeading('Tạo lại nội dung bằng Gemini?')
+                            ->modalDescription('Nội dung, tóm tắt và các trường SEO hiện tại sẽ được thay bằng bản Gemini tạo mới.')
+                            ->modalSubmitActionLabel('Tạo lại bài')
+                            ->action(function (Get $schemaGet, Set $schemaSet, GeminiArticleWriter $writer): void {
+                                $title = trim((string) $schemaGet('title'));
+                                $cover = $schemaGet('cover');
+                                $cover = is_array($cover) ? collect($cover)->first(fn (mixed $item): bool => filled($item)) : $cover;
+
+                                if ($title === '' || blank($cover)) {
+                                    $missing = collect([
+                                        $title === '' ? 'tiêu đề' : null,
+                                        blank($cover) ? 'ảnh bìa đã tải xong' : null,
+                                    ])->filter()->implode(' và ');
+
+                                    Notification::make()
+                                        ->title('Chưa đủ thông tin')
+                                        ->body("Hãy bổ sung {$missing} rồi bấm lại nút Gemini.")
+                                        ->warning()
+                                        ->send();
+
+                                    return;
+                                }
+
+                                try {
+                                    $article = $writer->generate(
+                                        $title,
+                                        (string) $cover,
+                                        $schemaGet('ai_instructions'),
+                                    );
+                                } catch (Throwable $exception) {
+                                    Notification::make()
+                                        ->title('Chưa tạo được bài viết')
+                                        ->body($exception->getMessage())
+                                        ->danger()
+                                        ->persistent()
+                                        ->send();
+
+                                    return;
+                                }
+
+                                $schemaSet('excerpt', $article['excerpt']);
+                                $schemaSet('article_body', $article['article_html']);
+                                $schemaSet('seo.title', $article['seo_title']);
+                                $schemaSet('seo.description', $article['meta_description']);
+                                $schemaSet('seo.keywords', implode(', ', $article['keywords']));
+
+                                Notification::make()
+                                    ->title('Gemini đã viết xong bài')
+                                    ->body('Hãy đọc lại thông tin thực tế trước khi chuyển trạng thái sang Đã đăng.')
+                                    ->success()
+                                    ->send();
+                            }),
+                    ])
+                        ->key('geminiArticleActions')
+                        ->columnSpanFull(),
+
+                    Textarea::make('seo.keywords')
+                        ->label('Từ khóa SEO Gemini đã dùng')
+                        ->helperText('Danh sách để biên tập viên kiểm tra. Website không tạo thẻ meta keywords và không nhồi từ khóa máy móc.')
+                        ->rows(2)
+                        ->columnSpanFull(),
+
+                    RichEditor::make('article_body')
+                        ->label('Nội dung bài viết')
+                        ->helperText('Chỉ cần dán và chỉnh lại nội dung tại đây; không cần tạo tên mục hay chọn bố cục.')
+                        ->toolbarButtons([
+                            ['bold', 'italic', 'underline', 'strike', 'link'],
+                            ['h2', 'h3', 'bulletList', 'orderedList', 'blockquote', 'table'],
+                            ['undo', 'redo'],
+                        ])
+                        ->columnSpanFull(),
+                ]),
 
             SeoSection::make(),
         ]);
@@ -157,13 +250,13 @@ class PostResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'published' => 'Đã đăng',
-                        'archived'  => 'Lưu trữ',
-                        default     => 'Nháp',
+                        'archived' => 'Lưu trữ',
+                        default => 'Nháp',
                     })
                     ->color(fn (string $state): string => match ($state) {
                         'published' => 'success',
-                        'archived'  => 'gray',
-                        default     => 'warning',
+                        'archived' => 'gray',
+                        default => 'warning',
                     }),
 
                 TextColumn::make('published_at')->label('Đăng lúc')->dateTime('d/m/Y H:i')->sortable(),
@@ -172,9 +265,9 @@ class PostResource extends Resource
                 SelectFilter::make('status')
                     ->label('Trạng thái')
                     ->options([
-                        'draft'     => 'Nháp',
+                        'draft' => 'Nháp',
                         'published' => 'Đã đăng',
-                        'archived'  => 'Lưu trữ',
+                        'archived' => 'Lưu trữ',
                     ]),
 
                 SelectFilter::make('category')
@@ -189,9 +282,9 @@ class PostResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListPosts::route('/'),
+            'index' => ListPosts::route('/'),
             'create' => CreatePost::route('/create'),
-            'edit'   => EditPost::route('/{record}/edit'),
+            'edit' => EditPost::route('/{record}/edit'),
         ];
     }
 }

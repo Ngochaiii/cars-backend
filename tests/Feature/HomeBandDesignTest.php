@@ -114,6 +114,18 @@ class HomeBandDesignTest extends TestCase
             ->assertDontSee('Trải nghiệm lái thử');
     }
 
+    public function test_xe_dang_duoc_quan_tam_dung_truoc_hanh_trinh_so_huu(): void
+    {
+        $html = $this->get('/')->assertOk()->getContent();
+
+        $discoveryPosition = strpos($html, 'data-disc');
+        $toolsPosition = strpos($html, 'customer-tools-title');
+
+        $this->assertNotFalse($discoveryPosition);
+        $this->assertNotFalse($toolsPosition);
+        $this->assertTrue($discoveryPosition < $toolsPosition);
+    }
+
     /* Dòng thiếu link thì bỏ qua, không dựng ra một ô bấm vào không đi đâu. */
     public function test_o_hanh_trinh_thieu_link_thi_bo_qua(): void
     {

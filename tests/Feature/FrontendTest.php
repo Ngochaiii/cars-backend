@@ -359,6 +359,23 @@ class FrontendTest extends TestCase
 
     // --- Cài đặt ăn vào layout ---
 
+    public function test_header_va_cum_lien_he_dung_icon_co_link_bam_duoc(): void
+    {
+        Setting::put('facebook', 'https://facebook.com/vinfast.bacgiang');
+        Setting::put('zalo', '0889 159 579');
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('class="header__tel"', false)
+            ->assertSee('aria-label="Gọi 1800 6088"', false)
+            ->assertSee('floating-contact__item--facebook', false)
+            ->assertSee('href="https://facebook.com/vinfast.bacgiang"', false)
+            ->assertSee('floating-contact__item--phone', false)
+            ->assertSee('href="tel:18006088"', false)
+            ->assertSee('floating-contact__item--zalo', false)
+            ->assertSee('href="https://zalo.me/0889159579"', false);
+    }
+
     public function test_ma_do_luong_lay_tu_cai_dat(): void
     {
         Setting::put('gtm_id', 'GTM-ABC123');

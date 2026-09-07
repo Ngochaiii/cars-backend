@@ -22,6 +22,19 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-3.8-flash'),
+        'fallback_models' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('GEMINI_FALLBACK_MODELS', 'gemini-3.7-flash')),
+        ))),
+        'timeout' => (int) env('GEMINI_TIMEOUT', 90),
+        'max_output_tokens' => (int) env('GEMINI_MAX_OUTPUT_TOKENS', 4500),
+        'google_search' => (bool) env('GEMINI_GOOGLE_SEARCH', false),
+        'max_inline_image_bytes' => 10 * 1024 * 1024,
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

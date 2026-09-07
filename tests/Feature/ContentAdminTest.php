@@ -20,8 +20,8 @@ use App\Models\Product;
 use App\Models\Redirect;
 use App\Models\Setting;
 use App\Models\User;
-use Tests\TestCase;
 use Livewire\Livewire;
+use Tests\TestCase;
 
 class ContentAdminTest extends TestCase
 {
@@ -41,20 +41,22 @@ class ContentAdminTest extends TestCase
         }
     }
 
-    public function test_tao_bai_viet_dung_chung_co_che_muc_voi_san_pham(): void
+    public function test_tao_bai_viet_chi_can_dan_noi_dung_van_ban(): void
     {
         Livewire::test(CreatePost::class)
+            ->assertSee('Nội dung bài viết')
+            ->assertSee('Sinh bài viết bằng Gemini')
+            ->assertSee('Yêu cầu thêm cho Gemini')
+            ->assertSee('Từ khóa SEO Gemini đã dùng')
+            ->assertDontSee('Tên mục')
+            ->assertDontSee('Bố cục')
+            ->assertDontSee('Theo mặc định của trang')
             ->fillForm([
-                'title'    => 'Lexus GX 550 về đại lý',
-                'slug'     => 'lexus-gx-550-ve-dai-ly',
-                'status'   => 'published',
-                'excerpt'  => 'Lô xe đầu tiên đã cập cảng.',
-                'sections' => [[
-                    'title'  => 'Ảnh thực tế',
-                    'type'   => 'media',
-                    'layout' => 'cols-3',
-                    'items'  => [['image' => ['a.webp'], 'label' => 'Mặt trước', 'desc' => '']],
-                ]],
+                'title' => 'Lexus GX 550 về đại lý',
+                'slug' => 'lexus-gx-550-ve-dai-ly',
+                'status' => 'published',
+                'excerpt' => 'Lô xe đầu tiên đã cập cảng.',
+                'article_body' => 'Nội dung được dán trực tiếp vào trình soạn thảo.',
             ])
             ->call('create')
             ->assertHasNoFormErrors();
@@ -62,17 +64,21 @@ class ContentAdminTest extends TestCase
         $post = Post::firstWhere('slug', 'lexus-gx-550-ve-dai-ly');
 
         $this->assertNotNull($post);
-        $this->assertSame('Ảnh thực tế', $post->sections[0]['title']);
+        $this->assertSame('text', $post->sections[0]['type']);
+        $this->assertSame('<p>Nội dung được dán trực tiếp vào trình soạn thảo.</p>', $post->sections[0]['body']);
+        $this->assertArrayNotHasKey('title', $post->sections[0]);
+        $this->assertArrayNotHasKey('layout', $post->sections[0]);
+        $this->assertArrayNotHasKey('width', $post->sections[0]);
     }
 
     public function test_tao_trang_tinh_kem_seo(): void
     {
         Livewire::test(CreatePage::class)
             ->fillForm([
-                'title'  => 'Giới thiệu',
-                'slug'   => 'gioi-thieu',
+                'title' => 'Giới thiệu',
+                'slug' => 'gioi-thieu',
                 'status' => 'published',
-                'seo'    => ['title' => 'Về chúng tôi', 'description' => 'Trang giới thiệu.'],
+                'seo' => ['title' => 'Về chúng tôi', 'description' => 'Trang giới thiệu.'],
             ])
             ->call('create')
             ->assertHasNoFormErrors();
@@ -91,13 +97,13 @@ class ContentAdminTest extends TestCase
             ->assertSuccessful()
             ->fillForm([
                 'rootItems' => [[
-                    'label'       => 'Dòng xe',
+                    'label' => 'Dòng xe',
                     'target_type' => 'url',
-                    'url'         => '/dong-xe',
-                    'children'    => [[
-                        'label'       => 'Lexus GX 550',
+                    'url' => '/dong-xe',
+                    'children' => [[
+                        'label' => 'Lexus GX 550',
                         'target_type' => 'product',
-                        'target_id'   => $product->id,
+                        'target_id' => $product->id,
                     ]],
                 ]],
             ])
@@ -118,9 +124,9 @@ class ContentAdminTest extends TestCase
         $menu = Menu::create(['key' => 'header', 'name' => 'Menu chính']);
 
         $item = $menu->items()->create([
-            'label'       => 'GX 550',
+            'label' => 'GX 550',
             'target_type' => 'product',
-            'target_id'   => $product->id,
+            'target_id' => $product->id,
         ]);
 
         $this->assertSame('/san-pham/gx-550', $item->resolvedUrl());

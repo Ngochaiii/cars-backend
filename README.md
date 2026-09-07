@@ -142,6 +142,28 @@ Cloudflare **AI Crawl Control → Manage robots.txt** có thể chèn directive
 chọn này nếu cần Lighthouse SEO 100; file `public/robots.txt` của app đã
 có sitemap và các rule crawl cần thiết.
 
+### Viết tin tức bằng Gemini
+
+Màn **Bài viết → Thêm bài viết** có nút “Sinh bài viết bằng Gemini”. Nhập tiêu đề,
+tải ảnh bìa và có thể ghi thêm yêu cầu; Gemini sẽ điền tóm tắt, nội dung HTML,
+SEO title, meta description và danh sách cụm từ khóa dùng trong bài. Bài vẫn ở
+trạng thái do biên tập viên chọn và cần được kiểm tra trước khi đăng.
+
+Khóa chỉ đặt trong `.env`, tuyệt đối không đưa vào Git:
+
+```dotenv
+GEMINI_API_KEY=your-new-key
+GEMINI_MODEL=gemini-3.8-flash
+GEMINI_FALLBACK_MODELS=gemini-3.7-flash
+GEMINI_GOOGLE_SEARCH=false
+```
+
+Free Tier vẫn phân tích ảnh và sinh từ khóa SEO, nhưng không có dữ liệu
+xu hướng thời gian thực. Grounding with Google Search của Gemini 3.8 Flash chỉ
+có trên Paid Tier; sau khi bật billing, đổi `GEMINI_GOOGLE_SEARCH=true` và
+chạy `php artisan config:clear`.
+Khi model chính tạm thời trả lỗi 5xx/quá tải, app tự chuyển sang model dự phòng.
+
 Thư mục `MEDIA_ROOT` phải cho user PHP-FPM quyền ghi. Do Laravel và Filament
 vẫn kéo các package có khai báo platform `ext-fileinfo` dù luồng upload của app
 không dùng chúng, máy build không có extension cần cài dependency bằng:

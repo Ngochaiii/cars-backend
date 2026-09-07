@@ -86,7 +86,13 @@
             @endif
 
             @if (filled($hotline))
-                <a class="header__tel" href="tel:{{ preg_replace('/\s+/', '', $hotline) }}">{{ $hotline }}</a>
+                <a class="header__tel" href="tel:{{ preg_replace('/\s+/', '', $hotline) }}"
+                   aria-label="Gọi {{ $hotline }}" title="Gọi {{ $hotline }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M7.2 3.5 9.7 8l-2 1.7a15.5 15.5 0 0 0 6.6 6.6l1.7-2 4.5 2.5-.8 3.2c-.2.8-.9 1.3-1.7 1.3C9.6 20.7 3.3 14.4 2.7 6c-.1-.8.5-1.5 1.3-1.7l3.2-.8Z"/>
+                    </svg>
+                    <span class="sr-only">Gọi {{ $hotline }}</span>
+                </a>
             @endif
 
             @if (Route::has('booking'))
