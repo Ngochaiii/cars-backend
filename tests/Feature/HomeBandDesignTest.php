@@ -39,8 +39,8 @@ class HomeBandDesignTest extends TestCase
             // Chỉ đường vẫn chạy khi tắt JS: link Google Maps render sẵn,
             // có toạ độ thì trỏ thẳng toạ độ.
             ->assertSee('https://www.google.com/maps/dir/?api=1&amp;destination=21.2731%2C106.1946', false)
-            // Chưa nối API thì để trống endpoint, JS lọc tại chỗ.
-            ->assertSee('data-endpoint=""', false)
+            // Không cần key: frontend gọi endpoint nội bộ, backend dùng OpenStreetMap.
+            ->assertSee('data-endpoint="'.route('catalog.charging-stations').'"', false)
             ->assertDontSee('home-charge__rail', false);
     }
 

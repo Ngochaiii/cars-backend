@@ -18,6 +18,7 @@ class StationFinderTest extends TestCase
 
         Setting::put('charging_title', 'Sạc đầy trong lúc bạn đi chợ');
         Setting::put('service_title', 'Sạc và bảo dưỡng, ngay trong tỉnh');
+        config(['services.open_charge_map.key' => null]);
     }
 
     public function test_trang_tram_sac_dung_chung_panel_voi_trang_chu(): void
@@ -55,6 +56,32 @@ class StationFinderTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSee('data-endpoint="https://api.example.test/tram-sac"', false);
+    }
+
+    public function test_co_open_charge_map_key_thi_tu_noi_endpoint_noi_bo_va_ghi_nguon(): void
+    {
+        config(['services.open_charge_map.key' => 'ocm-secret-test-key']);
+        Setting::put('stations', 'Trạm dự phòng|||ok|21.27310,106.19460');
+        Setting::put('stations_api', null);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('data-endpoint="'.route('catalog.charging-stations').'"', false)
+            ->assertSee('Dữ liệu từ')
+            ->assertSee('Open Charge Map')
+            ->assertDontSee('ocm-secret-test-key');
+    }
+
+    public function test_khong_co_api_key_van_noi_endpoint_openstreetmap_mien_phi(): void
+    {
+        Setting::put('stations', 'Trạm dự phòng|||ok|21.27310,106.19460');
+        Setting::put('stations_api', null);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('data-endpoint="'.route('catalog.charging-stations').'"', false)
+            ->assertSee('cộng đồng OpenStreetMap')
+            ->assertDontSee('OPEN_CHARGE_MAP_API_KEY');
     }
 
     public function test_ten_tram_khong_thoat_ra_khoi_the_script(): void

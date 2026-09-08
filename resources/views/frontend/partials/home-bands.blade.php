@@ -53,8 +53,8 @@
         ],
     ])->filter(fn ($link) => filled($link['url']))->values();
 
-    // Chưa có trạm nào và cũng chưa nối API thì không dựng công cụ tìm kiếm —
-    // quay về dải lối tắt cũ thay vì để một ô tìm kiếm không tra được gì.
+    // Trang chủ chỉ dựng panel khi có dữ liệu tĩnh làm fallback hoặc admin
+    // cấu hình endpoint riêng; trang dịch vụ luôn có công cụ tìm kiếm.
     $hasFinder = filled(catalog_setting('stations')) || filled(catalog_setting('stations_api'));
     $stageVariant = $hasFinder
         ? 'home-charge__stage--finder'

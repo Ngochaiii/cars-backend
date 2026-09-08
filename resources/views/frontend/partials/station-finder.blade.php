@@ -16,9 +16,11 @@
     xác tới điểm; chỉ có địa chỉ dạng chữ thì Google Maps tự tra theo tên +
     địa chỉ (không có khoảng cách).
 
-    ── Chỗ gắn API sau này ─────────────────────────────────────────────────
-    Điền URL vào khoá Cài đặt `stations_api` (hoặc truyền biến $endpoint khi
-    include) là xong, KHÔNG phải sửa JS/CSS. Khi có endpoint, frontend gọi:
+    ── Nguồn API ────────────────────────────────────────────────────────────
+    Endpoint Laravel luôn hoạt động: có OPEN_CHARGE_MAP_API_KEY thì dùng
+    Open Charge Map, không có key thì dùng OpenStreetMap/Overpass.
+    `stations_api` vẫn cho phép thay bằng endpoint riêng mà không sửa JS/CSS.
+    Khi có endpoint, frontend chỉ gọi lúc khách bấm Tìm hoặc định vị:
 
         GET {endpoint}?q=<chữ khách gõ>&lat=<vĩ độ>&lng=<kinh độ>
 
@@ -43,7 +45,12 @@
 --}}
 @php
     $finderRows = catalog_rows(catalog_setting('stations'), 5);
-    $finderApi = trim((string) ($endpoint ?? catalog_setting('stations_api')));
+    $stationApi = Route::has('catalog.charging-stations')
+        ? route('catalog.charging-stations')
+        : '';
+    $finderApi = trim((string) ($endpoint ?? catalog_setting('stations_api') ?: $stationApi));
+    $usesInternalStationApi = $stationApi !== '' && $finderApi === $stationApi;
+    $usesOpenChargeMap = $usesInternalStationApi && filled(config('services.open_charge_map.key'));
     $finderAction = Route::has('services') ? route('services') : url()->current();
     // Include được nhiều lần trên một trang nên id phải riêng, khỏi vỡ <label for>.
     $finderId = 'finder-q-'.Str::random(6);
@@ -167,5 +174,16 @@
                 <a href="{{ data_get($link, 'url') }}">{{ data_get($link, 'label') }} ›</a>
             @endforeach
         </div>
+    @endif
+
+    @if ($usesInternalStationApi)
+        <p class="finder__source">
+            @if ($usesOpenChargeMap)
+                Dữ liệu từ <a href="https://openchargemap.io" target="_blank" rel="noopener">Open Charge Map</a>.
+            @else
+                Dữ liệu © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">cộng đồng OpenStreetMap</a>.
+            @endif
+            Trạng thái có thể không theo thời gian thực.
+        </p>
     @endif
 </form>

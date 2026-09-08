@@ -208,6 +208,7 @@ return [
                 'service_map' => ['label' => 'Ảnh bản đồ trạm sạc', 'type' => 'image'],
 
                 'stations' => ['label' => 'Danh sách trạm (mỗi dòng "Tên|Trạng thái|Thông tin|ok hoặc warn")', 'type' => 'textarea'],
+                'stations_api' => ['label' => 'Endpoint tìm trạm riêng (để trống dùng nguồn miễn phí)', 'type' => 'url'],
                 'stations_more' => ['label' => 'Nhãn nút xem thêm trạm', 'type' => 'text'],
                 'stations_more_url' => ['label' => 'Link nút xem thêm trạm', 'type' => 'url'],
 

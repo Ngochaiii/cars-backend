@@ -3420,6 +3420,14 @@ html.js .home-story .disc__item.is-peek { animation: homeDiscPeekIn .5s cubic-be
     text-decoration: none;
 }
 .finder__foot a:hover { color: #fff; }
+.finder__source {
+    margin-top: var(--s-3);
+    color: rgba(255, 255, 255, .58);
+    font-size: 11px;
+    line-height: 1.5;
+}
+.finder__source a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.finder__source a:hover { color: #fff; }
 
 /* Có công cụ thì hai nửa gần cân nhau: ảnh còn là ảnh tượng trưng, panel đủ
    rộng cho ô nhập và danh sách trạm. */

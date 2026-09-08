@@ -1114,7 +1114,7 @@
                 dat(o.name, t.name);
                 dat(o.status, t.status);
                 if (o.status) o.status.classList.toggle('is-warn', t.tone === 'warn');
-                dat(o.info, t.info || t.address);
+                dat(o.info, [t.info, t.address].filter(Boolean).join(' · '));
                 dat(o.dist, t.km == null ? '' : 'Cách ' + soKm(t.km) + ' km');
                 if (o.go) o.go.href = duongDan(t, diemDi);
 
@@ -1164,7 +1164,9 @@
                 })
                 .catch(function () {
                     if (id !== luot) return;
-                    hienThi(xepHang(seed, q, toaDo), diemDi, q);
+                    // API lỗi thì hiện toàn bộ danh sách dự phòng; không lọc
+                    // bằng địa chỉ vừa nhập vì dữ liệu tĩnh có thể ở tỉnh khác.
+                    hienThi(xepHang(seed, '', toaDo), diemDi, null);
                     bao('Chưa gọi được dịch vụ tìm trạm — đang hiện danh sách có sẵn.', true);
                 });
         }
@@ -1176,6 +1178,9 @@
         });
 
         input.addEventListener('input', function () {
+            // API miễn phí chỉ gọi khi khách bấm Tìm. Khi chưa nối API vẫn
+            // giữ trải nghiệm lọc nhanh danh sách tĩnh theo từng ký tự.
+            if (endpoint) return;
             clearTimeout(timer);
             timer = setTimeout(chay, 300);
         });
