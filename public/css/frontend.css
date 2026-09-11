@@ -3076,7 +3076,7 @@ html.js .home-story .disc__item.is-peek { animation: homeDiscPeekIn .5s cubic-be
     color: #fff;
 }
 .home-story .disc__arrow--prev { left: calc((100% - 100vw) / 2 + 24px); }
-.home-story .disc__arrow--next { right: calc((100% - 100vw) / 2 + 92px); }
+.home-story .disc__arrow--next { right: calc((100% - 100vw) / 2 + 24px); }
 .home-story .disc__arrow:hover { background: var(--home-blue); }
 
 /* Ưu đãi là một campaign masthead: nhịp chương ở mép trái,
@@ -3827,7 +3827,7 @@ html.js .home-story.home-motion-ready [data-home-reveal].home-reveal--media.is-r
     .home-story .disc__actions .btn { width: 100%; flex: 0 0 auto; min-width: 0; padding-inline: var(--s-2); }
     .home-story .disc__arrow { top: 28%; }
     .home-story .disc__arrow--prev { left: -10px; }
-    .home-story .disc__arrow--next { right: 54px; }
+    .home-story .disc__arrow--next { right: -10px; }
     .home-story .offer__inner { grid-template-columns: minmax(0, 1fr); gap: var(--s-5); padding-block: var(--s-9); }
     .home-story .offer__chapter {
         align-self: auto;
