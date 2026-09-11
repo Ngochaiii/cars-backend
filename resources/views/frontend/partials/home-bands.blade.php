@@ -1,6 +1,6 @@
 {{--
     Các băng nội dung ở nửa dưới trang chủ:
-      ưu đãi · pin & trạm sạc · khám phá đại lý · chăm sóc chủ xe
+      ưu đãi · pin & trạm sạc · tư vấn viên · showroom · tin tức · chăm sóc chủ xe
 
     Ba băng đầu đọc từ Cài đặt (khoá tự do) nên sửa được trong admin; khoá
     trống thì cả khối biến mất. "Khám phá đại lý" lấy từ bài viết.
@@ -148,6 +148,10 @@
         </div>
     </section>
 @endif
+
+{{-- ── Tư vấn viên đồng hành · Ghé thăm showroom ──────────────────── --}}
+@include('frontend.partials.home-advisor', ['lead' => $lead])
+@include('frontend.partials.home-showroom')
 
 {{-- ── Tin tức & ưu đãi (ba bài mới nhất) ─────────────────────────── --}}
 @if ($posts->isNotEmpty())

@@ -1804,6 +1804,12 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
 .booking__deposit b { display: block; font-size: var(--fs-2xl); font-weight: 700; color: var(--ink); margin-top: 2px; }
 .booking__deposit p { font-size: var(--fs-xs); color: var(--muted-2); line-height: 1.6; max-width: 300px; margin: 0; }
 
+/* Mục "Thêm thông tin" chỉ có nghĩa trên điện thoại (xem responsive):
+   desktop luôn mở, không thấy nút gấp — bố cục hai cột như cũ. */
+.booking__more { border: 0; margin: 0; padding: 0; }
+.booking__more > summary { display: none; }
+.booking__alt { display: none; }
+
 /* Bước 3 — màn cảm ơn sau khi POST xong. */
 .booking__done { max-width: 620px; text-align: center; padding-top: var(--s-6); }
 .booking__done h2 { font-size: var(--fs-h2); margin-bottom: var(--s-3); }
@@ -2117,6 +2123,71 @@ html.js [data-booking-next], html.js [data-booking-prev] { display: inline-flex;
     .booking__deposit { flex-direction: column; align-items: flex-start; }
     .booking__deposit p { max-width: none; }
     .pick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    /* ── Form đặt cọc gập thành một màn ──
+       Cột tiến trình chỉ còn tiêu đề; hai bước hiện liền (JS bỏ hidden),
+       nút Tiếp tục/Quay lại ẩn, ô không bắt buộc gấp vào "Thêm thông tin". */
+    .booking-page .mobile-contact-dock { display: none; }
+    .booking-page { padding-bottom: 0; }
+    .booking__rail { padding-block: var(--s-6) var(--s-5); }
+    .booking__rail h1, .booking__rail h2 { margin-bottom: var(--s-2); }
+    .booking__lede { margin-bottom: 0; }
+    .booking__steps, .booking__help, [data-booking-kicker] { display: none; }
+    .booking__main { padding-block: var(--s-5) var(--s-9); }
+    .booking__modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; margin-bottom: var(--s-6); border: 1px solid var(--line-in); border-radius: 6px; padding: 3px; }
+    .booking__modes .chip { justify-content: center; height: 40px; border: 0; border-radius: 4px; padding: 0; }
+    .booking__modes .chip:not(.chip--on) { background: transparent; color: var(--muted); }
+    html.js [data-booking-next], html.js [data-booking-prev] { display: none; }
+    .booking__fieldset + .booking__fieldset { margin-top: 0; }
+
+    /* Chọn xe: dải vuốt ngang, một hàng, 8 xe không chiếm nửa màn hình. */
+    .booking__cars {
+        display: flex;
+        gap: var(--s-2);
+        margin-inline: calc(-1 * var(--pad));
+        padding: 2px var(--pad) var(--s-2);
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .booking__cars::-webkit-scrollbar { display: none; }
+    .booking__cars > li { flex: 0 0 auto; scroll-snap-align: start; }
+    .booking__cars .pick { min-width: 132px; padding: var(--s-3) var(--s-4); border-radius: 999px; }
+    .booking__cars .pick b { font-size: var(--fs-sm); white-space: nowrap; }
+    .booking__cars .pick span { white-space: nowrap; }
+    .booking__cars .pick:has(input:checked), .booking__cars .pick.is-on { background: var(--ink); border-color: var(--ink); box-shadow: none; }
+    .booking__cars .pick:has(input:checked) b, .booking__cars .pick.is-on b { color: #fff; }
+    .booking__cars .pick:has(input:checked) span, .booking__cars .pick.is-on span { color: rgba(255, 255, 255, .7); }
+
+    /* Ô nhập 16px để iOS không tự zoom khi chạm. */
+    .booking__form .field input, .booking__form .field select, .booking__form .field textarea { font-size: var(--fs-base); }
+    .booking__form .field { margin-bottom: var(--s-4); }
+
+    .booking__more { margin-bottom: var(--s-4); border: 1px solid var(--line); border-radius: 6px; }
+    .booking__more > summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--s-3);
+        padding: var(--s-3) var(--s-4);
+        font-size: var(--fs-sm);
+        font-weight: 600;
+        color: var(--ink-2);
+        cursor: pointer;
+        list-style: none;
+    }
+    .booking__more > summary::-webkit-details-marker { display: none; }
+    .booking__more > summary small { font-weight: 400; color: var(--muted-2); }
+    .booking__more > summary i { width: 8px; height: 8px; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: rotate(45deg); transition: transform .2s ease; }
+    .booking__more[open] > summary { border-bottom: 1px solid var(--line); }
+    .booking__more[open] > summary i { transform: rotate(-135deg); }
+    .booking__more > .booking__fields { padding: var(--s-4) var(--s-4) 0; }
+
+    .booking__actions--submit { position: sticky; bottom: 0; z-index: 5; margin: 0 calc(-1 * var(--pad)); padding: var(--s-3) var(--pad) calc(var(--s-3) + env(safe-area-inset-bottom, 0px)); background: rgba(255, 255, 255, .96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--line); }
+    .booking__actions--submit .btn { height: 54px; }
+    .booking__alt { display: block; margin: var(--s-4) 0 0; font-size: var(--fs-sm); color: var(--muted); text-align: center; }
+    .booking__alt a { font-weight: 700; color: var(--ink); border-bottom: 1px solid currentColor; }
     .header__tel { display: none; }
     .station__head { flex-direction: column; gap: var(--s-1); }
     .card__body { padding: var(--s-5); }
@@ -5850,4 +5921,405 @@ html.js .home-story.home-motion-ready [data-home-reveal].home-reveal--media:not(
         width: 100%;
         min-height: 24px;
     }
+}
+/* ═══════════ TƯ VẤN VIÊN ĐỒNG HÀNH (trang chủ) ═══════════
+   Băng navy: chân dung dọc bên trái, copy bên phải. Tiêu đề hai dòng —
+   dòng hai nghiêng, màu nhấn xanh. Nút gọi là ô lớn hiện số, hai nút phụ
+   viền mảnh. Cùng nền với băng ưu đãi nên hai băng không đứng cạnh nhau. */
+.home-advisor {
+    position: relative;
+    isolation: isolate;
+    padding-block: var(--sect-lg);
+    color: rgba(255, 255, 255, .78);
+    background:
+        radial-gradient(circle at 78% 14%, rgba(18, 100, 246, .26), transparent 34%),
+        var(--home-navy, #071522);
+    overflow: hidden;
+}
+.home-advisor::before {
+    content: attr(data-watermark);
+    position: absolute;
+    z-index: -1;
+    top: -1vw;
+    right: -1vw;
+    color: rgba(255, 255, 255, .035);
+    font-size: var(--fs-watermark);
+    font-weight: 800;
+    line-height: .8;
+    letter-spacing: -.07em;
+    white-space: nowrap;
+    pointer-events: none;
+}
+.home-advisor__inner {
+    display: grid;
+    grid-template-columns: minmax(300px, .82fr) minmax(0, 1.18fr);
+    align-items: center;
+    gap: clamp(36px, 6vw, 96px);
+}
+
+/* Ảnh: khung 4:5, có vạch mảnh góc trên trái như bảng mẫu. */
+.home-advisor__media { position: relative; padding: var(--s-4) 0 0 var(--s-4); }
+.home-advisor__media::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 96px;
+    height: 96px;
+    border-top: 1px solid rgba(134, 173, 255, .7);
+    border-left: 1px solid rgba(134, 173, 255, .7);
+}
+.home-advisor__photo {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background: var(--ph-dark);
+}
+.home-advisor__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 32%;
+}
+.home-advisor__photo::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 46%;
+    background: linear-gradient(180deg, transparent, rgba(7, 21, 34, .88));
+    pointer-events: none;
+}
+.home-advisor__plate {
+    position: absolute;
+    z-index: 1;
+    left: var(--s-5);
+    right: var(--s-5);
+    bottom: var(--s-5);
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    color: #fff;
+}
+.home-advisor__initials {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(255, 255, 255, .35);
+    background: rgba(7, 21, 34, .55);
+    font-family: var(--mono);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    letter-spacing: .08em;
+}
+.home-advisor__plate b { display: block; font-size: var(--fs-lg); font-weight: 600; letter-spacing: -.01em; }
+.home-advisor__plate small {
+    display: block;
+    margin-top: 2px;
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    opacity: .72;
+}
+.home-advisor__badge {
+    position: absolute;
+    right: calc(-1 * var(--s-6));
+    bottom: var(--s-11);
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-3) var(--s-5) var(--s-3) var(--s-4);
+    color: #fff;
+    background: var(--home-blue, #1264f6);
+    box-shadow: 0 18px 40px rgba(7, 21, 34, .45);
+}
+.home-advisor__badge svg {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.home-advisor__badge span {
+    display: block;
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+.home-advisor__badge b { display: block; font-size: var(--fs-lg); font-weight: 700; letter-spacing: 0; text-transform: none; }
+
+/* Copy */
+.home-advisor__body .eyebrow { color: rgba(134, 173, 255, .9); }
+.home-advisor h2 {
+    max-width: 640px;
+    color: #fff;
+    font-size: var(--fs-display);
+    font-weight: 500;
+    line-height: 1.02;
+    letter-spacing: -.05em;
+}
+.home-advisor h2 em {
+    display: block;
+    color: #86adff;
+    font-style: italic;
+    font-weight: 400;
+}
+.home-advisor__who {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3) var(--s-5);
+    margin-top: var(--s-7);
+    padding-top: var(--s-5);
+    border-top: 1px solid rgba(255, 255, 255, .14);
+}
+.home-advisor__who b { display: block; color: #fff; font-size: var(--fs-xl); font-weight: 600; letter-spacing: -.02em; }
+.home-advisor__who > div > span {
+    display: block;
+    margin-top: 2px;
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .5);
+}
+.home-advisor__live {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding: 6px var(--s-3);
+    border: 1px solid rgba(134, 173, 255, .4);
+    color: #cfe0ff;
+    font-size: var(--fs-2xs);
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+.home-advisor__live i,
+.home-advisor__note i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #3ddc84;
+    box-shadow: 0 0 0 3px rgba(61, 220, 132, .2);
+}
+.home-advisor__text {
+    max-width: 58ch;
+    margin: var(--s-5) 0 0;
+    font-size: var(--fs-base);
+    line-height: 1.7;
+}
+.home-advisor__quote {
+    margin: var(--s-5) 0 0;
+    padding: var(--s-4) var(--s-5);
+    border-left: 2px solid var(--home-blue, #1264f6);
+    background: rgba(255, 255, 255, .04);
+    color: rgba(255, 255, 255, .86);
+    font-size: var(--fs-md);
+    font-style: italic;
+    line-height: 1.65;
+}
+.home-advisor__points {
+    display: grid;
+    gap: var(--s-3);
+    margin-top: var(--s-6);
+}
+.home-advisor__points li { display: flex; align-items: center; gap: var(--s-4); }
+.home-advisor__icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(255, 255, 255, .14);
+    background: rgba(255, 255, 255, .04);
+    color: #86adff;
+}
+.home-advisor__icon svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.home-advisor__points b { display: block; color: #fff; font-size: var(--fs-md); font-weight: 600; }
+.home-advisor__points small { display: block; font-size: var(--fs-sm); color: rgba(255, 255, 255, .55); }
+
+/* Nút: ô gọi nổi bật, hai nút phụ viền mảnh cùng chiều cao. */
+.home-advisor__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: var(--s-3);
+    margin-top: var(--s-7);
+}
+.home-advisor__call {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-3);
+    min-height: 56px;
+    padding: var(--s-2) var(--s-6) var(--s-2) var(--s-5);
+    color: #fff;
+    background: var(--home-blue, #1264f6);
+    transition: background .2s ease, transform .2s ease;
+}
+.home-advisor__call:hover { background: #0f52cc; transform: translateY(-1px); }
+.home-advisor__call svg { flex: none; width: 20px; height: 20px; fill: currentColor; }
+.home-advisor__call small {
+    display: block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    opacity: .78;
+}
+.home-advisor__call b { display: block; font-size: var(--fs-xl); font-weight: 700; letter-spacing: .02em; line-height: 1.1; }
+.home-advisor__actions .btn--ghost {
+    height: auto;
+    min-height: 56px;
+    padding-inline: var(--s-6);
+    font-size: var(--fs-xs);
+    letter-spacing: .1em;
+    border-color: rgba(255, 255, 255, .28);
+    gap: var(--s-2);
+}
+.home-advisor__note {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    margin: var(--s-4) 0 0;
+    font-size: var(--fs-xs);
+    color: rgba(255, 255, 255, .5);
+}
+
+/* ═══════════ GHÉ THĂM SHOWROOM (trang chủ) ═══════════
+   Đầu khối: tiêu đề + địa chỉ, nút chỉ đường canh đáy bên phải. Lưới 3 ô:
+   ô lớn 60% cao bằng hai ô nhỏ xếp dọc; chú thích đè chân ảnh trên lớp mờ. */
+.home-showroom { background: #fff; padding-block: var(--sect-lg); }
+.home-showroom__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--s-7);
+    margin-bottom: var(--s-8);
+    padding-top: var(--s-7);
+    border-top: 1px solid rgba(7, 21, 34, .14);
+}
+.home-showroom__head .eyebrow { color: var(--home-blue, #1264f6); }
+.home-showroom__head h2 {
+    color: var(--home-navy, #071522);
+    font-size: var(--fs-h1);
+    font-weight: 500;
+    line-height: 1.04;
+    letter-spacing: -.05em;
+}
+.home-showroom__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-6);
+    margin: var(--s-3) 0 0;
+    color: #526171;
+    font-size: var(--fs-sm);
+}
+.home-showroom__meta span { display: inline-flex; align-items: center; gap: var(--s-2); }
+.home-showroom__meta svg {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: var(--home-blue, #1264f6);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.home-showroom__map {
+    flex: none;
+    height: 48px;
+    gap: var(--s-2);
+    padding-inline: var(--s-6);
+    font-size: var(--fs-xs);
+    letter-spacing: .12em;
+    border-color: rgba(7, 21, 34, .3);
+}
+.home-showroom__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: var(--s-4);
+}
+.home-showroom__tile {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--ph);
+}
+.home-showroom__tile--lead { grid-row: 1 / 3; aspect-ratio: auto; min-height: 420px; }
+.home-showroom__tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--dur-cine) var(--ease-cine);
+}
+.home-showroom__tile:hover img { transform: scale(1.04); }
+.home-showroom__tile figcaption {
+    position: absolute;
+    inset: auto 0 0;
+    padding: var(--s-9) var(--s-6) var(--s-5);
+    color: #fff;
+    background: linear-gradient(180deg, transparent, rgba(7, 21, 34, .82));
+}
+.home-showroom__tile figcaption b { display: block; font-size: var(--fs-xl); font-weight: 500; letter-spacing: -.02em; line-height: 1.2; }
+.home-showroom__tile--lead figcaption b { max-width: 20ch; font-size: var(--fs-h2); }
+.home-showroom__kicker,
+.home-showroom__num {
+    display: block;
+    margin-bottom: var(--s-2);
+    font-size: var(--fs-2xs);
+    font-weight: 700;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: #cfe0ff;
+}
+.home-showroom__num { font-family: var(--mono); color: rgba(255, 255, 255, .6); }
+
+@media (max-width: 1180px) {
+    .home-advisor__inner { grid-template-columns: minmax(280px, .9fr) minmax(0, 1.1fr); }
+    .home-advisor__badge { right: 0; }
+}
+
+@media (max-width: 960px) {
+    .home-advisor { padding-block: var(--sect); }
+    .home-advisor__inner { grid-template-columns: minmax(0, 1fr); gap: var(--s-8); }
+    .home-advisor__media { max-width: 440px; }
+    .home-advisor__badge { right: calc(-1 * var(--s-4)); bottom: var(--s-9); }
+    .home-advisor h2 { font-size: var(--fs-h1); }
+
+    .home-showroom { padding-block: var(--sect); }
+    .home-showroom__head { flex-direction: column; align-items: flex-start; gap: var(--s-5); }
+    .home-showroom__grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
+    .home-showroom__tile--lead { grid-row: auto; aspect-ratio: 16 / 10; min-height: 0; }
+}
+
+@media (max-width: 680px) {
+    .home-advisor__media { max-width: none; padding: var(--s-3) 0 0 var(--s-3); }
+    .home-advisor__photo { aspect-ratio: 4 / 5; }
+    .home-advisor__badge { right: 0; bottom: var(--s-11); padding: var(--s-2) var(--s-4) var(--s-2) var(--s-3); }
+    .home-advisor__who { flex-direction: column; align-items: flex-start; }
+    .home-advisor__actions { flex-direction: column; }
+    .home-advisor__call { justify-content: center; }
+    .home-advisor__actions .btn--ghost { width: 100%; }
+
+    .home-showroom__map { width: 100%; }
+    .home-showroom__tile figcaption { padding: var(--s-8) var(--s-5) var(--s-4); }
+    .home-showroom__tile--lead figcaption b { font-size: var(--fs-xl); }
 }

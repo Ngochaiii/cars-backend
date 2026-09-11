@@ -72,9 +72,12 @@
                 @break
 
             @default
+                {{-- autocomplete để bàn phím điện thoại gợi ý tên/số/email — bớt gõ. --}}
                 <input type="{{ $field->type }}" id="{{ $id }}" name="{{ $field->key }}"
                        value="{{ $old($field->key) }}" placeholder="{{ $field->placeholder }}"
-                       @if ($field->type === 'tel') inputmode="tel" @endif
+                       @if ($field->type === 'tel') inputmode="tel" autocomplete="tel" @endif
+                       @if ($field->type === 'email') autocomplete="email" @endif
+                       @if ($field->key === 'name') autocomplete="name" @endif
                        @if ($required) required @endif>
         @endswitch
     @endif

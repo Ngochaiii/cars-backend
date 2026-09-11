@@ -265,6 +265,10 @@
     /* ── Trang đặt cọc: đổi tab hình thức + wizard 2 bước ────────────── */
     /* Không có script thì cả hai bước nằm liền nhau trong cùng một <form>
        và các tab là link thật (?hinh-thuc=) — không có nút chết. */
+    /* Trên điện thoại (≤960px) wizard gập thành một màn: cả hai bước hiện
+       cùng lúc, nút Tiếp tục/Quay lại ẩn bằng CSS, và mục <details> "Thêm
+       thông tin" đóng lại để màn chỉ còn: chọn xe → tên → điện thoại → Gửi.
+       Xoay ngang/đổi cỡ thì tính lại — không để khách kẹt ở bước 2 ẩn. */
     function initBooking(root) {
         var panes = root.querySelectorAll('[data-booking-pane]');
         if (!panes.length) return;
@@ -272,6 +276,17 @@
         var intros = root.querySelectorAll('[data-booking-intro]');
         var modes = root.querySelectorAll('[data-booking-mode]');
         var steps = root.querySelectorAll('[data-booking-step]');
+        var compact = window.matchMedia ? window.matchMedia('(max-width: 960px)') : null;
+
+        function isCompact() { return !!(compact && compact.matches); }
+
+        /* Mục gấp: mobile đóng (trừ khi ô bên trong đang lỗi), desktop luôn mở. */
+        function foldMore() {
+            var mores = root.querySelectorAll('[data-booking-more]');
+            for (var i = 0; i < mores.length; i++) {
+                mores[i].open = !isCompact() || mores[i].hasAttribute('data-booking-more-error');
+            }
+        }
 
         function activeKey() {
             for (var i = 0; i < panes.length; i++) {
@@ -296,7 +311,7 @@
             if (!sets.length) { markSteps(3); return; }
 
             for (var i = 0; i < sets.length; i++) {
-                sets[i].hidden = +sets[i].dataset.bookingPaneStep !== n;
+                sets[i].hidden = !isCompact() && +sets[i].dataset.bookingPaneStep !== n;
             }
             markSteps(n);
 
@@ -364,6 +379,22 @@
         var bad = pane(key) && pane(key).querySelector('.field__error');
         var set = bad && bad.closest('[data-booking-pane-step]');
         showStep(key, set ? +set.dataset.bookingPaneStep : 1);
+        foldMore();
+
+        if (compact) {
+            var onChange = function () { showStep(activeKey(), 1); foldMore(); };
+            if (compact.addEventListener) compact.addEventListener('change', onChange);
+            else if (compact.addListener) compact.addListener(onChange);
+        }
+
+        /* Dải chọn xe vuốt ngang: xe đã chọn sẵn (?xe=) kéo vào giữa dải.
+           Chỉ cuộn NGANG trong dải — scrollIntoView sẽ kéo cả trang xuống. */
+        var picked = root.querySelector('.booking__cars .pick.is-on');
+        var strip = picked && picked.closest('.booking__cars');
+        if (strip && isCompact()) {
+            var cell = picked.parentElement;
+            strip.scrollLeft = cell.offsetLeft - (strip.clientWidth - cell.offsetWidth) / 2;
+        }
     }
 
     /* ── Popup thu lead ───────────────────────────────────────────────── */

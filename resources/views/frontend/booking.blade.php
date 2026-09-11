@@ -2,6 +2,11 @@
     Trang "Đặt cọc & lái thử" — bám bố cục bản thiết kế:
     cột trái 480px (tóm tắt 3 bước, hộp hỗ trợ) · cột phải là wizard.
 
+    Trên điện thoại (≤960px) wizard gập thành MỘT màn: chọn xe (dải vuốt
+    ngang) → tên → số điện thoại → Gửi; các ô không bắt buộc gấp vào mục
+    "Thêm thông tin". Cột tiến trình và hộp hỗ trợ ẩn — thanh dock dưới cùng
+    cũng ẩn ở trang này vì nó chỉ dẫn về chính trang này.
+
     Mỗi hình thức là một Form khai ở config('catalog.frontend.booking.forms')
     và POST thẳng vào /gui-form/{form} như mọi form khác — honeypot, chống
     trùng, mail y hệt. JS chỉ chuyển bước; tắt JS thì cả ba bước nằm liền
@@ -26,6 +31,7 @@
     'title'       => $mode->name.' — '.catalog_setting('site_name', config('app.name')),
     'description' => $mode->description,
     'canonical'   => \App\Support\Url::route('booking'),
+    'bodyClass'   => 'booking-page',
 ])
 
 @section('content')
@@ -35,7 +41,7 @@
             @foreach ($forms as $form)
                 <div class="booking__intro {{ $form->key === $activeKey ? 'is-on' : '' }}"
                      data-booking-intro="{{ $form->key }}" @if ($form->key !== $activeKey) hidden @endif>
-                    <div class="booking__kicker" data-booking-kicker>{{ $form->name }} — bước 1/3</div>
+                    <div class="booking__kicker">{{ $form->name }}<span data-booking-kicker> — bước 1/3</span></div>
                     @if ($form->key === $activeKey)
                         <h1>{{ $form->name }}</h1>
                     @else
@@ -93,6 +99,7 @@
                         'form'     => $form,
                         'products' => $products,
                         'selected' => $selected,
+                        'hotline'  => $hotline,
                     ])
                 </div>
             @endforeach

@@ -9,7 +9,12 @@
     config('catalog.frontend.booking') — thêm/bớt trường trong admin không
     phải sửa view.
 
-    Biến: $form (kèm fields) · $products · $selected
+    Trên điện thoại (JS bật, ≤960px) hai bước hiện cùng lúc thành một màn
+    ngắn: các ô KHÔNG bắt buộc của bước 2 gấp vào <details> "Thêm thông tin"
+    để khách chỉ phải điền tên + số điện thoại rồi bấm Gửi. Trên desktop
+    <details> luôn mở và summary ẩn — bố cục cũ không đổi.
+
+    Biến: $form (kèm fields) · $products · $selected · $hotline
 --}}
 @php
     $cfg      = (array) config('catalog.frontend.booking', []);
@@ -26,6 +31,13 @@
     $fields = $form->fields->reject(fn ($f) => $f->type === 'hidden');
     $step1  = $fields->filter(fn ($f) => in_array($f->key, (array) ($cfg['step1_fields'] ?? []), true));
     $step2  = $fields->reject(fn ($f) => $step1->contains($f));
+
+    // Ô bắt buộc (tên, điện thoại) luôn hiện; ô còn lại gấp được trên mobile.
+    $isRequired = fn ($f) => in_array('required', (array) $f->rules, true);
+    $step2Must  = $step2->filter($isRequired);
+    $step2More  = $step2->reject($isRequired);
+    // Ô không bắt buộc đang lỗi (VD email sai) thì mục gấp phải mở sẵn.
+    $moreHasError = $step2More->contains(fn ($f) => $errors->{$form->key}->has($f->key));
 
     // Ô select ít lựa chọn hiện thành lưới thẻ bấm như bản thiết kế; nhiều
     // hơn thì về dropdown cho khỏi vỡ lưới.
@@ -64,7 +76,8 @@
             @if ($products->isNotEmpty())
                 <div class="field field--full">
                     <span class="field__label">Chọn mẫu xe</span>
-                    <ul class="pick-grid">
+                    {{-- Trên mobile lưới này thành dải vuốt ngang (xem .booking__cars). --}}
+                    <ul class="pick-grid booking__cars">
                         @foreach ($products as $car)
                             @php $checked = (int) $old('product_id', $selected?->id) === $car->id; @endphp
                             <li>
@@ -98,12 +111,29 @@
             <legend class="sr-only">Bước 2 — thông tin liên hệ</legend>
 
             <div class="booking__fields">
-                @foreach ($step2 as $field)
+                @foreach ($step2Must as $field)
                     @include('frontend.partials.booking-field', [
                         'form' => $form, 'field' => $field, 'old' => $old, 'asCards' => $asCards,
                     ])
                 @endforeach
             </div>
+
+            @if ($step2More->isNotEmpty())
+                <details class="booking__more" data-booking-more open
+                         @if ($moreHasError) data-booking-more-error @endif>
+                    <summary>
+                        <span>Thêm thông tin <small>(không bắt buộc)</small></span>
+                        <i aria-hidden="true"></i>
+                    </summary>
+                    <div class="booking__fields">
+                        @foreach ($step2More as $field)
+                            @include('frontend.partials.booking-field', [
+                                'form' => $form, 'field' => $field, 'old' => $old, 'asCards' => $asCards,
+                            ])
+                        @endforeach
+                    </div>
+                </details>
+            @endif
 
             @if ($deposit && $form->key === ($cfg['forms'][0] ?? null))
                 <div class="booking__deposit">
@@ -121,10 +151,17 @@
                 <p class="field__error booking__error">Vui lòng kiểm tra lại các ô còn thiếu để tiếp tục.</p>
             @endif
 
-            <div class="booking__actions">
+            <div class="booking__actions booking__actions--submit">
                 <button class="btn btn--sm btn--outline" type="button" data-booking-prev>← Quay lại</button>
                 <button class="btn btn--sm btn--accent" type="submit">{{ $form->name }}</button>
             </div>
+
+            {{-- Hộp hỗ trợ ở cột trái ẩn trên mobile — để lại một dòng gọi ở đây. --}}
+            @if (filled($hotline ?? null))
+                <p class="booking__alt">
+                    Hoặc gọi ngay <a href="tel:{{ preg_replace('/\s+/', '', $hotline) }}">{{ $hotline }}</a> để được tư vấn trực tiếp.
+                </p>
+            @endif
         </fieldset>
     </form>
 @endif

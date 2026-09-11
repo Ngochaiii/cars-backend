@@ -182,6 +182,33 @@ return [
                 'care_title' => ['label' => 'Chăm sóc chủ xe — tiêu đề', 'type' => 'text'],
                 'care_image' => ['label' => 'Chăm sóc chủ xe — ảnh', 'type' => 'image'],
                 'care_stats' => ['label' => 'Chăm sóc chủ xe — chỉ số (mỗi dòng "10 năm|Bảo hành xe và pin")', 'type' => 'textarea'],
+
+                // Tư vấn viên đồng hành: chân dung + số gọi trực tiếp. Khác
+                // các khối trên, khối này có sẵn nội dung mặc định trong view
+                // (ảnh ở public/assets/images) — chỉ tắt khi bật `advisor_off`.
+                'advisor_off' => ['label' => 'Tư vấn viên — ẩn khối này', 'type' => 'toggle'],
+                'advisor_name' => ['label' => 'Tư vấn viên — họ tên (VD "Hữu Lập")', 'type' => 'text'],
+                'advisor_role' => ['label' => 'Tư vấn viên — chức danh (mặc định "Tư vấn bán hàng")', 'type' => 'text'],
+                'advisor_phone' => ['label' => 'Tư vấn viên — số gọi trực tiếp (trống thì dùng Hotline)', 'type' => 'text'],
+                'advisor_zalo' => ['label' => 'Tư vấn viên — Zalo (số hoặc link, trống thì dùng Zalo chung)', 'type' => 'text'],
+                'advisor_title' => ['label' => 'Tư vấn viên — tiêu đề (dòng 1)', 'type' => 'text'],
+                'advisor_title_2' => ['label' => 'Tư vấn viên — tiêu đề (dòng 2, màu nhấn)', 'type' => 'text'],
+                'advisor_text' => ['label' => 'Tư vấn viên — đoạn giới thiệu', 'type' => 'textarea'],
+                'advisor_quote' => ['label' => 'Tư vấn viên — câu trích dẫn', 'type' => 'textarea'],
+                'advisor_points' => ['label' => 'Tư vấn viên — 3 cam kết (mỗi dòng "Tiêu đề|Mô tả")', 'type' => 'textarea'],
+                'advisor_image' => ['label' => 'Tư vấn viên — ảnh chân dung (dọc)', 'type' => 'image'],
+
+                // Ghé thăm showroom: 1 ảnh lớn + 2 ảnh nhỏ. Địa chỉ và link
+                // chỉ đường lấy từ tab Chung (address, map_url).
+                'showroom_off' => ['label' => 'Showroom — ẩn khối này', 'type' => 'toggle'],
+                'showroom_note' => ['label' => 'Showroom — dòng nhỏ', 'type' => 'text'],
+                'showroom_title' => ['label' => 'Showroom — tiêu đề', 'type' => 'text'],
+                'showroom_image_1' => ['label' => 'Showroom — ảnh lớn', 'type' => 'image'],
+                'showroom_caption_1' => ['label' => 'Showroom — chú thích ảnh lớn', 'type' => 'text'],
+                'showroom_image_2' => ['label' => 'Showroom — ảnh nhỏ 1', 'type' => 'image'],
+                'showroom_caption_2' => ['label' => 'Showroom — chú thích ảnh nhỏ 1', 'type' => 'text'],
+                'showroom_image_3' => ['label' => 'Showroom — ảnh nhỏ 2', 'type' => 'image'],
+                'showroom_caption_3' => ['label' => 'Showroom — chú thích ảnh nhỏ 2', 'type' => 'text'],
             ],
         ],
 
