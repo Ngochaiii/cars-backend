@@ -77,6 +77,18 @@ class LeadResource extends Resource
                 ->disabled()
                 ->columnSpanFull(),
 
+            // Tra từ IP lúc nhận lead (job ResolveLeadLocation) — chỉ đọc,
+            // nhân viên không tự sửa khu vực.
+            TextInput::make('location')
+                ->label('Khu vực (theo IP)')
+                ->disabled()
+                ->dehydrated(false)
+                ->placeholder('Chưa tra được'),
+            TextInput::make('ip')
+                ->label('IP')
+                ->disabled()
+                ->dehydrated(false),
+
             Textarea::make('note')->label('Ghi chú')->rows(3)->columnSpanFull(),
         ]);
     }
@@ -91,6 +103,11 @@ class LeadResource extends Resource
                 TextColumn::make('phone')->label('Điện thoại')->searchable()->copyable(),
                 TextColumn::make('form.name')->label('Form')->badge()->color('gray'),
                 TextColumn::make('product.name')->label(Catalog::label('product.single'))->toggleable(),
+                TextColumn::make('location')
+                    ->label('Khu vực')
+                    ->placeholder('—')
+                    ->tooltip(fn ($record) => $record->ip)
+                    ->toggleable(),
                 TextColumn::make('status')
                     ->label('Trạng thái')
                     ->badge()

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Rules\VietnamPhone;
 use App\Support\Catalog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,7 +32,7 @@ class FormField extends Model
 
         $typeRules = match ($this->type) {
             'email' => ['email'],
-            'tel' => ['string'],
+            'tel' => ['string', new VietnamPhone],
             'date' => ['date'],
             'checkbox' => ['array'],
             'product' => [

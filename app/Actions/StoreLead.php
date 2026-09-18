@@ -3,6 +3,8 @@
 namespace App\Actions;
 
 use App\Events\LeadReceived;
+use App\Jobs\ResolveLeadLocation;
+use App\Support\Phone;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -26,6 +28,15 @@ class StoreLead
         // công để bot không dò được là đã bị chặn.
         if (filled($request->input(config('catalog.leads.honeypot', 'website')))) {
             return null;
+        }
+
+        // Đưa mọi ô kiểu "tel" về dạng 0xxxxxxxxx TRƯỚC khi validate, để
+        // "098 765 4321" hay "+84987654321" đều qua rule VietnamPhone và lưu
+        // cùng một dạng — dedupe theo số mới bắt được.
+        foreach ($form->fields->where('type', 'tel') as $field) {
+            if ($request->has($field->key)) {
+                $request->merge([$field->key => Phone::normalize($request->input($field->key))]);
+            }
         }
 
         // Luật validate dựng từ form_fields, không hardcode. ValidationException
@@ -62,6 +73,9 @@ class StoreLead
 
         // Mail cho notify_emails + bắn webhook_url do listener lo (queued).
         LeadReceived::dispatch($lead);
+
+        // Tra IP → tỉnh/thành chạy nền, không bắt khách chờ API ngoài.
+        ResolveLeadLocation::dispatch($lead);
 
         return $lead;
     }
