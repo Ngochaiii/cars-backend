@@ -11,6 +11,7 @@ use Filament\Actions\Testing\TestAction;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
 use Livewire\Livewire;
 use RuntimeException;
 use Tests\TestCase;
@@ -82,7 +83,7 @@ class GeminiArticleWriterTest extends TestCase
                 && data_get($data, 'contents.0.parts.0.inlineData.mimeType') === 'image/jpeg'
                 && filled(data_get($data, 'contents.0.parts.0.inlineData.data'))
                 && array_key_exists('googleSearch', data_get($data, 'tools.0', []))
-                && data_get($data, 'generationConfig.maxOutputTokens') === 4500
+                && data_get($data, 'generationConfig.maxOutputTokens') === 8192
                 && data_get($data, 'generationConfig.responseFormat.text.mimeType') === 'APPLICATION_JSON';
         });
     }
@@ -135,6 +136,8 @@ class GeminiArticleWriterTest extends TestCase
 
     public function test_loi_quota_tu_gemini_duoc_doi_thanh_thong_bao_de_hieu_va_khong_goi_lap(): void
     {
+        Sleep::fake();
+
         Http::fake([
             'generativelanguage.googleapis.com/*' => Http::response([
                 'error' => ['message' => 'Quota exceeded'],
@@ -142,13 +145,83 @@ class GeminiArticleWriterTest extends TestCase
         ]);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('hết hạn mức tức thời');
+        $this->expectExceptionMessage('hết hạn mức');
 
         try {
             app(GeminiArticleWriter::class)->generate('Một tiêu đề', $this->imagePath);
         } finally {
-            Http::assertSentCount(1);
+            // Mỗi model chỉ gọi đúng một lần rồi dừng, không nghỉ chờ rồi gọi lại.
+            Http::assertSentCount(2);
+            Sleep::assertNeverSlept();
         }
+    }
+
+    public function test_model_chinh_het_quota_ngay_thi_chuyen_sang_model_du_phong(): void
+    {
+        Sleep::fake();
+
+        $articleHtml = '<p>'.str_repeat('Nội dung từ model dự phòng khi model chính hết quota ngày. ', 20).'</p>';
+
+        Http::fakeSequence()
+            ->push(['error' => ['message' => 'Quota exceeded']], 429)
+            ->push([
+                'candidates' => [[
+                    'content' => ['parts' => [[
+                        'text' => json_encode([
+                            'excerpt' => 'Tóm tắt từ model dự phòng.',
+                            'article_html' => $articleHtml,
+                            'seo_title' => 'SEO title từ model dự phòng',
+                            'meta_description' => 'Meta description hợp lệ khi model chính đã dùng hết 20 request miễn phí trong ngày và hệ thống chuyển sang model khác.',
+                            'keywords' => ['xe điện', 'VinFast', 'kinh nghiệm mua xe'],
+                        ], JSON_UNESCAPED_UNICODE),
+                    ]]],
+                ]],
+            ], 200);
+
+        $result = app(GeminiArticleWriter::class)->generate('Một tiêu đề', $this->imagePath);
+
+        $this->assertSame('SEO title từ model dự phòng', $result['seo_title']);
+        Http::assertSentCount(2);
+        Sleep::assertNeverSlept();
+    }
+
+    public function test_model_het_quota_khong_bi_goi_lai_o_dot_sau(): void
+    {
+        Sleep::fake();
+
+        $articleHtml = '<p>'.str_repeat('Nội dung sau khi model dự phòng hết quá tải. ', 20).'</p>';
+
+        Http::fakeSequence()
+            ->push(['error' => ['message' => 'Quota exceeded']], 429)
+            ->push(['error' => ['message' => 'High demand']], 503)
+            ->push([
+                'candidates' => [[
+                    'content' => ['parts' => [[
+                        'text' => json_encode([
+                            'excerpt' => 'Tóm tắt.',
+                            'article_html' => $articleHtml,
+                            'seo_title' => 'SEO title đợt hai model dự phòng',
+                            'meta_description' => 'Meta description hợp lệ khi model chính hết quota còn model dự phòng quá tải ở đợt một và thành công ở đợt hai.',
+                            'keywords' => ['xe điện', 'VinFast', 'kinh nghiệm mua xe'],
+                        ], JSON_UNESCAPED_UNICODE),
+                    ]]],
+                ]],
+            ], 200);
+
+        $result = app(GeminiArticleWriter::class)->generate('Một tiêu đề', $this->imagePath);
+
+        $this->assertSame('SEO title đợt hai model dự phòng', $result['seo_title']);
+
+        $urls = collect(Http::recorded())
+            ->map(fn (array $pair): string => $pair[0]->url())
+            ->all();
+
+        $this->assertSame([
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent',
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent',
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent',
+        ], $urls);
+        Sleep::assertSequence([Sleep::for(2)->seconds()]);
     }
 
     public function test_loi_qua_tai_tu_dong_chuyen_sang_model_du_phong(): void
@@ -184,6 +257,83 @@ class GeminiArticleWriterTest extends TestCase
             'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent',
             'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent',
         ], $urls);
+    }
+
+    public function test_ca_hai_model_qua_tai_thi_nghi_roi_thu_lai_dot_sau(): void
+    {
+        Sleep::fake();
+
+        $articleHtml = '<p>'.str_repeat('Nội dung bài viết sau khi Gemini hết quá tải. ', 20).'</p>';
+        $overloaded = ['error' => ['message' => 'High demand']];
+
+        Http::fakeSequence()
+            ->push($overloaded, 503)
+            ->push($overloaded, 503)
+            ->push([
+                'candidates' => [[
+                    'content' => ['parts' => [[
+                        'text' => json_encode([
+                            'excerpt' => 'Tóm tắt sau đợt hai.',
+                            'article_html' => $articleHtml,
+                            'seo_title' => 'SEO title sau đợt hai',
+                            'meta_description' => 'Meta description hợp lệ sau khi hệ thống nghỉ vài giây rồi thử lại toàn bộ danh sách model Gemini một lần nữa.',
+                            'keywords' => ['xe điện', 'VinFast', 'kinh nghiệm mua xe'],
+                        ], JSON_UNESCAPED_UNICODE),
+                    ]]],
+                ]],
+            ], 200);
+
+        $result = app(GeminiArticleWriter::class)->generate('Một tiêu đề', $this->imagePath);
+
+        $this->assertSame('SEO title sau đợt hai', $result['seo_title']);
+        Http::assertSentCount(3);
+        Sleep::assertSequence([Sleep::for(2)->seconds()]);
+
+        $urls = collect(Http::recorded())
+            ->map(fn (array $pair): string => $pair[0]->url())
+            ->all();
+
+        $this->assertSame([
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent',
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent',
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent',
+        ], $urls);
+    }
+
+    public function test_qua_tai_lien_tuc_thi_dung_sau_ba_dot_va_bao_loi_de_hieu(): void
+    {
+        Sleep::fake();
+
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response(['error' => ['message' => 'High demand']], 503),
+        ]);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('HTTP 503');
+
+        try {
+            app(GeminiArticleWriter::class)->generate('Một tiêu đề', $this->imagePath);
+        } finally {
+            Http::assertSentCount(6);
+            Sleep::assertSequence([Sleep::for(2)->seconds(), Sleep::for(4)->seconds()]);
+        }
+    }
+
+    public function test_bai_bi_cat_vi_het_tran_token_thi_bao_ro_thay_vi_loi_dinh_dang(): void
+    {
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [[
+                    'content' => ['parts' => [['text' => '{"excerpt": "Tóm tắt", "article_html": "<p>Bài viết đang dở']]],
+                    'finishReason' => 'MAX_TOKENS',
+                ]],
+            ]),
+        ]);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('GEMINI_MAX_OUTPUT_TOKENS');
+
+        app(GeminiArticleWriter::class)->generate('Một tiêu đề', $this->imagePath);
     }
 
     public function test_nut_gemini_luon_bam_duoc_va_bao_thieu_du_lieu(): void

@@ -6,6 +6,8 @@ use App\Media\MediaStore;
 use App\Support\RichText;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 use JsonException;
 use RuntimeException;
@@ -35,23 +37,59 @@ class GeminiArticleWriter
         $image = $this->imagePart($imagePath);
         $payload = $this->payload($title, $instructions, $image);
         $models = $this->models($model);
+        $rounds = max(1, (int) config('services.gemini.retry_rounds', 3));
         $response = null;
+        $usedModel = $model;
+        $exhausted = [];
 
-        foreach ($models as $index => $candidateModel) {
-            try {
-                $response = Http::connectTimeout(10)
-                    ->timeout((int) config('services.gemini.timeout', 90))
-                    ->acceptJson()
-                    ->withHeaders(['x-goog-api-key' => $key])
-                    ->post(sprintf(self::ENDPOINT, $candidateModel), $payload);
-            } catch (ConnectionException) {
-                throw new RuntimeException('Không kết nối được tới Gemini. Vui lòng thử lại sau.');
+        // Google trả 503 "high demand" theo từng đợt vài giây trên các model flash
+        // mới. Vì vậy thử hết danh sách model một lượt, nếu vẫn quá tải thì nghỉ
+        // 2s, 4s… rồi lặp lại toàn bộ danh sách thay vì chỉ gọi mỗi model một lần.
+        // Model trả 429 (hết 20 request/ngày của Free Tier) bị loại khỏi các đợt sau.
+        for ($round = 1; $round <= $rounds; $round++) {
+            $remaining = array_values(array_diff($models, $exhausted));
+
+            if ($remaining === []) {
+                break;
             }
 
-            $hasFallback = array_key_exists($index + 1, $models);
+            if ($round > 1) {
+                Sleep::for(2 ** ($round - 1))->seconds();
+            }
 
-            if ($response->successful() || ! $hasFallback || ! in_array($response->status(), [500, 502, 503, 504], true)) {
-                break;
+            foreach ($remaining as $candidateModel) {
+                $usedModel = $candidateModel;
+
+                try {
+                    $response = Http::connectTimeout(10)
+                        ->timeout((int) config('services.gemini.timeout', 90))
+                        ->acceptJson()
+                        ->withHeaders(['x-goog-api-key' => $key])
+                        ->post(sprintf(self::ENDPOINT, $candidateModel), $payload);
+                } catch (ConnectionException $exception) {
+                    Log::warning('Gemini: không kết nối được', ['model' => $candidateModel, 'error' => $exception->getMessage()]);
+
+                    throw new RuntimeException('Không kết nối được tới Gemini. Vui lòng thử lại sau.');
+                }
+
+                if (! $response->successful()) {
+                    Log::warning('Gemini: HTTP lỗi', [
+                        'model' => $candidateModel,
+                        'round' => $round,
+                        'status' => $response->status(),
+                        'error' => Str::limit((string) $response->json('error.message'), 300),
+                    ]);
+                }
+
+                if ($response->status() === 429) {
+                    $exhausted[] = $candidateModel;
+
+                    continue;
+                }
+
+                if (! in_array($response->status(), [500, 502, 503, 504], true)) {
+                    break 2;
+                }
             }
         }
 
@@ -62,8 +100,8 @@ class GeminiArticleWriter
         if ($response->failed()) {
             if ($response->status() === 429) {
                 throw new RuntimeException(
-                    'Gemini đang hết hạn mức tức thời của dự án API (HTTP 429). '
-                    .'Hãy chờ vài phút rồi thử lại, hoặc kiểm tra Rate limits/Billing trong Google AI Studio.',
+                    'Gemini đang hết hạn mức của dự án API (HTTP 429). Gói miễn phí chỉ cho 20 bài/ngày với mỗi model; '
+                    .'hãy thử lại sau vài phút hoặc sang ngày mai, hoặc bật Billing trong Google AI Studio để nâng hạn mức.',
                 );
             }
 
@@ -87,17 +125,47 @@ class GeminiArticleWriter
             ->filter()
             ->implode('');
 
+        $context = [
+            'model' => $usedModel,
+            'finish_reason' => $response->json('candidates.0.finishReason'),
+            'usage' => $response->json('usageMetadata'),
+            'text' => Str::limit($text, 500),
+        ];
+
+        // Gemini 3.x tính cả token "suy nghĩ" (~2.000–2.500) vào trần này,
+        // nên trần thấp sẽ cắt cụt JSON giữa chừng và báo lỗi định dạng sai lệch.
+        if ($response->json('candidates.0.finishReason') === 'MAX_TOKENS') {
+            Log::warning('Gemini: bài bị cắt vì hết trần token', $context);
+
+            throw new RuntimeException(
+                'Bài viết bị cắt vì vượt trần token đầu ra của Gemini. '
+                .'Hãy tăng GEMINI_MAX_OUTPUT_TOKENS trong file .env (khuyến nghị 8192 trở lên) rồi tạo lại bài.',
+            );
+        }
+
         if ($text === '') {
+            Log::warning('Gemini: không trả về nội dung', $context + ['body' => Str::limit($response->body(), 800)]);
+
             throw new RuntimeException('Gemini không trả về nội dung. Vui lòng thử lại.');
         }
 
         try {
             $result = json_decode($text, true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
+            Log::warning('Gemini: JSON không hợp lệ', $context);
+
             throw new RuntimeException('Gemini trả về dữ liệu không đúng định dạng. Vui lòng tạo lại bài.');
         }
 
-        return $this->normalize($result);
+        try {
+            return $this->normalize($result);
+        } catch (RuntimeException $exception) {
+            Log::warning('Gemini: '.$exception->getMessage(), $context + [
+                'keys' => is_array($result) ? array_keys($result) : gettype($result),
+            ]);
+
+            throw $exception;
+        }
     }
 
     /**
@@ -165,7 +233,7 @@ class GeminiArticleWriter
             ]],
             'generationConfig' => [
                 'temperature' => 0.75,
-                'maxOutputTokens' => (int) config('services.gemini.max_output_tokens', 4500),
+                'maxOutputTokens' => (int) config('services.gemini.max_output_tokens', 8192),
                 'responseFormat' => [
                     'text' => [
                         'mimeType' => 'APPLICATION_JSON',
