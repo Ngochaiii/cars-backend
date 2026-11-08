@@ -138,6 +138,10 @@ class LeadFormTest extends TestCase
         $this->assertStringContainsString('gtag/js?id=AW-123', $html);
         $this->assertStringContainsString('window.leadConversion = "AW-123\/abc"', $html);
         $this->assertStringContainsString("send_to: window.leadConversion", file_get_contents(public_path('js/frontend.js')));
+
+        \App\Models\Setting::put('google_ads_contact', 'AW-123/goi');
+        $this->assertStringContainsString('window.contactConversion = "AW-123\/goi"', view('frontend.partials.tracking')->render());
+        $this->assertStringContainsString("send_to: window.contactConversion", file_get_contents(public_path('js/frontend.js')));
     }
 
     public function test_gui_form_khong_js_xong_thi_bao_chuyen_doi_cho_gtm(): void

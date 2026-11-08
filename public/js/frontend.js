@@ -504,6 +504,21 @@
         }, 3500);
     }
 
+    // Khách mua xe thường bấm gọi hoặc Zalo thay vì điền form — đếm cả hai làm
+    // chuyển đổi Google Ads. Bắt ở document nên phủ mọi nút, kể cả nút nổi.
+    function initContactTracking() {
+        document.addEventListener('click', function (event) {
+            var link = event.target.closest && event.target.closest('a[href^="tel:"], a[href*="zalo.me/"]');
+            if (!link) return;
+            var channel = link.href.indexOf('tel:') === 0 ? 'phone' : 'zalo';
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({ event: 'contact_click', channel: channel });
+            if (window.gtag && window.contactConversion) {
+                window.gtag('event', 'conversion', { send_to: window.contactConversion });
+            }
+        });
+    }
+
     function initLeadForm(form) {
         if (!window.fetch || !window.FormData) return;
 
@@ -1270,6 +1285,7 @@
         document.querySelectorAll('[data-finder]').forEach(initStationFinder);
         initBleed();
         initLineReveal();
+        initContactTracking();
     }
 
     if (document.readyState === 'loading') {

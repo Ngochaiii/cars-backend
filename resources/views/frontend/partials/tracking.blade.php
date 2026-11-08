@@ -7,10 +7,12 @@
     $pixel = catalog_setting('facebook_pixel');
     $adsId = catalog_setting('google_ads_id');
     $adsLead = catalog_setting('google_ads_lead');
+    $adsContact = catalog_setting('google_ads_contact');
 @endphp
 
 {{-- Thẻ Google Ads gắn thẳng, không cần GTM. Gửi form thành công thì
-     frontend.js bắn chuyển đổi tới window.leadConversion. --}}
+     frontend.js bắn chuyển đổi tới window.leadConversion; bấm link tel:/Zalo
+     thì bắn tới window.contactConversion. --}}
 @if (filled($adsId))
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ $adsId }}"></script>
     <script>
@@ -20,6 +22,9 @@
         gtag('config', @json($adsId));
         @if (filled($adsLead))
             window.leadConversion = @json($adsLead);
+        @endif
+        @if (filled($adsContact))
+            window.contactConversion = @json($adsContact);
         @endif
     </script>
 @endif
