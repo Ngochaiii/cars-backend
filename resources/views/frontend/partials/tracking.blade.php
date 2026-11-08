@@ -5,7 +5,24 @@
 @php
     $gtm   = catalog_setting('gtm_id');
     $pixel = catalog_setting('facebook_pixel');
+    $adsId = catalog_setting('google_ads_id');
+    $adsLead = catalog_setting('google_ads_lead');
 @endphp
+
+{{-- Thẻ Google Ads gắn thẳng, không cần GTM. Gửi form thành công thì
+     frontend.js bắn chuyển đổi tới window.leadConversion. --}}
+@if (filled($adsId))
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ $adsId }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', @json($adsId));
+        @if (filled($adsLead))
+            window.leadConversion = @json($adsLead);
+        @endif
+    </script>
+@endif
 
 @if (filled($gtm))
     <script>

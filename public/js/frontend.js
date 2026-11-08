@@ -603,6 +603,9 @@
                         form_key: form.action.split('/').pop(),
                         lead_id: json.data && json.data.id
                     });
+                    if (window.gtag && window.leadConversion) {
+                        window.gtag('event', 'conversion', { send_to: window.leadConversion });
+                    }
                     form.dispatchEvent(new CustomEvent('lead:success', {
                         bubbles: true,
                         detail: { message: message }

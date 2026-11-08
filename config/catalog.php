@@ -256,6 +256,8 @@ return [
             'label' => 'Đo lường',
             'fields' => [
                 'gtm_id' => ['label' => 'Google Tag Manager ID', 'type' => 'text'],
+                'google_ads_id' => ['label' => 'Google Ads tag ID (AW-…)', 'type' => 'text'],
+                'google_ads_lead' => ['label' => 'Google Ads chuyển đổi gửi form (AW-…/nhãn)', 'type' => 'text'],
                 'facebook_pixel' => ['label' => 'Facebook Pixel ID', 'type' => 'text'],
             ],
         ],

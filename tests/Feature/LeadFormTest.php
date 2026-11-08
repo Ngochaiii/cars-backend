@@ -127,6 +127,19 @@ class LeadFormTest extends TestCase
         $this->assertStringContainsString("event: 'generate_lead'", $javascript);
     }
 
+    public function test_the_google_ads_chi_in_khi_da_khai_ma(): void
+    {
+        $this->assertStringNotContainsString('gtag/js', view('frontend.partials.tracking')->render());
+
+        \App\Models\Setting::put('google_ads_id', 'AW-123');
+        \App\Models\Setting::put('google_ads_lead', 'AW-123/abc');
+
+        $html = view('frontend.partials.tracking')->render();
+        $this->assertStringContainsString('gtag/js?id=AW-123', $html);
+        $this->assertStringContainsString('window.leadConversion = "AW-123\/abc"', $html);
+        $this->assertStringContainsString("send_to: window.leadConversion", file_get_contents(public_path('js/frontend.js')));
+    }
+
     public function test_gui_form_khong_js_xong_thi_bao_chuyen_doi_cho_gtm(): void
     {
         $html = view('frontend.partials.lead-form', [

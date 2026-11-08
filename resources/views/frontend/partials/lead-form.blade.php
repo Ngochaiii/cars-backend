@@ -39,6 +39,9 @@
         <script>
             window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({ event: 'generate_lead', form_key: @json($form->key) });
+            if (window.gtag && window.leadConversion) {
+                window.gtag('event', 'conversion', { send_to: window.leadConversion });
+            }
         </script>
     @endif
 
