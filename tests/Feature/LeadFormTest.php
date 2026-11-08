@@ -124,6 +124,25 @@ class LeadFormTest extends TestCase
         $this->assertStringContainsString('showLeadToast(message);', $javascript);
         $this->assertStringContainsString("form.dispatchEvent(new CustomEvent('lead:success'", $javascript);
         $this->assertStringContainsString('successTimer = setTimeout(close, 700);', $javascript);
+        $this->assertStringContainsString("event: 'generate_lead'", $javascript);
+    }
+
+    public function test_gui_form_khong_js_xong_thi_bao_chuyen_doi_cho_gtm(): void
+    {
+        $html = view('frontend.partials.lead-form', [
+            'form' => $this->form->load('fields'),
+            'errors' => new ViewErrorBag,
+        ])->render();
+        $this->assertStringNotContainsString('generate_lead', $html);
+
+        session()->flash('lead_success', 'Đã nhận.');
+        session()->flash('lead_form_key', $this->form->key);
+
+        $html = view('frontend.partials.lead-form', [
+            'form' => $this->form->load('fields'),
+            'errors' => new ViewErrorBag,
+        ])->render();
+        $this->assertStringContainsString("event: 'generate_lead', form_key: \"{$this->form->key}\"", $html);
     }
 
     public function test_thieu_field_bat_buoc_thi_quay_lai_kem_loi(): void

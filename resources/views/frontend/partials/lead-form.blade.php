@@ -35,6 +35,11 @@
             <div class="lead-done__title">Đã nhận thông tin của bạn</div>
             <p>{{ session('lead_success') }}</p>
         </div>
+        {{-- Đường không JS: báo chuyển đổi cho GTM giống nhánh fetch trong frontend.js. --}}
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({ event: 'generate_lead', form_key: @json($form->key) });
+        </script>
     @endif
 
     <form class="lead-form" method="POST" action="{{ route('leads.store', $form) }}" data-lead-form>

@@ -595,6 +595,14 @@
                     form.reset();
                     showStatus(message, 'success');
                     showLeadToast(message);
+                    // GTM bắt sự kiện này làm chuyển đổi Google Ads; chưa gắn GTM thì
+                    // dataLayer chỉ là mảng thường, không gửi đi đâu.
+                    window.dataLayer = window.dataLayer || [];
+                    window.dataLayer.push({
+                        event: 'generate_lead',
+                        form_key: form.action.split('/').pop(),
+                        lead_id: json.data && json.data.id
+                    });
                     form.dispatchEvent(new CustomEvent('lead:success', {
                         bubbles: true,
                         detail: { message: message }
