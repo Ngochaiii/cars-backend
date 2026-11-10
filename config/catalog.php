@@ -465,7 +465,9 @@ return [
 
         // Tổ chức đứng sau — dùng cho JSON-LD Organization
         'organization' => [
-            'type' => 'AutoDealer',
+            // Site của tư vấn bán hàng (không phải đại lý ủy quyền) đặt
+            // SEO_ORG_TYPE=Organization để không khai sai với Google.
+            'type' => env('SEO_ORG_TYPE', 'AutoDealer'),
             'name' => null,   // null thì lấy settings('site_name')
             'logo' => null,   // null thì lấy settings('logo')
             'sameAs' => [],     // link mạng xã hội

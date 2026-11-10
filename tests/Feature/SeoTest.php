@@ -222,6 +222,13 @@ class SeoTest extends TestCase
         $this->assertContains('https://facebook.com/lexus', $org['sameAs']);
     }
 
+    public function test_site_tu_van_ban_hang_khai_organization_thay_vi_dai_ly(): void
+    {
+        config(['catalog.seo.organization.type' => 'Organization']);
+
+        $this->assertSame('Organization', JsonLd::organization()['@type']);
+    }
+
     public function test_trang_chu_co_mot_h1_og_image_jsonld_va_robots(): void
     {
         Setting::put('site_name', 'Lexus Việt Nam');
