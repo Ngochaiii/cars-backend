@@ -31,7 +31,12 @@
         // Ưu tiên brochure riêng của xe, sau đó mới lùi về link chung.
         $brochure       = $product->brochure_url ?: catalog_setting('brochure_url');
         $hotline        = catalog_setting('hotline');
-        $bookingUrl     = Route::has('booking')
+        // Cùng quy tắc với nút Zalo nổi (floating-contact): khai số thì dựng
+        // link zalo.me, khai sẵn đường dẫn thì giữ nguyên.
+        $zalo           = trim((string) catalog_setting('zalo'));
+        $zaloUrl        = $zalo === '' ? null
+            : (preg_match('#^https?://#', $zalo) ? $zalo : 'https://zalo.me/'.preg_replace('/\D+/', '', $zalo));
+        $bookingUrl    = Route::has('booking')
             ? route('booking', ['xe' => $product->slug])
             : ($orderForm ? '#form-'.$orderForm->key : '#dang-ky-tu-van');
         $testDriveUrl   = Route::has('booking')
@@ -226,6 +231,10 @@
                         @if (filled($hotline))
                             <a class="btn btn--outline order-bar__call"
                                href="tel:{{ preg_replace('/\s+/', '', $hotline) }}">Gọi tư vấn</a>
+                        @endif
+                        @if ($zaloUrl)
+                            <a class="btn btn--outline order-bar__zalo"
+                               href="{{ $zaloUrl }}" target="_blank" rel="noopener noreferrer">Nhắn Zalo</a>
                         @endif
                         <a class="btn btn--accent" href="{{ $bookingUrl }}">{{ catalog_label('cta.deposit') }}</a>
                         <a class="order-bar__test" href="{{ $testDriveUrl }}">Đăng ký lái thử</a>
