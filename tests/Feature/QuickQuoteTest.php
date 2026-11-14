@@ -67,6 +67,24 @@ class QuickQuoteTest extends TestCase
             ->assertDontSee('data-quick-quote', false);
     }
 
+    public function test_trang_phu_kien_khong_co_o_bao_gia_lan_banh(): void
+    {
+        $accessories = \App\Models\Category::create(['name' => 'Phụ kiện xe', 'slug' => 'phu-kien']);
+        config(['catalog.frontend.accessory_category' => 'phu-kien']);
+
+        Product::create([
+            'name' => 'Bộ sạc treo tường AC 11 kW', 'slug' => 'bo-sac', 'status' => 'published',
+            'category_id' => $accessories->id,
+        ]);
+
+        $this->get('/san-pham/bo-sac')
+            ->assertOk()
+            ->assertDontSee('data-quick-quote', false);
+
+        // Xe thì vẫn có.
+        $this->get('/san-pham/vinfast-vf-6')->assertSee('data-quick-quote', false);
+    }
+
     public function test_khach_tu_google_ads_duoc_gan_nguon_google_cpc(): void
     {
         $box = $this->quickQuote($this->get('/san-pham/vinfast-vf-6?gclid=abc123')->getContent());

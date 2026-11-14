@@ -29,7 +29,7 @@ class ProductController extends Controller
             'product' => $product,
             'sections' => $sections,
             'forms' => $this->forms($sections),
-            'quickQuote' => $this->quickQuote(),
+            'quickQuote' => $this->quickQuote($product),
             'quickQuoteUtm' => $this->quickQuoteUtm($request),
             'fuelCalc' => $this->fuelCalc($product, $request),
             'loan' => $this->loan($product, $request),
@@ -76,13 +76,20 @@ class ProductController extends Controller
     /**
      * Form cho ô "Nhận báo giá lăn bánh" ngay dưới giá ở đầu trang. Khoá khai ở
      * config('catalog.frontend.quick_quote_form'); null, form không có hoặc đã
-     * tắt thì không hiện ô.
+     * tắt thì không hiện ô. Phụ kiện cũng không hiện — "báo giá lăn bánh" chỉ
+     * có nghĩa với xe.
      */
-    protected function quickQuote(): ?Form
+    protected function quickQuote(Product $product): ?Form
     {
         $key = config('catalog.frontend.quick_quote_form');
 
         if (blank($key) || ! Catalog::feature('forms')) {
+            return null;
+        }
+
+        $accessories = config('catalog.frontend.accessory_category');
+
+        if (filled($accessories) && $product->category?->slug === $accessories) {
             return null;
         }
 
