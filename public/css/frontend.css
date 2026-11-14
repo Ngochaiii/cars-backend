@@ -1539,6 +1539,30 @@ html.js .tabs__panel + .tabs__panel { margin-top: 0; }
 .section-bare .section__head { margin-bottom: var(--s-6); }
 .section-bare .section__head h2 { font-size: var(--fs-h2); }
 
+/* Tư vấn viên cuối bài — bản gọn của băng navy ở trang chủ: ảnh tròn bên
+   trái, tên và hai nút bên phải; xuống một cột ở khổ hẹp. */
+.article-advisor {
+    display: flex; gap: var(--s-5); align-items: flex-start;
+    max-width: var(--wrap-narrow); margin: var(--s-9) 0 0;
+    padding: var(--s-6); border: 1px solid var(--line); border-radius: 6px; background: #fbfbfa;
+}
+.article-advisor__photo { flex: 0 0 96px; }
+.article-advisor__photo img { width: 96px; height: 96px; object-fit: cover; border-radius: 50%; display: block; }
+.article-advisor__body { min-width: 0; }
+.article-advisor__eyebrow {
+    display: block; font-size: var(--fs-xs); letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: var(--s-2);
+}
+.article-advisor__who { margin: 0 0 var(--s-2); font-size: var(--fs-base); }
+.article-advisor__who b { font-weight: 600; }
+.article-advisor__text { margin: 0 0 var(--s-4); font-size: var(--fs-sm); line-height: 1.7; color: var(--body); }
+.article-advisor__actions { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+
+@media (max-width: 640px) {
+    .article-advisor { flex-direction: column; align-items: center; text-align: center; }
+    .article-advisor__actions { justify-content: center; }
+}
+
 /* Khối hỏi đáp cuối bài: mỗi cặp một khối, gạch mảnh phân cách, chữ cùng
    nhịp với .prose để không phá mạch đọc của bài. */
 .faq { max-width: var(--wrap-narrow); }

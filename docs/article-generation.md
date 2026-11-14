@@ -38,6 +38,19 @@ Hệ thống không bao giờ tự đăng bài.
   wordCount, inLanguage), `FAQPage` và `BreadcrumbList`. `FAQPage` chỉ khai những câu hỏi
   đang hiển thị trên trang — đúng yêu cầu của Google, không khai câu hỏi không có thật.
 
+## Khối tư vấn viên cuối bài
+
+Sau phần hỏi đáp, mỗi bài hiện một khối liên hệ gọn: ảnh tròn, tên, chức danh và hai nút
+Gọi / Nhắn Zalo (`resources/views/frontend/partials/article-advisor.blade.php`, neo `#tu-van-vien`).
+
+Nội dung **do template dựng từ Cài đặt → Trang chủ**, dùng chung dữ liệu với khối tư vấn viên ở
+trang chủ (`advisor_name`, `advisor_role`, `advisor_phone`, `advisor_zalo`, `advisor_image`);
+chưa khai thì lùi về Hotline và Zalo chung. Bật `advisor_off` là ẩn ở cả hai nơi.
+
+Cố ý **không** để AI viết đoạn này trong từng bài: 50 bài sẽ có 50 đoạn na ná nhau, và AI dễ bịa
+chi tiết về một người thật. Cũng **không** khai tư vấn viên là `author` trong JSON-LD — bài do AI
+viết, tác giả phải là đại lý.
+
 ## Các bước chạy nền
 
 Ba bước lưu riêng: **nghiên cứu/dàn ý → viết → kiểm tra rồi điền vào bài**. Bước nghiên cứu tự

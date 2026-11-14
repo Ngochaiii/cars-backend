@@ -52,6 +52,8 @@
                     'defaultWidth' => 'narrow',
                 ])
 
+                @include('frontend.partials.article-advisor')
+
                 <div class="article__foot">
                     <a class="article__back" href="{{ route('posts.index') }}">← Tất cả tin tức</a>
                 </div>
