@@ -30,9 +30,10 @@ Hệ thống không bao giờ tự đăng bài.
 
 ## Chuẩn GEO trong bài
 
-- Đoạn đầu trả lời trực tiếp câu hỏi của tiêu đề, đứng độc lập được.
+- **Câu đầu tiên** trả lời thẳng câu hỏi của tiêu đề và chứa từ khóa chính. Trợ lý AI trích
+  đoạn mở đầu, nên mở bài bằng câu dẫn chung về thị trường là mất suất trích dẫn.
 - Ngay sau đó là danh sách 3–5 ý chính, mỗi dòng một câu trọn nghĩa để trích dẫn riêng.
-- Đề mục h2 viết dưới dạng câu hỏi người đọc thật sự tìm kiếm.
+- Ít nhất 3 trong 4 đề mục h2 là câu hỏi người đọc thật sự tìm kiếm, kết thúc bằng dấu hỏi.
 - Khối **Câu hỏi thường gặp** (mục `faq`) hiện ngay trên trang, không gập lại.
 - Trang bài nhúng một `@graph` gồm `Article` (có author, publisher, dateModified, keywords,
   wordCount, inLanguage), `FAQPage` và `BreadcrumbList`. `FAQPage` chỉ khai những câu hỏi
