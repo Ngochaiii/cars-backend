@@ -45,8 +45,6 @@ class ContentAdminTest extends TestCase
     {
         Livewire::test(CreatePost::class)
             ->assertSee('Nội dung bài viết')
-            ->assertSee('Sinh bài viết bằng Gemini')
-            ->assertSee('Yêu cầu thêm cho Gemini')
             ->assertSee('Từ khóa SEO Gemini đã dùng')
             ->assertDontSee('Tên mục')
             ->assertDontSee('Bố cục')

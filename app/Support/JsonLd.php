@@ -41,19 +41,102 @@ class JsonLd
         return array_filter($data);
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * Bài viết khai một @graph: Article + FAQPage (khi bài có khối hỏi đáp) +
+     * BreadcrumbList. Trợ lý AI và Google đọc được cả ba trong một thẻ script,
+     * và cặp hỏi–đáp là thứ dễ được trích dẫn nguyên văn nhất.
+     *
+     * @return array<string, mixed>
+     */
     public static function forPost(Model $post): array
     {
-        return array_filter([
-            '@context' => 'https://schema.org',
+        $url = data_get($post->seo, 'canonical') ?: Url::absolute('post', $post->slug);
+        $publisher = static::organization();
+
+        $article = array_filter([
             '@type' => 'Article',
+            '@id' => $url.'#article',
             'headline' => $post->title,
-            'description' => $post->excerpt,
-            'url' => data_get($post->seo, 'canonical') ?: Url::absolute('post', $post->slug),
+            'description' => data_get($post->seo, 'description') ?: $post->excerpt,
+            'url' => $url,
+            'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $url],
             'image' => Url::asset(data_get($post->seo, 'image') ?: $post->cover),
             'datePublished' => $post->published_at?->toAtomString(),
-            'dateModified' => $post->updated_at?->toAtomString(),
+            'dateModified' => ($post->updated_at ?? $post->published_at)?->toAtomString(),
+            'inLanguage' => 'vi-VN',
+            'keywords' => data_get($post->seo, 'keywords'),
+            'articleSection' => $post->category?->name,
+            'wordCount' => static::wordCount($post),
+            'author' => array_filter(['@type' => $publisher['@type'] ?? 'Organization', 'name' => $publisher['name'] ?? null, 'url' => $publisher['url'] ?? null]),
+            'publisher' => ['@id' => $publisher['@id'] ?? null],
+        ], fn (mixed $value): bool => filled($value));
+
+        $breadcrumb = static::forBreadcrumb([
+            ['name' => 'Trang chủ', 'url' => rtrim(config('app.url'), '/').'/'],
+            ['name' => 'Tin tức', 'url' => route('posts.index')],
+            ['name' => $post->title, 'url' => $url],
         ]);
+        unset($breadcrumb['@context']);
+
+        return [
+            '@context' => 'https://schema.org',
+            '@graph' => array_values(array_filter([
+                $article,
+                static::faqPage(static::faqItems($post), $url),
+                $breadcrumb,
+            ])),
+        ];
+    }
+
+    /**
+     * Cặp hỏi–đáp lấy từ mục `faq` của bài, không phải do AI tự khai trong
+     * JSON-LD — khai câu hỏi không có trên trang là vi phạm hướng dẫn của Google.
+     *
+     * @return array<int, array{question:string,answer:string}>
+     */
+    public static function faqItems(Model $post): array
+    {
+        return collect($post->sections ?? [])
+            ->where('type', 'faq')
+            ->flatMap(fn (array $section): array => $section['items'] ?? [])
+            ->filter(fn (mixed $item): bool => is_array($item) && filled($item['question'] ?? null) && filled($item['answer'] ?? null))
+            ->map(fn (array $item): array => [
+                'question' => trim(strip_tags((string) $item['question'])),
+                'answer' => trim(strip_tags((string) $item['answer'])),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<int, array{question:string,answer:string}>  $items
+     * @return array<string, mixed>|null
+     */
+    private static function faqPage(array $items, string $url): ?array
+    {
+        if ($items === []) {
+            return null;
+        }
+
+        return [
+            '@type' => 'FAQPage',
+            '@id' => $url.'#faq',
+            'mainEntity' => array_map(fn (array $item): array => [
+                '@type' => 'Question',
+                'name' => $item['question'],
+                'acceptedAnswer' => ['@type' => 'Answer', 'text' => $item['answer']],
+            ], $items),
+        ];
+    }
+
+    private static function wordCount(Model $post): int
+    {
+        $text = collect($post->sections ?? [])
+            ->where('type', 'text')
+            ->map(fn (array $section): string => strip_tags((string) ($section['body'] ?? '')))
+            ->implode(' ');
+
+        return count(preg_split('/\s+/u', trim($text), -1, PREG_SPLIT_NO_EMPTY) ?: []);
     }
 
     /** @return array<string, mixed> */

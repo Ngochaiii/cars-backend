@@ -12,7 +12,7 @@ class ArticleGeneration extends Model
 
     protected function casts(): array
     {
-        return ['run' => 'integer', 'failures' => 'integer', 'input' => 'array', 'research' => 'array', 'result' => 'array', 'review' => 'array', 'next_attempt_at' => 'datetime'];
+        return ['post_id' => 'integer', 'run' => 'integer', 'failures' => 'integer', 'input' => 'array', 'research' => 'array', 'result' => 'array', 'review' => 'array', 'next_attempt_at' => 'datetime'];
     }
 
     public function statusLabel(): string

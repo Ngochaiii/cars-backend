@@ -12,13 +12,12 @@ class GenerationRequests
 {
     public function start(int $userId, array $input): ArticleGeneration
     {
+        // Biên tập viên chỉ cần tiêu đề. Từ khóa chính, ý định tìm kiếm và dàn ý
+        // do bước nghiên cứu của Gemini tự rút ra; các ô còn lại là tùy chọn.
         $input = Validator::make($input, [
             'title' => 'required|string|max:255',
-            'cover' => 'required|string|max:1024',
-            'keyword' => 'required|string|max:200',
-            'related_keywords' => 'nullable|string|max:1000',
-            'location' => 'nullable|string|max:200',
-            'intent' => 'required|in:information,comparison,purchase',
+            'post_id' => 'nullable|integer|exists:posts,id',
+            'cover' => 'nullable|string|max:1024',
             'use_search' => 'sometimes|boolean',
             'facts' => 'nullable|string|max:12000',
             'instructions' => 'nullable|string|max:4000',
@@ -31,7 +30,27 @@ class GenerationRequests
             if ($active) {
                 return $active;
             }
-            $generation = ArticleGeneration::create(['user_id' => $userId, 'input' => $input]);
+            $generation = ArticleGeneration::create([
+                'user_id' => $userId,
+                'post_id' => $input['post_id'] ?? null,
+                'input' => $input,
+            ]);
+
+            // Tạo luôn bài nháp mang tiêu đề đó để biên tập viên thấy ngay chỗ
+            // bài sẽ xuất hiện và theo dõi tiến độ trong đúng bài, thay vì bấm
+            // xong không thấy gì. Nội dung do bước cuối của pipeline điền vào.
+            $post = $generation->post_id
+                ? catalog_model('post')::find($generation->post_id)
+                : catalog_model('post')::create([
+                    'title' => $input['title'],
+                    'status' => 'draft',
+                    'ai_generation_id' => $generation->id,
+                    'ai_reviewed' => false,
+                ]);
+
+            if ($post && ! $generation->post_id) {
+                $generation->update(['post_id' => $post->getKey()]);
+            }
             GenerateArticle::dispatch($generation->id, $generation->run)->afterCommit();
 
             return $generation;

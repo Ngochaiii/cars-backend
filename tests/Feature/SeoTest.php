@@ -210,6 +210,86 @@ class SeoTest extends TestCase
             ->assertSee('<meta name="twitter:image" content="https://lexus.vn/storage/catalog/rz-450e.webp">', false);
     }
 
+    // --- Bài viết chuẩn GEO: khối hỏi đáp + structured data đầy đủ ---
+
+    private function geoPost(): Post
+    {
+        return Post::create([
+            'title' => 'Đánh giá VinFast VF 3 cho gia đình nhỏ',
+            'slug' => 'danh-gia-vinfast-vf-3',
+            'status' => 'published',
+            'published_at' => now()->subDay(),
+            'excerpt' => 'Tóm tắt nhanh về VinFast VF 3.',
+            'cover' => 'catalog/posts/vf3.jpg',
+            'seo' => ['title' => 'Đánh giá VinFast VF 3', 'description' => 'Mô tả tìm kiếm.', 'keywords' => 'VinFast VF 3, xe điện đô thị'],
+            'sections' => [
+                ['type' => 'text', 'body' => '<p>VF 3 là xe điện đô thị cỡ nhỏ.</p><h2>Phù hợp với ai?</h2>'],
+                ['type' => 'faq', 'title' => 'Câu hỏi thường gặp', 'items' => [
+                    ['question' => 'VF 3 đi được bao xa mỗi lần sạc?', 'answer' => 'Khoảng 210 km theo công bố của hãng.'],
+                    ['question' => 'Có trạm sạc ở Bắc Giang không?', 'answer' => 'Có nhiều điểm sạc công cộng trong thành phố.'],
+                ]],
+            ],
+        ]);
+    }
+
+    public function test_jsonld_bai_viet_la_graph_co_article_faq_va_breadcrumb(): void
+    {
+        $graph = JsonLd::forPost($this->geoPost())['@graph'];
+        $types = array_column($graph, '@type');
+
+        $this->assertContains('Article', $types);
+        $this->assertContains('FAQPage', $types);
+        $this->assertContains('BreadcrumbList', $types);
+    }
+
+    public function test_jsonld_article_khai_tac_gia_ngay_sua_va_tu_khoa(): void
+    {
+        Setting::put('site_name', 'VinFast Bắc Giang');
+        $article = collect(JsonLd::forPost($this->geoPost())['@graph'])->firstWhere('@type', 'Article');
+
+        $this->assertSame('VinFast Bắc Giang', $article['author']['name']);
+        $this->assertSame('vi-VN', $article['inLanguage']);
+        $this->assertSame('VinFast VF 3, xe điện đô thị', $article['keywords']);
+        $this->assertNotEmpty($article['dateModified']);
+        $this->assertSame('https://lexus.vn/tin-tuc/danh-gia-vinfast-vf-3', $article['mainEntityOfPage']['@id']);
+    }
+
+    public function test_jsonld_faq_lay_dung_cap_hoi_dap_cua_bai(): void
+    {
+        $faq = collect(JsonLd::forPost($this->geoPost())['@graph'])->firstWhere('@type', 'FAQPage');
+
+        $this->assertCount(2, $faq['mainEntity']);
+        $this->assertSame('VF 3 đi được bao xa mỗi lần sạc?', $faq['mainEntity'][0]['name']);
+        $this->assertSame('Khoảng 210 km theo công bố của hãng.', $faq['mainEntity'][0]['acceptedAnswer']['text']);
+    }
+
+    public function test_bai_khong_co_hoi_dap_thi_khong_khai_faqpage(): void
+    {
+        $post = $this->geoPost();
+        $post->update(['sections' => [['type' => 'text', 'body' => '<p>Nội dung.</p>']]]);
+
+        $types = array_column(JsonLd::forPost($post->fresh())['@graph'], '@type');
+
+        $this->assertNotContains('FAQPage', $types);
+    }
+
+    public function test_trang_bai_viet_hien_khoi_hoi_dap_ngoai_jsonld(): void
+    {
+        $post = $this->geoPost();
+
+        $response = $this->get(route('posts.show', $post->slug));
+
+        $response->assertOk();
+        $response->assertSee('"FAQPage"', false);
+
+        // Google chỉ nhận FAQPage khi câu hỏi hiển thị thật trên trang, nên
+        // bỏ hẳn thẻ ld+json ra rồi mới kiểm tra phần người đọc nhìn thấy.
+        $visible = preg_replace('/<script type="application\/ld\+json">.*?<\/script>/s', '', $response->getContent());
+        $this->assertStringContainsString('Câu hỏi thường gặp', $visible);
+        $this->assertStringContainsString('VF 3 đi được bao xa mỗi lần sạc?', $visible);
+        $this->assertStringContainsString('Khoảng 210 km theo công bố của hãng.', $visible);
+    }
+
     public function test_jsonld_organization_lay_tu_settings(): void
     {
         Setting::put('site_name', 'Lexus Việt Nam');

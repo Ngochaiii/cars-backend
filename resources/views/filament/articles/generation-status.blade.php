@@ -53,6 +53,6 @@
             <p>{{ $generation->review['note'] }}</p>
         @endif
     @else
-        <p>Chọn một yêu cầu đã lưu để xem tiến độ. Bạn có thể quay lại trang này sau.</p>
+        <p>Bài này chưa gắn với yêu cầu AI nào.</p>
     @endif
 </div>

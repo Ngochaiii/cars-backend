@@ -111,6 +111,7 @@ return [
         'text' => 'Văn bản',
         'notice' => 'Thông báo',
         'video' => 'Video',
+        'faq' => 'Hỏi đáp',
         'table' => 'Bảng',
         'form' => 'Form',
         'custom' => 'Khối riêng',

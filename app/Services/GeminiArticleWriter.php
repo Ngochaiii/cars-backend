@@ -19,9 +19,9 @@ class GeminiArticleWriter
     public function __construct(private readonly MediaStore $media) {}
 
     /**
-     * @return array{excerpt:string,article_html:string,seo_title:string,meta_description:string,keywords:array<int,string>}
+     * @return array{excerpt:string,article_html:string,seo_title:string,meta_description:string,keywords:array<int,string>,faq:array<int,array{question:string,answer:string}>,category:?string}
      */
-    public function generate(string $title, string $imagePath, ?string $instructions = null): array
+    public function generate(string $title, ?string $imagePath = null, ?string $instructions = null): array
     {
         $key = trim((string) config('services.gemini.key'));
         $model = trim((string) config('services.gemini.model', 'gemini-3.8-flash'));
@@ -34,7 +34,8 @@ class GeminiArticleWriter
             throw new RuntimeException('Tên model Gemini trong cấu hình không hợp lệ.');
         }
 
-        $image = $this->imagePart($imagePath);
+        // Ảnh bìa là tùy chọn: luồng mới chỉ bắt buộc tiêu đề.
+        $image = filled($imagePath) ? $this->imagePart($imagePath) : null;
         $payload = $this->payload($title, $instructions, $image);
         $models = $this->models($model);
         $rounds = max(1, (int) config('services.gemini.retry_rounds', 3));
@@ -178,17 +179,22 @@ class GeminiArticleWriter
     }
 
     /**
-     * @param  array{mimeType:string,data:string}  $image
+     * @param  array{mimeType:string,data:string}|null  $image
      * @return array<string, mixed>
      */
-    private function payload(string $title, ?string $instructions, array $image): array
+    private function payload(string $title, ?string $instructions, ?array $image): array
     {
         $siteName = catalog_setting('site_name', config('app.name'));
         $extra = filled($instructions) ? trim((string) $instructions) : 'Không có yêu cầu bổ sung.';
         $useGoogleSearch = (bool) config('services.gemini.google_search', false);
+        $source = $image !== null ? 'ảnh đi kèm, ' : '';
         $keywordResearch = $useGoogleSearch
-            ? 'Hãy phân tích ảnh đi kèm và dùng Google Search để xác định ngữ cảnh, nhu cầu tìm kiếm và các cụm từ đang được quan tâm có liên quan trực tiếp đến tiêu đề.'
-            : 'Hãy phân tích ảnh đi kèm, ngữ cảnh và ý định tìm kiếm để chọn các cụm từ khóa sát chủ đề. Không khẳng định chúng là xu hướng thời gian thực khi không có dữ liệu tìm kiếm.';
+            ? 'Hãy phân tích '.$source.'ngữ cảnh và dùng Google Search để xác định nhu cầu tìm kiếm cùng các cụm từ đang được quan tâm có liên quan trực tiếp đến tiêu đề.'
+            : 'Hãy phân tích '.$source.'ngữ cảnh và ý định tìm kiếm để chọn các cụm từ khóa sát chủ đề. Không khẳng định chúng là xu hướng thời gian thực khi không có dữ liệu tìm kiếm.';
+        $categories = $this->categories();
+        $categoryLine = $categories === []
+            ? 'Website chưa có chuyên mục nào; trả về chuỗi rỗng ở trường category.'
+            : 'Chọn một chuyên mục phù hợp nhất trong danh sách sau và trả về đúng tên: '.implode(' | ', $categories).'. Không khớp mục nào thì trả về chuỗi rỗng.';
 
         $prompt = <<<PROMPT
         Viết một bài tin tức tiếng Việt hoàn chỉnh cho website đại lý {$siteName}.
@@ -206,6 +212,14 @@ class GeminiArticleWriter
         - Chỉ xuất nội dung thân bài bằng HTML sạch: p, h2, h3, strong, em, ul, ol, li, blockquote, table, thead, tbody, tr, th, td và a. Không dùng h1 vì tiêu đề trang đã là h1. Không dùng Markdown, script, style, iframe hoặc code fence.
         - Có 3–6 đề mục h2/h3, đoạn văn ngắn, danh sách khi phù hợp và kết bài có lời mời liên hệ đại lý nhẹ nhàng.
         - SEO title dài tối đa 70 ký tự; meta description 140–165 ký tự; tóm tắt tối đa 400 ký tự.
+
+        Yêu cầu để máy tìm kiếm và trợ lý AI trích dẫn được (GEO):
+        - Đoạn đầu tiên trả lời trực tiếp câu hỏi của tiêu đề trong 2–3 câu, đứng độc lập, không cần đọc phần sau mới hiểu.
+        - Ngay sau đoạn đầu, đặt một danh sách ul gồm 3–5 gạch đầu dòng "ý chính" — mỗi dòng là một câu hoàn chỉnh, có thể trích dẫn riêng.
+        - Đề mục h2 viết dưới dạng câu hỏi người đọc thật sự tìm kiếm.
+        - Mỗi đoạn chỉ nói một ý; nêu rõ điều kiện, phạm vi và thời điểm áp dụng của mọi con số.
+        - {$categoryLine}
+
         PROMPT;
 
         $schema = [
@@ -222,8 +236,23 @@ class GeminiArticleWriter
                     'minItems' => 5,
                     'maxItems' => 10,
                 ],
+                'faq' => [
+                    'type' => 'array',
+                    'description' => '3 đến 5 câu hỏi người đọc hay tìm kiếm, mỗi câu trả lời 2–4 câu và đứng độc lập được.',
+                    'items' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'question' => ['type' => 'string'],
+                            'answer' => ['type' => 'string'],
+                        ],
+                        'required' => ['question', 'answer'],
+                    ],
+                    'minItems' => 3,
+                    'maxItems' => 5,
+                ],
+                'category' => ['type' => 'string', 'description' => 'Tên chuyên mục phù hợp nhất, lấy đúng trong danh sách được cung cấp.'],
             ],
-            'required' => ['excerpt', 'article_html', 'seo_title', 'meta_description', 'keywords'],
+            'required' => ['excerpt', 'article_html', 'seo_title', 'meta_description', 'keywords', 'faq', 'category'],
             'additionalProperties' => false,
         ];
 
@@ -235,10 +264,10 @@ class GeminiArticleWriter
             ],
             'contents' => [[
                 'role' => 'user',
-                'parts' => [
-                    ['inlineData' => $image],
+                'parts' => array_values(array_filter([
+                    $image !== null ? ['inlineData' => $image] : null,
                     ['text' => $prompt],
-                ],
+                ])),
             ]],
             'generationConfig' => [
                 'temperature' => 0.75,
@@ -322,7 +351,51 @@ class GeminiArticleWriter
             'seo_title' => Str::limit(trim((string) $result['seo_title']), 70, ''),
             'meta_description' => Str::limit(trim((string) $result['meta_description']), 170, ''),
             'keywords' => $keywords,
+            'faq' => $this->faq($result['faq'] ?? []),
+            'category' => $this->category($result['category'] ?? null),
         ];
+    }
+
+    /**
+     * Chỉ giữ cặp hỏi–đáp đủ cả hai phần; câu trả lời là văn bản thuần để
+     * dùng lại được trong JSON-LD FAQPage.
+     *
+     * @return array<int, array{question:string,answer:string}>
+     */
+    private function faq(mixed $items): array
+    {
+        return collect(is_array($items) ? $items : [])
+            ->map(fn (mixed $item): array => [
+                'question' => is_array($item) ? trim(strip_tags((string) ($item['question'] ?? ''))) : '',
+                'answer' => is_array($item) ? trim(strip_tags((string) ($item['answer'] ?? ''))) : '',
+            ])
+            ->filter(fn (array $item): bool => $item['question'] !== '' && $item['answer'] !== '')
+            ->map(fn (array $item): array => [
+                'question' => Str::limit($item['question'], 300, ''),
+                'answer' => Str::limit($item['answer'], 1200, ''),
+            ])
+            ->take(5)
+            ->values()
+            ->all();
+    }
+
+    /** Chỉ nhận tên chuyên mục đang có thật, tránh tạo chuyên mục rác. */
+    private function category(mixed $name): ?string
+    {
+        $name = trim((string) $name);
+
+        if ($name === '') {
+            return null;
+        }
+
+        return collect($this->categories())
+            ->first(fn (string $existing): bool => Str::lower($existing) === Str::lower($name));
+    }
+
+    /** @return array<int, string> */
+    private function categories(): array
+    {
+        return catalog_model('post_category')::orderBy('name')->pluck('name')->all();
     }
 
     private function today(): string

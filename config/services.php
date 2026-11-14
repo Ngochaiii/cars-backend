@@ -30,6 +30,9 @@ return [
             explode(',', (string) env('GEMINI_FALLBACK_MODELS', 'gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash')),
         ))),
         'retry_rounds' => (int) env('GEMINI_RETRY_ROUNDS', 3),
+        // Mức suy nghĩ cho bước nghiên cứu từ khóa: low/medium/high, để trống
+        // thì dùng mặc định của model.
+        'research_thinking' => env('GEMINI_RESEARCH_THINKING', 'low'),
         'timeout' => (int) env('GEMINI_TIMEOUT', 90),
         'max_output_tokens' => (int) env('GEMINI_MAX_OUTPUT_TOKENS', 8192),
         'google_search' => (bool) env('GEMINI_GOOGLE_SEARCH', false),

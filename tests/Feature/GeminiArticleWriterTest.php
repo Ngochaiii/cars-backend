@@ -2,12 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Filament\Resources\Posts\Pages\CreatePost;
+use App\Filament\Resources\Posts\Pages\ListPosts;
 use App\Jobs\GenerateArticle;
 use App\Media\MediaStore;
 use App\Models\User;
 use App\Services\GeminiArticleWriter;
-use Filament\Actions\Testing\TestAction;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\UploadedFile;
@@ -361,7 +360,7 @@ class GeminiArticleWriterTest extends TestCase
         app(GeminiArticleWriter::class)->generate('Một tiêu đề', $this->imagePath);
     }
 
-    public function test_nut_gemini_luon_bam_duoc_va_bao_thieu_du_lieu(): void
+    public function test_nut_viet_bai_bang_ai_chi_hoi_tieu_de(): void
     {
         $this->actingAs(User::create([
             'name' => 'Admin',
@@ -370,38 +369,28 @@ class GeminiArticleWriterTest extends TestCase
         ]));
         Http::fake();
 
-        $action = TestAction::make('generateArticleWithGemini')
-            ->schemaComponent('geminiArticleActions');
-
-        Livewire::test(CreatePost::class)
-            ->assertActionEnabled($action)
-            ->callAction($action)
-            ->assertNotified('Chưa đủ thông tin');
+        Livewire::test(ListPosts::class)
+            ->assertActionEnabled('writeArticleWithAi')
+            ->callAction('writeArticleWithAi', ['title' => ''])
+            ->assertHasActionErrors(['title' => 'required']);
 
         Http::assertNothingSent();
     }
 
-    public function test_nut_gemini_luu_yeu_cau_chay_nen_khong_ghi_de_noi_dung(): void
+    public function test_nut_viet_bai_luu_yeu_cau_chay_nen_va_khong_goi_api_ngay(): void
     {
         Queue::fake();
         Http::fake();
         $this->actingAs(User::create(['name' => 'Admin', 'email' => 'queue-admin@test.local', 'password' => 'x']));
 
-        Livewire::test(CreatePost::class)
-            ->fillForm([
-                'title' => 'Kinh nghiệm chọn xe điện',
-                'slug' => 'kinh-nghiem-chon-xe-dien',
-                'cover' => [$this->imagePath],
-                'ai_keyword' => 'xe điện',
-                'article_body' => '<p>Nội dung đang sửa</p>',
-                'status' => 'draft',
-            ])
-            ->callAction(TestAction::make('generateArticleWithGemini')->schemaComponent('geminiArticleActions'))
-            ->assertNotified('Yêu cầu đã được lưu')
-            ->assertFormSet(['article_body' => '<p>Nội dung đang sửa</p>', 'status' => 'draft']);
+        Livewire::test(ListPosts::class)
+            ->callAction('writeArticleWithAi', ['title' => 'Kinh nghiệm chọn xe điện'])
+            ->assertNotified('Đang viết bài');
 
         $this->assertDatabaseCount('article_generations', 1);
-        $this->assertDatabaseCount('posts', 0);
+        // Bài nháp được tạo ngay để theo dõi tiến độ, nhưng chưa có nội dung
+        // và chưa gọi API nào trong lúc bấm nút.
+        $this->assertDatabaseHas('posts', ['title' => 'Kinh nghiệm chọn xe điện', 'status' => 'draft', 'sections' => null]);
         Queue::assertPushed(GenerateArticle::class);
         Http::assertNothingSent();
     }

@@ -1539,6 +1539,13 @@ html.js .tabs__panel + .tabs__panel { margin-top: 0; }
 .section-bare .section__head { margin-bottom: var(--s-6); }
 .section-bare .section__head h2 { font-size: var(--fs-h2); }
 
+/* Khối hỏi đáp cuối bài: mỗi cặp một khối, gạch mảnh phân cách, chữ cùng
+   nhịp với .prose để không phá mạch đọc của bài. */
+.faq { max-width: var(--wrap-narrow); }
+.faq__item + .faq__item { margin-top: var(--s-5); padding-top: var(--s-5); border-top: 1px solid var(--line); }
+.faq__question { font-size: var(--fs-lg); line-height: 1.45; margin: 0 0 var(--s-2); }
+.faq__answer { font-size: var(--fs-base); line-height: 1.85; color: var(--body); margin: 0; }
+
 .prose { max-width: var(--wrap-narrow); font-size: var(--fs-base); line-height: 1.85; color: var(--body); }
 .prose h2 { margin: var(--s-8) 0 var(--s-4); }
 .prose h3 { margin: var(--s-7) 0 var(--s-3); }

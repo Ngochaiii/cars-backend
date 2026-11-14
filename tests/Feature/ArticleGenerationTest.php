@@ -2,17 +2,17 @@
 
 namespace Tests\Feature;
 
-use App\Filament\Resources\Posts\Pages\CreatePost;
+use App\Filament\Resources\Posts\Pages\EditPost;
 use App\Jobs\GenerateArticle;
 use App\Media\MediaStore;
 use App\Models\ArticleGeneration;
 use App\Models\Post;
 use App\Models\User;
+use App\Services\Articles\ArticleDraft;
 use App\Services\Articles\ArticlePipeline;
 use App\Services\Articles\ArticleReview;
 use App\Services\Articles\GenerationRequests;
 use App\Services\Articles\PublicationReview;
-use Filament\Actions\Testing\TestAction;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\UploadedFile;
@@ -38,12 +38,12 @@ class ArticleGenerationTest extends TestCase
 
     private function input(): array
     {
-        return ['title' => 'Kinh nghiệm xe điện', 'cover' => 'catalog/posts/test.jpg', 'keyword' => 'xe điện', 'intent' => 'information', 'location' => 'Bắc Giang'];
+        return ['title' => 'Kinh nghiệm xe điện'];
     }
 
     private function articleResult(): array
     {
-        return ['excerpt' => 'Tóm tắt', 'seo_title' => 'Kinh nghiệm xe điện', 'meta_description' => str_repeat('Thông tin xe điện. ', 8), 'keywords' => ['xe điện', 'VinFast', 'lái thử'], 'article_html' => '<p>'.str_repeat('Kinh nghiệm xe điện hữu ích cho người đọc. ', 30).'</p><h2>Chuẩn bị</h2><h2>Lái thử</h2><h2>So sánh</h2>'];
+        return ['excerpt' => 'Tóm tắt', 'seo_title' => 'Kinh nghiệm xe điện', 'meta_description' => str_repeat('Thông tin xe điện. ', 8), 'keywords' => ['xe điện', 'VinFast', 'lái thử'], 'article_html' => '<p>'.str_repeat('Kinh nghiệm xe điện hữu ích cho người đọc. ', 30).'</p><h2>Chuẩn bị</h2><h2>Lái thử</h2><h2>So sánh</h2>', 'faq' => [['question' => 'Sạc ở đâu?', 'answer' => 'Có nhiều điểm sạc công cộng.']], 'category' => null];
     }
 
     private function generation(array $attributes = []): ArticleGeneration
@@ -65,7 +65,7 @@ class ArticleGenerationTest extends TestCase
     {
         $generation = $this->generation();
         Http::fakeSequence()
-            ->push(['candidates' => [['content' => ['parts' => [['text' => json_encode(['intent_analysis' => 'Tìm hiểu', 'outline' => ['Chuẩn bị', 'Lái thử', 'So sánh'], 'evidence_notes' => 'Chưa xác minh', 'related_keywords' => [], 'reader_questions' => [], 'missing_information' => []])]]]]]])
+            ->push(['candidates' => [['content' => ['parts' => [['text' => json_encode(['keyword' => 'xe điện', 'intent' => 'information', 'intent_analysis' => 'Tìm hiểu', 'outline' => ['Chuẩn bị', 'Lái thử', 'So sánh'], 'evidence_notes' => 'Chưa xác minh', 'related_keywords' => [], 'reader_questions' => [], 'missing_information' => []])]]]]]])
             ->push(['candidates' => [['content' => ['parts' => [['text' => json_encode($this->articleResult())]]]]]]);
         $pipeline = app(ArticlePipeline::class);
         $pipeline->advance($generation);
@@ -77,9 +77,31 @@ class ArticleGenerationTest extends TestCase
         $pipeline->advance($generation);
         $this->assertSame('completed', $generation->fresh()->status);
         $this->assertTrue($generation->fresh()->review['requires_editor']);
-        $this->assertDatabaseCount('posts', 0);
+        $this->assertDatabaseHas('posts', ['status' => 'draft', 'ai_reviewed' => 0]);
+        $this->assertDatabaseMissing('posts', ['status' => 'published']);
         Http::assertSentCount(2);
         $this->assertSame(['gemini-3.7-flash'], config('services.gemini.fallback_models'));
+    }
+
+    public function test_buoc_nghien_cuu_dat_muc_suy_nghi_thap_cho_nhanh(): void
+    {
+        $generation = $this->generation();
+        Http::fake(['*' => Http::response(['error' => ['message' => 'Overloaded']], 503)]);
+
+        (new GenerateArticle($generation->id, 1))->withFakeQueueInteractions()->handle(app(ArticlePipeline::class));
+
+        Http::assertSent(fn ($request) => data_get($request->data(), 'generationConfig.thinkingConfig.thinkingLevel') === 'low');
+    }
+
+    public function test_co_the_tat_muc_suy_nghi_thap_qua_cau_hinh(): void
+    {
+        config(['services.gemini.research_thinking' => '']);
+        $generation = $this->generation();
+        Http::fake(['*' => Http::response(['error' => ['message' => 'Overloaded']], 503)]);
+
+        (new GenerateArticle($generation->id, 1))->withFakeQueueInteractions()->handle(app(ArticlePipeline::class));
+
+        Http::assertSent(fn ($request) => ! isset($request->data()['generationConfig']['thinkingConfig']));
     }
 
     public function test_timeout_retries_with_backoff_and_rotates_model_then_stops(): void
@@ -165,19 +187,6 @@ class ArticleGenerationTest extends TestCase
         $this->assertStringContainsString('đối chiếu nguồn', implode(' ', $review['warnings']));
     }
 
-    public function test_draft_load_requires_owner_and_keeps_publication_manual(): void
-    {
-        $generation = $this->generation(['status' => 'completed', 'result' => $this->articleResult(), 'review' => ['warnings' => [], 'note' => 'Cần đọc duyệt']]);
-        Livewire::test(CreatePost::class)->fillForm(['generation_request_id' => $generation->id])
-            ->callAction(TestAction::make('loadGeneratedArticle')->schemaComponent('generationResultActions'))
-            ->assertFormSet(['title' => 'Kinh nghiệm xe điện', 'status' => 'draft', 'ai_reviewed' => false, 'ai_generation_id' => $generation->id]);
-        $this->assertDatabaseCount('posts', 0);
-        $other = User::create(['name' => 'Other', 'email' => 'other@test.local', 'password' => 'x']);
-        $this->actingAs($other);
-        Livewire::test(CreatePost::class)->fillForm(['generation_request_id' => $generation->id])
-            ->assertActionDoesNotExist(TestAction::make('loadGeneratedArticle')->schemaComponent('generationResultActions'));
-    }
-
     public function test_publication_requires_editor_confirmation(): void
     {
         $generation = $this->generation(['status' => 'completed']);
@@ -190,7 +199,7 @@ class ArticleGenerationTest extends TestCase
     {
         $input = $this->input() + ['use_search' => true];
         $generation = $this->generation(['input' => $input]);
-        $brief = ['intent_analysis' => 'Tìm hiểu xe điện', 'outline' => ['A', 'B', 'C'], 'related_keywords' => ['VinFast'], 'reader_questions' => [], 'evidence_notes' => 'Cần đối chiếu.', 'missing_information' => [], 'sources' => ['https://invented.example']];
+        $brief = ['keyword' => 'xe điện', 'intent' => 'information', 'intent_analysis' => 'Tìm hiểu xe điện', 'outline' => ['A', 'B', 'C'], 'related_keywords' => ['VinFast'], 'reader_questions' => [], 'evidence_notes' => 'Cần đối chiếu.', 'missing_information' => [], 'sources' => ['https://invented.example']];
         Http::fake(['*' => Http::response(['candidates' => [[
             'content' => ['parts' => [['text' => json_encode($brief)]]],
             'groundingMetadata' => [
@@ -234,11 +243,13 @@ class ArticleGenerationTest extends TestCase
     public function test_editor_can_save_ai_draft_but_must_confirm_before_publishing(): void
     {
         $generation = $this->generation(['status' => 'completed', 'result' => $this->articleResult(), 'review' => ['warnings' => [], 'note' => 'Đọc duyệt']]);
-        $component = Livewire::test(CreatePost::class)->fillForm(['generation_request_id' => $generation->id])
-            ->callAction(TestAction::make('loadGeneratedArticle')->schemaComponent('generationResultActions'));
-        $component->fillForm(['status' => 'published'])->call('create')->assertHasErrors(['data.ai_reviewed']);
-        $this->assertDatabaseCount('posts', 0);
-        $component->fillForm(['status' => 'draft'])->call('create')->assertHasNoErrors();
-        $this->assertDatabaseHas('posts', ['status' => 'draft', 'ai_generation_id' => $generation->id, 'ai_reviewed' => false]);
+        $post = app(ArticleDraft::class)->apply($generation);
+        $component = Livewire::test(EditPost::class, ['record' => $post->getRouteKey()]);
+
+        $component->fillForm(['status' => 'published'])->call('save')->assertHasErrors(['data.ai_reviewed']);
+        $this->assertSame('draft', $post->fresh()->status);
+
+        $component->fillForm(['status' => 'published', 'ai_reviewed' => true])->call('save')->assertHasNoErrors();
+        $this->assertSame('published', $post->fresh()->status);
     }
 }

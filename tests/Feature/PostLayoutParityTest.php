@@ -123,8 +123,11 @@ class PostLayoutParityTest extends TestCase
         $this->assertSame('Xe điện', $data['category']['name']);
         $this->assertSame(self::BODY_HTML, $data['sections'][0]['body']);
         $this->assertSame('https://cars.example/tin/vf-7-ra-mat', $data['canonical']);
-        $this->assertSame('https://cars.example/tin/vf-7-ra-mat', $data['jsonld']['url']);
-        $this->assertStringEndsWith('/storage/catalog/seo/vf-7-news-social.jpg', $data['jsonld']['image']);
+        // JSON-LD bài viết là một @graph (Article + FAQPage khi có hỏi đáp +
+        // BreadcrumbList) nên API trả về cả cụm, lấy node Article ra kiểm tra.
+        $article = collect($data['jsonld']['@graph'])->firstWhere('@type', 'Article');
+        $this->assertSame('https://cars.example/tin/vf-7-ra-mat', $article['url']);
+        $this->assertStringEndsWith('/storage/catalog/seo/vf-7-news-social.jpg', $article['image']);
     }
 
     public function test_sua_tin_trong_admin_khong_lam_mat_noi_dung_anh_bia_va_seo(): void

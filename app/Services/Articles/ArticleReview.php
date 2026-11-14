@@ -14,7 +14,13 @@ class ArticleReview
         $result = $generation->result;
         $html = $result['article_html'];
         $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $keyword = Str::lower(trim($generation->input['keyword']));
+        // Từ khóa chính do bước nghiên cứu rút ra từ tiêu đề; tiêu đề là mức
+        // dự phòng cho các yêu cầu cũ chưa có bản nghiên cứu.
+        $keyword = Str::lower(trim((string) (
+            $generation->research['brief']['keyword']
+            ?? $generation->input['keyword']
+            ?? $generation->input['title']
+        )));
         $warnings = [];
         $checks = [
             'Từ khóa chính trong tiêu đề SEO' => str_contains(Str::lower($result['seo_title']), $keyword),
