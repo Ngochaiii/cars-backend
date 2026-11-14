@@ -13,6 +13,7 @@ use App\Services\Articles\ArticlePipeline;
 use App\Services\Articles\ArticleReview;
 use App\Services\Articles\GenerationRequests;
 use App\Services\Articles\PublicationReview;
+use App\Support\Url;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\UploadedFile;
@@ -185,6 +186,111 @@ class ArticleGenerationTest extends TestCase
         $this->assertNotEmpty($review['similar_articles']);
         $this->assertStringContainsString('Liên kết chưa có', implode(' ', $review['warnings']));
         $this->assertStringContainsString('đối chiếu nguồn', implode(' ', $review['warnings']));
+    }
+
+    public function test_review_canh_bao_the_title_viet_hoa_tung_chu(): void
+    {
+        $result = $this->articleResult();
+        $result['seo_title'] = 'VinFast Limo Green Đồng Hành Cùng Hành Trình Chuyển Đổi Xanh';
+        $generation = $this->generation(['result' => $result, 'research' => ['brief' => ['keyword' => 'limo green']]]);
+
+        $review = app(ArticleReview::class)->check($generation);
+
+        $this->assertFalse($review['checks']['Thẻ title viết hoa theo lối tiếng Việt']);
+    }
+
+    public function test_review_khong_canh_bao_khi_the_title_viet_hoa_dung(): void
+    {
+        $result = $this->articleResult();
+        $result['seo_title'] = 'VinFast VF 3 cho gia đình nhỏ tại Bắc Giang';
+        $generation = $this->generation(['result' => $result, 'research' => ['brief' => ['keyword' => 'vf 3']]]);
+
+        $review = app(ArticleReview::class)->check($generation);
+
+        $this->assertTrue($review['checks']['Thẻ title viết hoa theo lối tiếng Việt']);
+    }
+
+    public function test_tu_khoa_chinh_khong_can_trung_nguyen_cum_trong_title(): void
+    {
+        $result = $this->articleResult();
+        $result['seo_title'] = 'VinFast VF 5 Plus có phù hợp chạy dịch vụ ở Bắc Giang không?';
+        $generation = $this->generation([
+            'result' => $result,
+            'research' => ['brief' => ['keyword' => 'VF 5 Plus chạy dịch vụ Bắc Giang']],
+        ]);
+
+        $review = app(ArticleReview::class)->check($generation);
+
+        $this->assertTrue($review['checks']['Từ khóa chính trong tiêu đề SEO']);
+    }
+
+    public function test_title_lac_de_van_bi_canh_bao_tu_khoa(): void
+    {
+        $result = $this->articleResult();
+        $result['seo_title'] = 'Bảng giá phụ kiện tháng 11';
+        $generation = $this->generation([
+            'result' => $result,
+            'research' => ['brief' => ['keyword' => 'VF 5 Plus chạy dịch vụ Bắc Giang']],
+        ]);
+
+        $review = app(ArticleReview::class)->check($generation);
+
+        $this->assertFalse($review['checks']['Từ khóa chính trong tiêu đề SEO']);
+    }
+
+    public function test_review_canh_bao_khi_bai_cai_qua_nhieu_lien_ket(): void
+    {
+        $products = [];
+        $result = $this->articleResult();
+        foreach (range(1, 8) as $i) {
+            $url = Url::absolute('product', 'xe-'.$i);
+            $products[] = ['title' => 'Xe '.$i, 'url' => $url];
+            $result['article_html'] .= '<p><a href="'.$url.'">Xe '.$i.'</a></p>';
+        }
+        $generation = $this->generation([
+            'result' => $result,
+            'research' => ['brief' => ['keyword' => 'xe điện'], 'products' => $products],
+        ]);
+
+        $review = app(ArticleReview::class)->check($generation);
+
+        $this->assertStringContainsString('Quá nhiều liên kết', implode(' ', $review['warnings']));
+    }
+
+    public function test_review_canh_bao_bai_qua_ngan(): void
+    {
+        $generation = $this->generation(['result' => $this->articleResult(), 'research' => ['brief' => ['keyword' => 'xe điện']]]);
+
+        $review = app(ArticleReview::class)->check($generation);
+
+        $this->assertFalse($review['checks']['Bài đủ dài (từ 1.200 từ)']);
+    }
+
+    public function test_lien_ket_sang_trang_xe_khong_bi_coi_la_bia_dat(): void
+    {
+        $product = catalog_model('product')::create(['name' => 'VinFast VF 6', 'slug' => 'vinfast-vf-6', 'status' => 'published']);
+        $url = Url::absolute('product', $product->slug);
+        $result = $this->articleResult();
+        $result['article_html'] .= '<p>Xem thêm <a href="'.$url.'">VinFast VF 6</a>.</p>';
+        $generation = $this->generation([
+            'result' => $result,
+            'research' => ['brief' => ['keyword' => 'xe điện'], 'products' => [['title' => 'VinFast VF 6', 'url' => $url]]],
+        ]);
+
+        $review = app(ArticleReview::class)->check($generation);
+
+        $this->assertStringNotContainsString('Liên kết chưa có', implode(' ', $review['warnings']));
+    }
+
+    public function test_buoc_viet_duoc_cung_cap_duong_dan_trang_xe(): void
+    {
+        catalog_model('product')::create(['name' => 'VinFast VF 6', 'slug' => 'vinfast-vf-6', 'status' => 'published']);
+        $generation = $this->generation();
+        Http::fake(['*' => Http::response(['error' => ['message' => 'Overloaded']], 503)]);
+
+        (new GenerateArticle($generation->id, 1))->withFakeQueueInteractions()->handle(app(ArticlePipeline::class));
+
+        Http::assertSent(fn ($request) => str_contains(json_encode($request->data(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), '/san-pham/vinfast-vf-6'));
     }
 
     public function test_publication_requires_editor_confirmation(): void

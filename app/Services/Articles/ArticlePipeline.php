@@ -38,7 +38,7 @@ class ArticlePipeline
                     'brief' => $input,
                     'research' => $generation->research,
                 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                $instructions .= "\nBám sát từ khóa chính và ý định tìm kiếm. Trả lời trực tiếp ở phần mở đầu. Không bịa số liệu tìm kiếm, trải nghiệm lái xe, đánh giá khách hàng hoặc giá/ưu đãi. Dùng các đoạn trả lời độc lập, đề mục dạng câu hỏi khi phù hợp, giải thích điều kiện và ngày hiệu lực của số liệu. Chỉ dẫn nguồn bằng URL có trong dữ liệu; chưa đủ nguồn thì bỏ khẳng định cụ thể và nêu giới hạn. Không sao chép bài đã có; không thêm FAQ hoặc bảng nếu không giúp người đọc. Không hứa hẹn thứ hạng tìm kiếm.";
+                $instructions .= "\nBài dài 1.300–1.500 từ. Toàn bài tối đa 4 liên kết, ưu tiên trang của dòng xe đang nói đến. Bám sát từ khóa chính và ý định tìm kiếm. Trả lời trực tiếp ở phần mở đầu. Không bịa số liệu tìm kiếm, trải nghiệm lái xe, đánh giá khách hàng hoặc giá/ưu đãi. Dùng các đoạn trả lời độc lập, đề mục dạng câu hỏi khi phù hợp, giải thích điều kiện và ngày hiệu lực của số liệu. Chỉ dẫn nguồn bằng URL có trong dữ liệu; chưa đủ nguồn thì bỏ khẳng định cụ thể và nêu giới hạn. Khi nhắc tên một dòng xe có trong product_pages, hãy dẫn liên kết tới đúng URL trang xe đó ít nhất một lần bằng anchor text tự nhiên. Không sao chép bài đã có; không thêm FAQ hoặc bảng nếu không giúp người đọc. Không hứa hẹn thứ hạng tìm kiếm.";
                 $result = $this->writer->generate($input['title'], $input['cover'] ?? null, $instructions);
                 $result['model'] = $model;
                 $generation->update(['result' => $result, 'stage' => 'review', 'status' => 'queued', 'failures' => 0, 'last_error' => null]);
@@ -67,6 +67,10 @@ class ArticlePipeline
         }
         $related = catalog_model('post')::published()->latest('published_at')->limit(50)->get(['title', 'slug'])
             ->map(fn ($post) => ['title' => $post->title, 'url' => Url::absolute('post', $post->slug)])->all();
+        // Trang xe là đích chuyển đổi của bài: đưa đúng URL vào dữ liệu để AI
+        // dẫn link thật, thay vì chỉ nhắc tên xe hoặc tự bịa đường dẫn.
+        $products = catalog_model('product')::published()->orderBy('sort')->limit(50)->get(['name', 'slug'])
+            ->map(fn ($product) => ['title' => $product->name, 'url' => Url::absolute('product', $product->slug)])->all();
         $search = (bool) ($input['use_search'] ?? config('services.gemini.google_search'));
         $schema = [
             'type' => 'object',
@@ -91,7 +95,7 @@ class ArticlePipeline
                     'site_name' => catalog_setting('site_name', config('app.name')),
                     'address' => catalog_setting('address'),
                 ],
-                'models_on_sale' => catalog_model('product')::query()->pluck('name')->all(),
+                'product_pages' => $products,
                 'existing_articles' => $related,
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         // Bước này là rút trích có cấu trúc, không cần suy nghĩ sâu. Gemini 3.x
@@ -152,7 +156,7 @@ class ArticlePipeline
             ->map(fn ($web) => ['url' => $web['uri'], 'title' => $web['title'] ?? $web['uri']])->values()->all();
 
         return [
-            'brief' => $brief, 'sources' => $sources, 'existing_articles' => $related,
+            'brief' => $brief, 'sources' => $sources, 'existing_articles' => $related, 'products' => $products,
             'grounded' => count($sources) > 0, 'search_enabled' => $search,
             'search_entry_point' => is_string($grounding['searchEntryPoint']['renderedContent'] ?? null) ? $grounding['searchEntryPoint']['renderedContent'] : null,
             'search_queries' => $grounding['webSearchQueries'] ?? [],

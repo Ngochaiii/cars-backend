@@ -84,7 +84,7 @@ class GeminiArticleWriterTest extends TestCase
                 && data_get($data, 'contents.0.parts.0.inlineData.mimeType') === 'image/jpeg'
                 && filled(data_get($data, 'contents.0.parts.0.inlineData.data'))
                 && array_key_exists('googleSearch', data_get($data, 'tools.0', []))
-                && data_get($data, 'generationConfig.maxOutputTokens') === 8192
+                && data_get($data, 'generationConfig.maxOutputTokens') === 12288
                 && data_get($data, 'generationConfig.responseFormat.text.mimeType') === 'APPLICATION_JSON';
         });
     }

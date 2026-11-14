@@ -34,7 +34,7 @@ return [
         // thì dùng mặc định của model.
         'research_thinking' => env('GEMINI_RESEARCH_THINKING', 'low'),
         'timeout' => (int) env('GEMINI_TIMEOUT', 90),
-        'max_output_tokens' => (int) env('GEMINI_MAX_OUTPUT_TOKENS', 8192),
+        'max_output_tokens' => (int) env('GEMINI_MAX_OUTPUT_TOKENS', 12288),
         'google_search' => (bool) env('GEMINI_GOOGLE_SEARCH', false),
         'max_inline_image_bytes' => 10 * 1024 * 1024,
     ],

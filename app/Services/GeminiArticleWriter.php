@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Media\MediaStore;
 use App\Support\RichText;
+use App\Support\Url;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -191,6 +192,11 @@ class GeminiArticleWriter
         $keywordResearch = $useGoogleSearch
             ? 'Hãy phân tích '.$source.'ngữ cảnh và dùng Google Search để xác định nhu cầu tìm kiếm cùng các cụm từ đang được quan tâm có liên quan trực tiếp đến tiêu đề.'
             : 'Hãy phân tích '.$source.'ngữ cảnh và ý định tìm kiếm để chọn các cụm từ khóa sát chủ đề. Không khẳng định chúng là xu hướng thời gian thực khi không có dữ liệu tìm kiếm.';
+        $products = $this->productPages();
+        $productLine = $products === []
+            ? 'Website chưa có trang xe nào để dẫn liên kết; không tự tạo đường dẫn.'
+            : 'Dẫn liên kết tới trang của dòng xe mà bài đang nói đến, 1–2 lần, bằng thẻ a với anchor text tự nhiên (không dùng "bấm vào đây"). Toàn bài có tối đa 4 liên kết; không liệt kê các dòng xe khác chỉ để chèn link. Chỉ dùng đúng các URL này, không tự bịa đường dẫn khác: '
+                .collect($products)->map(fn (array $item): string => $item['title'].' → '.$item['url'])->implode(' ; ');
         $categories = $this->categories();
         $categoryLine = $categories === []
             ? 'Website chưa có chuyên mục nào; trả về chuỗi rỗng ở trường category.'
@@ -206,18 +212,20 @@ class GeminiArticleWriter
         {$keywordResearch} Chỉ dùng thông tin có thể kiểm chứng; không tự bịa giá bán, thông số, khuyến mại hay thời hạn. Không sao chép câu văn từ nguồn khác.
 
         Yêu cầu biên tập và SEO:
-        - Bài dài khoảng 900–1.400 từ, mở đầu trả lời nhanh đúng ý định tìm kiếm.
+        - Bài dài 1.300–1.500 từ, mở đầu trả lời nhanh đúng ý định tìm kiếm.
         - Văn phong tự nhiên, hữu ích, dễ đọc; ưu tiên thông tin thực tế cho người đang tìm hiểu xe VinFast.
         - Chọn 5–10 từ khóa/cụm từ khóa sát chủ đề và có ý định tìm kiếm rõ ràng. Đưa chúng vào bài tự nhiên cùng các biến thể ngữ nghĩa; tuyệt đối không nhồi từ khóa.
         - Chỉ xuất nội dung thân bài bằng HTML sạch: p, h2, h3, strong, em, ul, ol, li, blockquote, table, thead, tbody, tr, th, td và a. Không dùng h1 vì tiêu đề trang đã là h1. Không dùng Markdown, script, style, iframe hoặc code fence.
         - Có 3–6 đề mục h2/h3, đoạn văn ngắn, danh sách khi phù hợp và kết bài có lời mời liên hệ đại lý nhẹ nhàng.
         - SEO title dài tối đa 70 ký tự; meta description 140–165 ký tự; tóm tắt tối đa 400 ký tự.
+        - SEO title viết hoa theo lối tiếng Việt: chỉ viết hoa chữ cái đầu câu và tên riêng (VinFast, VF 6, Bắc Giang). Tuyệt đối không viết hoa đầu mỗi từ theo kiểu tiếng Anh.
 
         Yêu cầu để máy tìm kiếm và trợ lý AI trích dẫn được (GEO):
         - Đoạn đầu tiên trả lời trực tiếp câu hỏi của tiêu đề trong 2–3 câu, đứng độc lập, không cần đọc phần sau mới hiểu.
         - Ngay sau đoạn đầu, đặt một danh sách ul gồm 3–5 gạch đầu dòng "ý chính" — mỗi dòng là một câu hoàn chỉnh, có thể trích dẫn riêng.
         - Đề mục h2 viết dưới dạng câu hỏi người đọc thật sự tìm kiếm.
         - Mỗi đoạn chỉ nói một ý; nêu rõ điều kiện, phạm vi và thời điểm áp dụng của mọi con số.
+        - {$productLine}
         - {$categoryLine}
 
         PROMPT;
@@ -271,7 +279,7 @@ class GeminiArticleWriter
             ]],
             'generationConfig' => [
                 'temperature' => 0.75,
-                'maxOutputTokens' => (int) config('services.gemini.max_output_tokens', 8192),
+                'maxOutputTokens' => (int) config('services.gemini.max_output_tokens', 12288),
                 'responseFormat' => [
                     'text' => [
                         'mimeType' => 'APPLICATION_JSON',
@@ -390,6 +398,19 @@ class GeminiArticleWriter
 
         return collect($this->categories())
             ->first(fn (string $existing): bool => Str::lower($existing) === Str::lower($name));
+    }
+
+    /**
+     * Trang xe là đích chuyển đổi của bài viết, nên AI cần URL thật để dẫn
+     * liên kết thay vì chỉ nhắc tên xe.
+     *
+     * @return array<int, array{title:string,url:string}>
+     */
+    private function productPages(): array
+    {
+        return catalog_model('product')::published()->orderBy('sort')->limit(50)->get(['name', 'slug'])
+            ->map(fn ($product): array => ['title' => $product->name, 'url' => Url::absolute('product', $product->slug)])
+            ->all();
     }
 
     /** @return array<int, string> */

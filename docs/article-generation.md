@@ -20,6 +20,14 @@ và dấu đã đọc duyệt. Đổi trạng thái bằng ô *Trạng thái* r�
 **Viết lại bằng AI** trên trang sửa dùng tiêu đề hiện tại và thay nội dung của đúng bài đó.
 Hệ thống không bao giờ tự đăng bài.
 
+## Luật viết bài
+
+- Dài 1.300–1.500 từ.
+- Thẻ title viết hoa theo lối tiếng Việt: chỉ hoa chữ đầu câu và tên riêng, không hoa từng từ.
+- Toàn bài tối đa **4 liên kết**, ưu tiên trang của dòng xe đang nói đến (dẫn 1–2 lần, anchor
+  text tự nhiên). URL trang xe và bài cũ được đưa sẵn vào dữ liệu cho AI; link nằm ngoài danh
+  sách đó bị khối kiểm tra bắt lỗi.
+
 ## Chuẩn GEO trong bài
 
 - Đoạn đầu trả lời trực tiếp câu hỏi của tiêu đề, đứng độc lập được.
@@ -65,8 +73,9 @@ và viết). Hết hạn mức thì yêu cầu báo 429 và model đó bị lo�
 - Chỉ nguồn trong `groundingMetadata` được ghi là nguồn tìm kiếm. AI không được tự tạo danh sách
   nguồn rồi coi đó là đã tra cứu.
 - Khi không có nguồn tìm kiếm, từ khóa chỉ là đề xuất theo ngữ nghĩa, không có volume/KD.
-- Khối kiểm tra soát: từ khóa trong title/mở đầu, số đề mục, độ dài mô tả, liên kết chưa có trong
-  nguồn, số liệu giá/thông số cần đối chiếu, và độ trùng cụm 5 từ với 100 bài đã đăng gần nhất.
+- Khối kiểm tra soát: từ khóa trong title/mở đầu (đủ các từ có nghĩa, không cần trùng nguyên cụm),
+  số đề mục, độ dài mô tả, độ dài bài, cách viết hoa thẻ title, số lượng và nguồn gốc liên kết,
+  số liệu giá/thông số cần đối chiếu, và độ trùng cụm 5 từ với 100 bài đã đăng gần nhất.
   Đây không phải kiểm tra đạo văn toàn Internet, không phải máy xác minh sự thật, và không có
   bảo đảm thứ hạng tìm kiếm.
 
