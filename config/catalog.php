@@ -347,6 +347,10 @@ return [
         // mọi xe trong BrandSeeder) thì không lặp lại ở đây. [] = không hiện.
         'product_forms' => ['dang-ky-tu-van'],
 
+        // Ô "Nhận báo giá lăn bánh" (chỉ tên + số điện thoại) ngay dưới giá ở
+        // đầu trang chi tiết, gửi vào form có khoá này. null = ẩn ô.
+        'quick_quote_form' => env('CATALOG_QUICK_QUOTE_FORM', 'dat-coc'),
+
         // Form ở băng đăng ký nhận tin ngay trên footer — chỉ cần ô email.
         // null = ẩn hẳn băng đó.
         'newsletter_form' => 'dang-ky-nhan-tin',

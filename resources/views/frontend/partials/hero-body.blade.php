@@ -60,4 +60,8 @@
             @endif
         </div>
     </div>
+
+    @if ($quickQuote ?? null)
+        @include('frontend.partials.quick-quote')
+    @endif
 </div>

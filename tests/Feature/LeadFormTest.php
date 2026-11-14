@@ -54,6 +54,10 @@ class LeadFormTest extends TestCase
         ]);
 
         config(['catalog.frontend.product_forms' => [$this->deposit->key]]);
+
+        // Ô báo giá nhanh đầu trang cũng có "Họ và tên" — tắt đi để test ở đây
+        // chỉ đo form cuối trang. Ô đó có test riêng (QuickQuoteTest).
+        config(['catalog.frontend.quick_quote_form' => null]);
     }
 
     public function test_gui_form_tao_lead_va_quay_ve_kem_cau_cam_on(): void

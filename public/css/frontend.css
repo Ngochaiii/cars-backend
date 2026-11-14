@@ -5834,12 +5834,58 @@ html.js .home-story.home-motion-ready [data-home-reveal].home-reveal--media:not(
 .hero-caption .hero__support strong { color: var(--automotive-ink); }
 .hero-caption + .wrap .breadcrumb { padding-top: 0; }
 
+/* Ô "Nhận báo giá lăn bánh": một hàng ngang trải hết bề rộng khối chữ đầu
+   trang, nằm dưới tên xe + giá. Nền sáng riêng nên đọc được cả trên hero
+   ảnh tối lẫn bảng sáng dưới banner. */
+.quick-quote {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-3);
+    margin-top: var(--s-6);
+    padding: var(--s-5) clamp(16px, 2vw, 24px);
+    border: 1px solid #d6e3fb;
+    border-radius: 12px;
+    background: #f3f7ff;
+    color: var(--body);
+}
+.quick-quote__title { margin: 0; display: grid; gap: 2px; }
+.quick-quote__title strong { color: var(--ink); font-size: var(--fs-base); font-weight: 700; line-height: 1.35; }
+.quick-quote__title span { color: var(--muted); font-size: var(--fs-sm); line-height: 1.5; }
+.quick-quote__form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    gap: var(--s-3);
+    align-items: start;
+}
+.quick-quote .field { margin: 0; }
+.quick-quote .field input[type=text],
+.quick-quote .field input[type=tel] {
+    height: 50px;
+    border-radius: 8px;
+    background: #fff;
+}
+.quick-quote .btn { height: 50px; padding-inline: var(--s-6); border-radius: 8px; white-space: nowrap; }
+.quick-quote__form[aria-busy=true] .btn { cursor: wait; opacity: .7; }
+.quick-quote [aria-invalid=true] { border-color: var(--danger); }
+.quick-quote .field__error { margin-top: var(--s-1); font-size: var(--fs-xs); color: var(--danger); }
+.quick-quote .lead-form__status { grid-column: 1 / -1; margin: 0; font-size: var(--fs-sm); }
+.quick-quote .lead-form__status.is-success { color: var(--good); font-weight: 600; }
+.quick-quote .lead-form__status.is-error { color: var(--danger); }
+.quick-quote__done { grid-column: 1 / -1; margin: 0; color: var(--good); font-weight: 600; font-size: var(--fs-sm); }
+
 @media (max-width: 1180px) {
     .hero-caption .hero__inner--summary {
         grid-template-columns: minmax(0, 1fr);
         gap: var(--s-6);
     }
     .hero-caption .hero__commerce { justify-content: space-between; }
+    .quick-quote { margin-top: 0; }
+}
+
+@media (max-width: 680px) {
+    .quick-quote__form { grid-template-columns: minmax(0, 1fr); }
+    .quick-quote .btn { width: 100%; }
 }
 
 @media (max-width: 680px) {

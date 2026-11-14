@@ -29,6 +29,8 @@ class ProductController extends Controller
             'product' => $product,
             'sections' => $sections,
             'forms' => $this->forms($sections),
+            'quickQuote' => $this->quickQuote(),
+            'quickQuoteUtm' => $this->quickQuoteUtm($request),
             'fuelCalc' => $this->fuelCalc($product, $request),
             'loan' => $this->loan($product, $request),
         ]);
@@ -69,6 +71,49 @@ class ProductController extends Controller
             ->get()
             ->sortBy(fn ($form) => array_search($form->key, $keys, true))
             ->values();
+    }
+
+    /**
+     * Form cho ô "Nhận báo giá lăn bánh" ngay dưới giá ở đầu trang. Khoá khai ở
+     * config('catalog.frontend.quick_quote_form'); null, form không có hoặc đã
+     * tắt thì không hiện ô.
+     */
+    protected function quickQuote(): ?Form
+    {
+        $key = config('catalog.frontend.quick_quote_form');
+
+        if (blank($key) || ! Catalog::feature('forms')) {
+            return null;
+        }
+
+        return Catalog::query('form')
+            ->with('fields')
+            ->where('key', $key)
+            ->where('is_active', true)
+            ->first();
+    }
+
+    /**
+     * Nguồn khách để gắn vào lead gửi từ ô báo giá nhanh. UTM trên đường dẫn
+     * thì giữ nguyên; chỉ có gclid (Google Ads tự gắn khi khách bấm quảng cáo)
+     * thì coi là google / cpc — để biết lead nào đến từ quảng cáo.
+     *
+     * @return array<string, string>
+     */
+    protected function quickQuoteUtm(Request $request): array
+    {
+        $keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+
+        $utm = collect($request->only($keys))
+            ->filter(fn ($value) => is_string($value) && $value !== '')
+            ->map(fn (string $value) => mb_substr($value, 0, 100))
+            ->all();
+
+        if (empty($utm) && $request->filled('gclid')) {
+            $utm = ['utm_source' => 'google', 'utm_medium' => 'cpc'];
+        }
+
+        return $utm;
     }
 
     /**
