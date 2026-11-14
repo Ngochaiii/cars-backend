@@ -3,14 +3,16 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\Posts\Pages\CreatePost;
+use App\Jobs\GenerateArticle;
 use App\Media\MediaStore;
 use App\Models\User;
 use App\Services\GeminiArticleWriter;
-use App\Support\RichText;
 use Filament\Actions\Testing\TestAction;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Sleep;
 use Livewire\Livewire;
 use RuntimeException;
@@ -132,6 +134,29 @@ class GeminiArticleWriterTest extends TestCase
             return ! array_key_exists('tools', $data)
                 && str_contains((string) data_get($data, 'contents.0.parts.1.text'), 'cụm từ khóa sát chủ đề');
         });
+    }
+
+    public function test_loi_ket_noi_phan_biet_timeout_dns_va_chung_chi(): void
+    {
+        $error = '';
+        Http::fake(function () use (&$error) {
+            throw new ConnectionException($error);
+        });
+
+        foreach ([
+            'cURL error 28: Operation timed out' => 'quá thời gian chờ 90 giây',
+            'cURL error 6: Could not resolve host' => 'không phân giải được tên miền',
+            'cURL error 60: SSL certificate problem' => 'không xác thực được chứng chỉ HTTPS',
+            'cURL error 7: Failed to connect' => 'kiểm tra kết nối mạng',
+        ] as $error => $expected) {
+            try {
+                app(GeminiArticleWriter::class)->generate('Một tiêu đề', $this->imagePath);
+                $this->fail('Phải báo lỗi kết nối.');
+            } catch (RuntimeException $exception) {
+                $this->assertStringContainsString($expected, $exception->getMessage());
+                $this->assertInstanceOf(ConnectionException::class, $exception->getPrevious());
+            }
+        }
     }
 
     public function test_loi_quota_tu_gemini_duoc_doi_thanh_thong_bao_de_hieu_va_khong_goi_lap(): void
@@ -356,49 +381,28 @@ class GeminiArticleWriterTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_nut_gemini_do_noi_dung_vao_form_nhung_chua_tu_dong_dang_bai(): void
+    public function test_nut_gemini_luu_yeu_cau_chay_nen_khong_ghi_de_noi_dung(): void
     {
-        $this->actingAs(User::create([
-            'name' => 'Admin',
-            'email' => 'gemini-admin@test.local',
-            'password' => 'x',
-        ]));
-
-        $articleHtml = '<p>'.str_repeat('Thông tin hữu ích cho người đang tìm hiểu xe điện. ', 20).'</p>';
-
-        Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [[
-                    'content' => ['parts' => [[
-                        'text' => json_encode([
-                            'excerpt' => 'Tóm tắt do Gemini tạo.',
-                            'article_html' => $articleHtml,
-                            'seo_title' => 'SEO title do Gemini tạo',
-                            'meta_description' => 'Meta description do Gemini tạo cho bài viết xe điện VinFast tại đại lý Bắc Giang, cung cấp thông tin hữu ích cho khách hàng.',
-                            'keywords' => ['xe điện', 'VinFast', 'VinFast Bắc Giang', 'mua xe điện', 'kinh nghiệm chọn xe'],
-                        ], JSON_UNESCAPED_UNICODE),
-                    ]]],
-                ]],
-            ]),
-        ]);
+        Queue::fake();
+        Http::fake();
+        $this->actingAs(User::create(['name' => 'Admin', 'email' => 'queue-admin@test.local', 'password' => 'x']));
 
         Livewire::test(CreatePost::class)
             ->fillForm([
                 'title' => 'Kinh nghiệm chọn xe điện',
                 'slug' => 'kinh-nghiem-chon-xe-dien',
                 'cover' => [$this->imagePath],
+                'ai_keyword' => 'xe điện',
+                'article_body' => '<p>Nội dung đang sửa</p>',
                 'status' => 'draft',
             ])
-            ->callAction(
-                TestAction::make('generateArticleWithGemini')
-                    ->schemaComponent('geminiArticleActions'),
-            )
-            ->assertFormSet([
-                'excerpt' => 'Tóm tắt do Gemini tạo.',
-                'article_body' => str_replace(' </p>', '</p>', RichText::clean($articleHtml)),
-                'seo.title' => 'SEO title do Gemini tạo',
-                'seo.keywords' => 'xe điện, VinFast, VinFast Bắc Giang, mua xe điện, kinh nghiệm chọn xe',
-                'status' => 'draft',
-            ]);
+            ->callAction(TestAction::make('generateArticleWithGemini')->schemaComponent('geminiArticleActions'))
+            ->assertNotified('Yêu cầu đã được lưu')
+            ->assertFormSet(['article_body' => '<p>Nội dung đang sửa</p>', 'status' => 'draft']);
+
+        $this->assertDatabaseCount('article_generations', 1);
+        $this->assertDatabaseCount('posts', 0);
+        Queue::assertPushed(GenerateArticle::class);
+        Http::assertNothingSent();
     }
 }

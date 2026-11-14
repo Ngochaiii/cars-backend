@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Posts\Pages;
 
 use App\Filament\Resources\Posts\PostResource;
+use App\Services\Articles\PublicationReview;
 use App\Support\PostContent;
 use Filament\Resources\Pages\CreateRecord;
 
@@ -12,6 +13,8 @@ class CreatePost extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        PublicationReview::validate($data);
+
         $data['sections'] = PostContent::intoSections($data['article_body'] ?? null);
         unset($data['article_body']);
 

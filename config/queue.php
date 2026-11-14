@@ -31,6 +31,16 @@ return [
 
     'connections' => [
 
+        // Isolated reservation timeout: longer than the article worker's timeout.
+        'article_generation' => [
+            'driver' => 'database',
+            'connection' => env('DB_QUEUE_CONNECTION'),
+            'table' => 'jobs',
+            'queue' => 'articles',
+            'retry_after' => 180,
+            'after_commit' => true,
+        ],
+
         'sync' => [
             'driver' => 'sync',
         ],
@@ -84,6 +94,7 @@ return [
         'failover' => [
             'driver' => 'failover',
             'connections' => [
+
                 'database',
                 'deferred',
             ],

@@ -1,0 +1,18 @@
+[Unit]
+Description=VinFast article generation queue
+After=network.target
+
+[Service]
+Type=simple
+User=www
+Group=www
+WorkingDirectory=/www/wwwroot/main
+ExecStart=/www/server/php/83/bin/php artisan queue:work article_generation --queue=articles --sleep=3 --tries=20 --timeout=110 --max-time=3600 --memory=256
+Restart=always
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=130
+UMask=0022
+
+[Install]
+WantedBy=multi-user.target

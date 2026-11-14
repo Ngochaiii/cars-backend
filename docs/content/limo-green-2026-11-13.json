@@ -1,0 +1,270 @@
+{
+  "name": "VinFast Limo Green",
+  "slug": "vinfast-limo-green",
+  "tagline": "MPV điện 7 chỗ cho những hành trình mới",
+  "price_from": 636000000,
+  "hero": {
+    "type": "image",
+    "src": "catalog/vinfast/vinfast-limo-green/white.webp",
+    "bare": true,
+    "banners": [
+      {
+        "image": "catalog/vinfast/vinfast-limo-green/hero.webp",
+        "label": "VinFast Limo Green trên hành trình",
+        "is_default": true
+      }
+    ],
+    "lede": "Giá niêm yết 699 triệu đồng. Ưu đãi giảm 9%, giá hiển thị làm tròn từ 636 triệu đồng.",
+    "intro_title": "Limo Green tại Bắc Giang",
+    "intro_body": "Không gian 7 chỗ, vận hành thuần điện và các trang bị thiết thực cho nhu cầu gia đình hoặc kinh doanh vận tải."
+  },
+  "highlights": [
+    {
+      "value": "7",
+      "unit": "chỗ",
+      "label": "Không gian MPV"
+    },
+    {
+      "value": "450",
+      "unit": "km",
+      "label": "Quãng đường theo NEDC"
+    },
+    {
+      "value": "150",
+      "unit": "kW",
+      "label": "Công suất tối đa"
+    }
+  ],
+  "sections": [
+    {
+      "type": "text",
+      "title": "Giá bán và ưu đãi Limo Green",
+      "body": "<p>Giá niêm yết <strong>699.000.000 đồng</strong>. Sau giảm 9% là <strong>636.090.000 đồng</strong>, hiển thị làm tròn <strong>636 triệu đồng</strong> theo báo giá đại lý cung cấp.</p><p>Liên hệ đại lý để xác nhận giá hợp đồng, điều kiện ưu đãi và dự toán lăn bánh. Thông tin ưu đãi cập nhật ngày 13/11/2026.</p>"
+    },
+    {
+      "type": "media",
+      "layout": "carousel",
+      "title": "Ngoại thất Limo Green",
+      "intro": "Hình ảnh xe từ VinFast.",
+      "items": [
+        {
+          "image": "catalog/vinfast/vinfast-limo-green/exterior-1.webp",
+          "label": "Ngoại thất VinFast Limo Green — góc 1"
+        },
+        {
+          "image": "catalog/vinfast/vinfast-limo-green/exterior-2.webp",
+          "label": "Ngoại thất VinFast Limo Green — góc 2"
+        },
+        {
+          "image": "catalog/vinfast/vinfast-limo-green/exterior-3.webp",
+          "label": "Ngoại thất VinFast Limo Green — góc 3"
+        },
+        {
+          "image": "catalog/vinfast/vinfast-limo-green/exterior-4.webp",
+          "label": "Ngoại thất VinFast Limo Green — góc 4"
+        }
+      ]
+    },
+    {
+      "type": "media",
+      "layout": "tabs",
+      "title": "Không gian nội thất",
+      "items": [
+        {
+          "image": "catalog/vinfast/vinfast-limo-green/interior-day.webp",
+          "label": "Nội thất ban ngày"
+        },
+        {
+          "image": "catalog/vinfast/vinfast-limo-green/interior-night.webp",
+          "label": "Nội thất ban đêm"
+        }
+      ]
+    },
+    {
+      "type": "media",
+      "layout": "cols-3",
+      "title": "Chi tiết nội thất",
+      "items": [
+        {
+          "image": "catalog/vinfast/vinfast-limo-green/interior-1.webp",
+          "label": "Nội thất Limo Green — chi tiết 1"
+        },
+        {
+          "image": "catalog/vinfast/vinfast-limo-green/interior-2.webp",
+          "label": "Nội thất Limo Green — chi tiết 2"
+        },
+        {
+          "image": "catalog/vinfast/vinfast-limo-green/interior-3.webp",
+          "label": "Nội thất Limo Green — chi tiết 3"
+        }
+      ]
+    },
+    {
+      "type": "media",
+      "layout": "feature-rows",
+      "title": "Trang bị ngoại thất",
+      "items": [
+        {
+          "image": "catalog/vinfast/vinfast-limo-green/mirror.webp",
+          "label": "Gương chiếu hậu chỉnh điện"
+        },
+        {
+          "image": "catalog/vinfast/vinfast-limo-green/wheel.webp",
+          "label": "La-zăng 18 inch"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Tài liệu chính hãng",
+      "body": "<p>Tham khảo <a href=\"https://vinfastauto.com/vn_vi/limo-green\" target=\"_blank\" rel=\"noopener\">trang Limo Green của VinFast</a> và brochure PDF bên dưới để đối chiếu thông tin trước khi đặt xe.</p>"
+    }
+  ],
+  "specs": [
+    {
+      "group": "Kích thước và vận hành",
+      "rows": [
+        {
+          "label": "Dài × rộng × cao",
+          "value": "4.740 × 1.872 × 1.729 mm"
+        },
+        {
+          "label": "Chiều dài cơ sở",
+          "value": "2.840 mm"
+        },
+        {
+          "label": "Số chỗ",
+          "value": "7"
+        },
+        {
+          "label": "Công suất tối đa",
+          "value": "150 kW"
+        },
+        {
+          "label": "Mô-men xoắn cực đại",
+          "value": "280 Nm"
+        },
+        {
+          "label": "Chế độ lái",
+          "value": "Eco, Normal"
+        }
+      ]
+    },
+    {
+      "group": "Pin và sạc",
+      "rows": [
+        {
+          "label": "Dung lượng pin khả dụng",
+          "value": "60,13 kWh"
+        },
+        {
+          "label": "Quãng đường theo NEDC",
+          "value": "450 km/lần sạc"
+        },
+        {
+          "label": "Sạc AC tối đa",
+          "value": "6,9 kW"
+        },
+        {
+          "label": "Sạc DC tối đa",
+          "value": "80 kW"
+        },
+        {
+          "label": "Sạc nhanh DC 10–70%",
+          "value": "Khoảng 30 phút"
+        }
+      ]
+    },
+    {
+      "group": "Tiện nghi và an toàn",
+      "rows": [
+        {
+          "label": "Màn hình cảm ứng",
+          "value": "10,1 inch"
+        },
+        {
+          "label": "Điều hòa",
+          "value": "Tự động, 1 vùng"
+        },
+        {
+          "label": "Túi khí",
+          "value": "4"
+        },
+        {
+          "label": "Hệ thống hỗ trợ an toàn",
+          "value": "ABS, EBD, BA, ESC, TCS, HSA, ROM"
+        }
+      ]
+    },
+    {
+      "group": "Bảo hành",
+      "rows": [
+        {
+          "label": "Xe",
+          "value": "7 năm hoặc 160.000 km"
+        },
+        {
+          "label": "Pin",
+          "value": "8 năm hoặc 160.000 km"
+        }
+      ]
+    }
+  ],
+  "spec_notes": [
+    {
+      "label": "Điều kiện sử dụng",
+      "body": "450 km là kết quả theo chuẩn NEDC. Phạm vi thực tế và thời gian sạc thay đổi theo tải trọng, cách lái, điều kiện môi trường và thiết bị sạc."
+    },
+    {
+      "label": "Thông tin sản phẩm",
+      "body": "Bảo hành áp dụng theo mốc thời gian hoặc số km, tùy điều kiện đến trước. Ảnh minh họa từ VinFast; trang bị và chính sách cần xác nhận khi đặt xe."
+    }
+  ],
+  "spec_pdf": "catalog/vinfast/vinfast-limo-green/brochure.pdf",
+  "spec_pdf_label": "Brochure Limo Green chính hãng — bản 09/01/2026 (PDF, 12 trang)",
+  "brochure_url": "https://vinfast-bacgiang.com/storage/catalog/vinfast/vinfast-limo-green/brochure.pdf",
+  "seo": {
+    "title": "VinFast Limo Green Bắc Giang | Giá ưu đãi từ 636 triệu",
+    "description": "VinFast Limo Green 7 chỗ tại Bắc Giang: giá niêm yết 699 triệu, ưu đãi từ 636 triệu. Xem ảnh, thông số, brochure chính hãng và đăng ký lái thử.",
+    "image": "catalog/vinfast/vinfast-limo-green/white.webp"
+  },
+  "variant": {
+    "name": "Limo Green",
+    "price": 636000000,
+    "price_original": 699000000,
+    "battery_kwh": 60.13,
+    "range_km": 450,
+    "note": "Giảm 9% từ 699 triệu còn 636,09 triệu; hiển thị làm tròn 636 triệu. Liên hệ xác nhận giá hợp đồng và điều kiện ưu đãi.",
+    "is_default": true,
+    "sort": 1
+  },
+  "options": [
+    {
+      "name": "Trắng — Infinity Blanc",
+      "hex": "#F2F2F2",
+      "image": "catalog/vinfast/vinfast-limo-green/white.webp",
+      "sort": 1
+    }
+  ],
+  "_sources": {
+    "page": "https://vinfastauto.com/vn_vi/limo-green",
+    "brochure": "https://static-cms-prod.vinfastauto.com/09012026-brochure-limo-green.pdf",
+    "promotion": "User-provided 2026-11-13: 699m less 9%, displayed 636m rounded",
+    "verified_date": "2026-11-13"
+  },
+  "_assets": [
+    "hero",
+    "white",
+    "exterior-1",
+    "exterior-2",
+    "exterior-3",
+    "exterior-4",
+    "interior-day",
+    "interior-night",
+    "interior-1",
+    "interior-2",
+    "interior-3",
+    "mirror",
+    "wheel"
+  ]
+}

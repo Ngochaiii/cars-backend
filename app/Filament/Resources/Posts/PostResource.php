@@ -7,27 +7,25 @@ use App\Filament\Forms\Components\NativeMediaUpload;
 use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\EditPost;
 use App\Filament\Resources\Posts\Pages\ListPosts;
+use App\Filament\Schemas\ArticleGenerationSection;
 use App\Filament\Schemas\SeoSection;
-use App\Services\GeminiArticleWriter;
 use App\Support\Catalog;
 use App\Support\Url;
 use BackedEnum;
-use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ImageColumn;
@@ -35,7 +33,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
-use Throwable;
 
 class PostResource extends Resource
 {
@@ -131,81 +128,13 @@ class PostResource extends Resource
                         ->columnSpanFull(),
                 ]),
 
+            ArticleGenerationSection::make(),
+
             Section::make('Nội dung')
                 ->description('Dán nội dung từ website, Word hoặc Google Docs. Hệ thống giữ tiêu đề, đoạn văn, chữ đậm, danh sách và liên kết.')
                 ->collapsible()
                 ->columnSpanFull()
                 ->schema([
-                    Textarea::make('ai_instructions')
-                        ->label('Yêu cầu thêm cho Gemini')
-                        ->placeholder('Ví dụ: nhấn mạnh ưu đãi tháng này, hướng tới khách mua xe gia đình, bài khoảng 1.000 từ…')
-                        ->helperText('Không bắt buộc. Tiêu đề và ảnh bìa ở phía trên là dữ liệu chính để AI viết bài.')
-                        ->rows(3)
-                        ->dehydrated(false)
-                        ->columnSpanFull(),
-
-                    Actions::make([
-                        Action::make('generateArticleWithGemini')
-                            ->label('Sinh bài viết bằng Gemini')
-                            ->icon(Heroicon::OutlinedSparkles)
-                            ->color('info')
-                            ->requiresConfirmation(fn (Get $schemaGet): bool => filled($schemaGet('article_body')))
-                            ->modalHeading('Tạo lại nội dung bằng Gemini?')
-                            ->modalDescription('Nội dung, tóm tắt và các trường SEO hiện tại sẽ được thay bằng bản Gemini tạo mới.')
-                            ->modalSubmitActionLabel('Tạo lại bài')
-                            ->action(function (Get $schemaGet, Set $schemaSet, GeminiArticleWriter $writer): void {
-                                $title = trim((string) $schemaGet('title'));
-                                $cover = $schemaGet('cover');
-                                $cover = is_array($cover) ? collect($cover)->first(fn (mixed $item): bool => filled($item)) : $cover;
-
-                                if ($title === '' || blank($cover)) {
-                                    $missing = collect([
-                                        $title === '' ? 'tiêu đề' : null,
-                                        blank($cover) ? 'ảnh bìa đã tải xong' : null,
-                                    ])->filter()->implode(' và ');
-
-                                    Notification::make()
-                                        ->title('Chưa đủ thông tin')
-                                        ->body("Hãy bổ sung {$missing} rồi bấm lại nút Gemini.")
-                                        ->warning()
-                                        ->send();
-
-                                    return;
-                                }
-
-                                try {
-                                    $article = $writer->generate(
-                                        $title,
-                                        (string) $cover,
-                                        $schemaGet('ai_instructions'),
-                                    );
-                                } catch (Throwable $exception) {
-                                    Notification::make()
-                                        ->title('Chưa tạo được bài viết')
-                                        ->body($exception->getMessage())
-                                        ->danger()
-                                        ->persistent()
-                                        ->send();
-
-                                    return;
-                                }
-
-                                $schemaSet('excerpt', $article['excerpt']);
-                                $schemaSet('article_body', $article['article_html']);
-                                $schemaSet('seo.title', $article['seo_title']);
-                                $schemaSet('seo.description', $article['meta_description']);
-                                $schemaSet('seo.keywords', implode(', ', $article['keywords']));
-
-                                Notification::make()
-                                    ->title('Gemini đã viết xong bài')
-                                    ->body('Hãy đọc lại thông tin thực tế trước khi chuyển trạng thái sang Đã đăng.')
-                                    ->success()
-                                    ->send();
-                            }),
-                    ])
-                        ->key('geminiArticleActions')
-                        ->columnSpanFull(),
-
                     Textarea::make('seo.keywords')
                         ->label('Từ khóa SEO Gemini đã dùng')
                         ->helperText('Danh sách để biên tập viên kiểm tra. Website không tạo thẻ meta keywords và không nhồi từ khóa máy móc.')
@@ -223,6 +152,10 @@ class PostResource extends Resource
                         ->columnSpanFull(),
                 ]),
 
+            Hidden::make('ai_generation_id'),
+            Checkbox::make('ai_reviewed')
+                ->label('Tôi đã đọc duyệt bài AI, đối chiếu dữ kiện và nguồn trước khi đăng')
+                ->visible(fn (Get $get): bool => filled($get('ai_generation_id'))),
             SeoSection::make(),
         ]);
     }

@@ -45,7 +45,7 @@ class GeminiArticleWriter
         // Google trả 503 "high demand" theo từng đợt vài giây trên các model flash
         // mới. Vì vậy thử hết danh sách model một lượt, nếu vẫn quá tải thì nghỉ
         // 2s, 4s… rồi lặp lại toàn bộ danh sách thay vì chỉ gọi mỗi model một lần.
-        // Model trả 429 (hết 20 request/ngày của Free Tier) bị loại khỏi các đợt sau.
+        // Model trả 429 (chạm hạn mức API) bị loại khỏi các đợt sau.
         for ($round = 1; $round <= $rounds; $round++) {
             $remaining = array_values(array_diff($models, $exhausted));
 
@@ -69,7 +69,15 @@ class GeminiArticleWriter
                 } catch (ConnectionException $exception) {
                     Log::warning('Gemini: không kết nối được', ['model' => $candidateModel, 'error' => $exception->getMessage()]);
 
-                    throw new RuntimeException('Không kết nối được tới Gemini. Vui lòng thử lại sau.');
+                    $detail = $exception->getMessage();
+                    $message = match (true) {
+                        str_contains($detail, 'cURL error 28:') => 'Gemini phản hồi quá thời gian chờ '.(int) config('services.gemini.timeout', 90).' giây. Hãy thử lại hoặc tăng GEMINI_TIMEOUT trong cấu hình máy chủ.',
+                        str_contains($detail, 'cURL error 6:') => 'Máy chủ website không phân giải được tên miền Gemini. Hãy kiểm tra DNS và kết nối Internet của máy chủ.',
+                        str_contains($detail, 'cURL error 60:') => 'Máy chủ website không xác thực được chứng chỉ HTTPS của Gemini. Hãy kiểm tra chứng chỉ CA trên máy chủ.',
+                        default => 'Không kết nối được tới Gemini. Hãy kiểm tra kết nối mạng của máy chủ và thử lại.',
+                    };
+
+                    throw new RuntimeException($message, previous: $exception);
                 }
 
                 if (! $response->successful()) {
@@ -100,7 +108,7 @@ class GeminiArticleWriter
         if ($response->failed()) {
             if ($response->status() === 429) {
                 throw new RuntimeException(
-                    'Gemini đang hết hạn mức của dự án API (HTTP 429). Gói miễn phí chỉ cho 20 bài/ngày với mỗi model; '
+                    'Gemini đang hết hạn mức của dự án API (HTTP 429). Hạn mức phụ thuộc model và dự án; '
                     .'hãy thử lại sau vài phút hoặc sang ngày mai, hoặc bật Billing trong Google AI Studio để nâng hạn mức.',
                 );
             }
@@ -117,6 +125,7 @@ class GeminiArticleWriter
             throw new RuntimeException(
                 'Gemini không tạo được bài viết (HTTP '.$response->status().').'
                 .($detail !== '' ? ' '.$detail : ''),
+                $response->status(),
             );
         }
 

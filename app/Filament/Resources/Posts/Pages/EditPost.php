@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Posts\Pages;
 
 use App\Filament\Resources\Posts\PostResource;
+use App\Services\Articles\PublicationReview;
 use App\Support\PostContent;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
@@ -25,6 +26,8 @@ class EditPost extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        PublicationReview::validate($data);
+
         $data['sections'] = PostContent::intoSections(
             $data['article_body'] ?? null,
             $this->getRecord()->sections ?? [],
