@@ -221,9 +221,10 @@ class GeminiArticleWriter
         - SEO title viết hoa theo lối tiếng Việt: chỉ viết hoa chữ cái đầu câu và tên riêng (VinFast, VF 6, Bắc Giang). Tuyệt đối không viết hoa đầu mỗi từ theo kiểu tiếng Anh.
 
         Yêu cầu để máy tìm kiếm và trợ lý AI trích dẫn được (GEO):
-        - Đoạn đầu tiên trả lời trực tiếp câu hỏi của tiêu đề trong 2–3 câu, đứng độc lập, không cần đọc phần sau mới hiểu.
+        - CÂU ĐẦU TIÊN của bài phải là câu trả lời trực tiếp cho đúng câu hỏi hoặc chủ đề của tiêu đề và chứa từ khóa chính. Cấm mở bài bằng câu dẫn chung về thị trường, xu hướng hay thương hiệu.
+        - Cả đoạn đầu dài 2–3 câu, đứng độc lập, không cần đọc phần sau mới hiểu.
         - Ngay sau đoạn đầu, đặt một danh sách ul gồm 3–5 gạch đầu dòng "ý chính" — mỗi dòng là một câu hoàn chỉnh, có thể trích dẫn riêng.
-        - Đề mục h2 viết dưới dạng câu hỏi người đọc thật sự tìm kiếm.
+        - Ít nhất 3 trong 4 đề mục h2 phải là câu hỏi người đọc thật sự gõ vào Google và kết thúc bằng dấu hỏi.
         - Mỗi đoạn chỉ nói một ý; nêu rõ điều kiện, phạm vi và thời điểm áp dụng của mọi con số.
         - {$productLine}
         - {$categoryLine}

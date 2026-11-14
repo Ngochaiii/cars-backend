@@ -257,6 +257,71 @@ class ArticleGenerationTest extends TestCase
         $this->assertStringContainsString('Quá nhiều liên kết', implode(' ', $review['warnings']));
     }
 
+    public function test_review_canh_bao_khi_cau_mo_dau_chua_tra_loi_ngay(): void
+    {
+        $result = $this->articleResult();
+        $result['article_html'] = '<p>Thị trường ô tô Việt Nam những năm gần đây chứng kiến nhiều thay đổi lớn về công nghệ, hạ tầng và thói quen tiêu dùng của người mua xe trên cả nước. '
+            .str_repeat('Nội dung dẫn dắt chung chung không nhắc chủ đề. ', 8).'</p><h2>Xe điện là gì?</h2>';
+        $generation = $this->generation(['result' => $result, 'research' => ['brief' => ['keyword' => 'xe điện VinFast']]]);
+
+        $review = app(ArticleReview::class)->check($generation);
+
+        $this->assertFalse($review['checks']['Mở đầu trả lời ngay chủ đề chính']);
+    }
+
+    public function test_review_dat_khi_cau_mo_dau_tra_loi_ngay(): void
+    {
+        $result = $this->articleResult();
+        $result['article_html'] = '<p>Xe điện VinFast phù hợp với gia đình bốn người nhờ chi phí vận hành thấp. '
+            .str_repeat('Phần giải thích chi tiết theo sau. ', 10).'</p><h2>Vì sao?</h2>';
+        $generation = $this->generation(['result' => $result, 'research' => ['brief' => ['keyword' => 'xe điện VinFast']]]);
+
+        $review = app(ArticleReview::class)->check($generation);
+
+        $this->assertTrue($review['checks']['Mở đầu trả lời ngay chủ đề chính']);
+    }
+
+    public function test_hu_tu_trong_tu_khoa_khong_lam_hong_phep_doi_chieu(): void
+    {
+        $result = $this->articleResult();
+        // Câu mở đầu trả lời thẳng nhưng không chứa chữ "nào" — từ để hỏi,
+        // không mang nghĩa, không được tính là thiếu từ khóa.
+        $result['article_html'] = '<p>Để giữ giá tốt khi bán lại, người mua VF 7 nên chọn màu ngoại thất trung tính như trắng, đen hoặc xám. '
+            .str_repeat('Phần giải thích chi tiết theo sau. ', 10).'</p><h2>Vì sao?</h2>';
+        $generation = $this->generation([
+            'result' => $result,
+            'research' => ['brief' => ['keyword' => 'VF 7 nên chọn màu nào giữ giá']],
+        ]);
+
+        $review = app(ArticleReview::class)->check($generation);
+
+        $this->assertTrue($review['checks']['Mở đầu trả lời ngay chủ đề chính']);
+    }
+
+    public function test_review_canh_bao_khi_de_muc_khong_phai_cau_hoi(): void
+    {
+        $result = $this->articleResult();
+        $result['article_html'] = '<p>'.str_repeat('Nội dung bài viết. ', 40).'</p>'
+            .'<h2>Bảng màu xe có gì?</h2><h2>Bí quyết giữ màu sơn</h2><h2>Trải nghiệm thực tế</h2><h2>Tư vấn mua xe</h2>';
+        $generation = $this->generation(['result' => $result, 'research' => ['brief' => ['keyword' => 'nội dung']]]);
+
+        $review = app(ArticleReview::class)->check($generation);
+
+        $this->assertFalse($review['checks']['Phần lớn đề mục là câu hỏi']);
+    }
+
+    public function test_review_dat_khi_da_so_de_muc_la_cau_hoi(): void
+    {
+        $result = $this->articleResult();
+        $result['article_html'] = '<p>'.str_repeat('Nội dung bài viết. ', 40).'</p>'
+            .'<h2>Bảng màu xe có gì?</h2><h2>Chọn màu nào hợp phong thủy?</h2><h2>Giữ màu sơn thế nào?</h2><h2>Mua ở đâu</h2>';
+        $generation = $this->generation(['result' => $result, 'research' => ['brief' => ['keyword' => 'nội dung']]]);
+
+        $review = app(ArticleReview::class)->check($generation);
+
+        $this->assertTrue($review['checks']['Phần lớn đề mục là câu hỏi']);
+    }
+
     public function test_review_canh_bao_bai_qua_ngan(): void
     {
         $generation = $this->generation(['result' => $this->articleResult(), 'research' => ['brief' => ['keyword' => 'xe điện']]]);

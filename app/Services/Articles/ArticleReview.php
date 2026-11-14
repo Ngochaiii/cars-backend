@@ -9,6 +9,17 @@ use Illuminate\Support\Str;
 
 class ArticleReview
 {
+    /**
+     * Hư từ và từ để hỏi trong từ khóa: câu trả lời tự nhiên hiếm khi nhắc lại
+     * chúng ("nên chọn màu nào" → "nên chọn màu trung tính"), nên bắt buộc có
+     * mặt là báo nhầm.
+     */
+    private const FUNCTION_WORDS = [
+        'nào', 'gì', 'sao', 'thế', 'bao', 'nhiêu', 'không', 'chưa', 'hay',
+        'là', 'và', 'của', 'cho', 'với', 'tại', 'khi', 'để', 'nên', 'được',
+        'các', 'những', 'một', 'này', 'đó', 'thì', 'mà', 'ra', 'vào', 'như',
+    ];
+
     public function check(ArticleGeneration $generation): array
     {
         $result = $generation->result;
@@ -25,7 +36,10 @@ class ArticleReview
         $words = count(preg_split('/\s+/u', trim($text), -1, PREG_SPLIT_NO_EMPTY) ?: []);
         $checks = [
             'Từ khóa chính trong tiêu đề SEO' => $this->covers($result['seo_title'], $keyword),
-            'Mở đầu đề cập chủ đề chính' => $this->covers(mb_substr($text, 0, 700), $keyword),
+            // Trợ lý AI trích đoạn đầu tiên, nên câu trả lời phải nằm ngay đó —
+            // không phải sau một đoạn dẫn chung về thị trường.
+            'Mở đầu trả lời ngay chủ đề chính' => $this->covers(mb_substr($text, 0, 300), $keyword),
+            'Phần lớn đề mục là câu hỏi' => $this->questionHeadings($html),
             'Có ít nhất ba đề mục' => preg_match_all('/<h[23]\b/i', $html) >= 3,
             'Mô tả tìm kiếm đủ rõ (120–170 ký tự)' => mb_strlen($result['meta_description']) >= 120 && mb_strlen($result['meta_description']) <= 170,
             'Bài đủ dài (từ 1.200 từ)' => $words >= 1200,
@@ -78,6 +92,22 @@ class ArticleReview
         ];
     }
 
+    /** Đề mục dạng câu hỏi khớp truy vấn tìm kiếm tốt hơn đề mục dạng khẳng định. */
+    private function questionHeadings(string $html): bool
+    {
+        preg_match_all('/<h2\b[^>]*>(.*?)<\/h2>/is', $html, $matches);
+        $headings = array_map(fn (string $heading): string => trim(strip_tags($heading)), $matches[1]);
+        $headings = array_values(array_filter($headings));
+
+        if ($headings === []) {
+            return false;
+        }
+
+        $questions = array_filter($headings, fn (string $heading): bool => str_ends_with($heading, '?'));
+
+        return count($questions) / count($headings) >= 0.6;
+    }
+
     /**
      * Từ khóa chính hiếm khi xuất hiện nguyên cụm trong câu tiếng Việt tự
      * nhiên ("VF 5 Plus chạy dịch vụ Bắc Giang" → "VinFast VF 5 Plus có phù
@@ -87,7 +117,7 @@ class ArticleReview
     {
         $words = array_filter(
             preg_split('/\s+/u', Str::lower(preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $keyword)), -1, PREG_SPLIT_NO_EMPTY) ?: [],
-            fn (string $word): bool => mb_strlen($word) > 1,
+            fn (string $word): bool => mb_strlen($word) > 1 && ! in_array($word, self::FUNCTION_WORDS, true),
         );
 
         if ($words === []) {
