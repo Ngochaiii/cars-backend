@@ -263,6 +263,15 @@ return [
                 'facebook_pixel' => ['label' => 'Facebook Pixel ID', 'type' => 'text'],
             ],
         ],
+
+        // Số/email phá form. Gửi từ đây vẫn thấy "đã gửi" như thường, nhưng
+        // không lưu lead và không báo chuyển đổi cho Google Ads — xem StoreLead.
+        'spam' => [
+            'label' => 'Chặn spam',
+            'fields' => [
+                'blocked_contacts' => ['label' => 'Số điện thoại / email bị chặn (mỗi dòng một số hoặc một email)', 'type' => 'textarea'],
+            ],
+        ],
     ],
 
     /*

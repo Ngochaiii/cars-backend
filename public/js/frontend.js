@@ -634,7 +634,9 @@
                         form_key: form.action.split('/').pop(),
                         lead_id: json.data && json.data.id
                     });
-                    if (window.gtag && window.leadConversion) {
+                    // Không có id = server bỏ qua (bot hoặc số bị chặn): vẫn báo
+                    // "đã gửi" cho người gửi nhưng không tính chuyển đổi.
+                    if (window.gtag && window.leadConversion && json.data && json.data.id) {
                         window.gtag('event', 'conversion', { send_to: window.leadConversion });
                     }
                     form.dispatchEvent(new CustomEvent('lead:success', {

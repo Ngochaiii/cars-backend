@@ -20,7 +20,7 @@ use Illuminate\Support\Arr;
 class StoreLead
 {
     /**
-     * @return ?Model  lead vừa tạo · lead trùng gần đây · null nếu là bot
+     * @return ?Model  lead vừa tạo · lead trùng gần đây · null nếu là bot hoặc số/email bị chặn
      */
     public function handle(Request $request, Model $form): ?Model
     {
@@ -54,6 +54,12 @@ class StoreLead
             $form->validationAttributes(),
         );
 
+        // Số/email trong Cài đặt → Chặn spam: im lặng bỏ qua như bot, để
+        // người gửi không biết mình bị chặn mà đổi số khác.
+        if ($this->isBlocked(Arr::get($data, 'phone'), Arr::get($data, 'email'))) {
+            return null;
+        }
+
         if ($existing = $this->recentDuplicate($form, Arr::get($data, 'phone'))) {
             return $existing;
         }
@@ -78,6 +84,23 @@ class StoreLead
         ResolveLeadLocation::dispatch($lead);
 
         return $lead;
+    }
+
+    protected function isBlocked(?string $phone, ?string $email): bool
+    {
+        $blocked = collect(preg_split('/[\r\n,;]+/', (string) catalog_setting('blocked_contacts')))
+            ->map(fn (string $line) => trim($line))
+            ->filter()
+            ->map(fn (string $line) => str_contains($line, '@')
+                ? mb_strtolower($line)
+                : Phone::normalize($line));
+
+        if ($blocked->isEmpty()) {
+            return false;
+        }
+
+        return (filled($phone) && $blocked->contains(Phone::normalize($phone)))
+            || (filled($email) && $blocked->contains(mb_strtolower(trim($email))));
     }
 
     /** Cùng form + cùng số trong cửa sổ ngắn thì trả lại lead cũ, không tạo mới. */
