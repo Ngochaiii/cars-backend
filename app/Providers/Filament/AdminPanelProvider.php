@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\ManageSettings;
 use App\Filament\Resources\Banners\BannerResource;
 use App\Filament\Resources\Categories\CategoryResource;
+use App\Filament\Resources\ContactClicks\ContactClickResource;
 use App\Filament\Resources\Dealers\DealerResource;
 use App\Filament\Resources\Forms\FormResource;
 use App\Filament\Resources\Leads\LeadResource;
@@ -64,6 +65,7 @@ class AdminPanelProvider extends PanelProvider
 
                 Catalog::feature('forms') ? FormResource::class : null,
                 Catalog::feature('forms') ? LeadResource::class : null,
+                ContactClickResource::class,
             ])))
             ->pages([
                 Dashboard::class,

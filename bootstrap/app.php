@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\HandleRedirects;
+use App\Http\Middleware\RememberVisit;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -24,6 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // web: đường dẫn cũ thường không còn route nào nên nhóm web không kịp
         // chạy trước khi Laravel ném 404.
         $middleware->prepend(HandleRedirects::class);
+
+        // Nhớ nguồn quảng cáo + các trang khách đã xem trong session, để lượt
+        // bấm gọi/Zalo (ContactClickController) biết khách đến từ đâu.
+        $middleware->web(append: [RememberVisit::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

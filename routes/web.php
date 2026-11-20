@@ -5,6 +5,7 @@ use App\Http\Controllers\Frontend\AccessoryController;
 use App\Http\Controllers\Frontend\BookingController;
 use App\Http\Controllers\Frontend\CategoryController;
 use App\Http\Controllers\Frontend\CompareController;
+use App\Http\Controllers\Frontend\ContactClickController;
 use App\Http\Controllers\Frontend\DealerController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\LeadController;
@@ -137,6 +138,13 @@ if (catalog_feature('forms')) {
         ->middleware('throttle:10,1')
         ->name('leads.store');
 }
+
+/*
+| Lượt bấm nút gọi / Zalo — frontend.js gửi bằng sendBeacon, trả 204.
+*/
+Route::post('bam-lien-he', ContactClickController::class)
+    ->middleware('throttle:30,1')
+    ->name('contact-clicks.store');
 
 // Trang tĩnh nằm ở gốc (/gioi-thieu) nên đặt CUỐI cùng để không nuốt route khác.
 if (catalog_feature('pages')) {

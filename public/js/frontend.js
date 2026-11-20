@@ -516,7 +516,23 @@
             if (window.gtag && window.contactConversion) {
                 window.gtag('event', 'conversion', { send_to: window.contactConversion });
             }
+            sendContactClick(channel);
         });
+    }
+
+    // Ghi lượt bấm về server (bảng "Lượt bấm gọi/Zalo" trong admin) để biết
+    // khách vào từ quảng cáo nào, đã xem trang gì. sendBeacon vẫn gửi được
+    // khi trang chuyển sang app gọi điện / Zalo ngay sau cú bấm.
+    function sendContactClick(channel) {
+        var token = document.querySelector('meta[name="csrf-token"]');
+        if (!token || !navigator.sendBeacon || !window.FormData) return;
+
+        var data = new FormData();
+        data.append('_token', token.getAttribute('content'));
+        data.append('channel', channel);
+        data.append('page', location.pathname);
+
+        try { navigator.sendBeacon('/bam-lien-he', data); } catch (e) { /* không chặn cú bấm */ }
     }
 
     function initLeadForm(form) {
